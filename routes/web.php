@@ -64,6 +64,10 @@ Route::group(['middleware' => ['auth']], function() {
 
     //Route::resource('/profiles', ProfileController::class);
     Route::get('/profiles', [ProfileController::class, 'index'])->name('profiles.index');
+    Route::post('/profiles/update', [ProfileController::class, 'update'])->name('profiles.update');
+    Route::post('/profiles/store', [ProfileController::class, 'store'])->name('profiles.store');
+    Route::post('/profiles/update-pic', [ProfileController::class, 'updatePic'])->name('profiles.updatePic');
+    Route::post('/profiles/update-password/{id}', [ProfileController::class, 'updatePassword'])->name('profiles.updatePassword');
 
     //Route Get Location
 

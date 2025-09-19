@@ -252,7 +252,7 @@
       <li class="menu-item">
         <a href="{{ route('logout')}}" onclick="event.preventDefault();
                           document.getElementById('logout-form').submit();" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-crown"></i>
+          <i class="menu-icon tf-icons bx bx-power-off"></i>
           <div class="text-truncate" data-i18n="Boxicons">Logout</div>
         </a>
       </li>

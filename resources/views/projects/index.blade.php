@@ -28,7 +28,7 @@
                   @foreach($projects as $project)
                     <tr>
                         <td>
-                          <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> <span>{{$project->name }}</span>
+                          <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> <span>{{$project->project_title }}</span>
                         </td>
                         <td>{{ $project->description }}</td>
                         <td>

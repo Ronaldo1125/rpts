@@ -216,12 +216,22 @@ body {
   -webkit-tap-highlight-color: rgba(34, 48, 62, 0);
 }
 
-hr {
+/* hr {
   margin: 1rem 0;
-  color: var(--bs-border-color);
-  border: 0;
+  color: var(--bs-blue);
+  border: 1;
   border-top: var(--bs-border-width) solid;
-  opacity: 1;
+  opacity: 1; 
+} */
+
+hr {
+  border: 1px solid #0000FF; /* Sets a 1px solid blue border */
+  background-color: #0000FF; /* Sets the background color to blue */
+  height: 2px; /* Defines the height of the hr element */
+  /* You may also want to remove default browser styling for consistency */
+  margin: 10px 0; /* Adds some vertical margin */
+  /* For older IE versions, you might need to set color as well */
+  color: #0000FF;
 }
 
 h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
