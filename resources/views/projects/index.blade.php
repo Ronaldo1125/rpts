@@ -19,8 +19,7 @@
                     <tr>
                         <th>Project Name</th>
                         <th>Description</th>
-                        <th>Users</th>
-                        <th>Status</th>
+                        <th>Created At</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -31,35 +30,8 @@
                           <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> <span>{{$project->project_title }}</span>
                         </td>
                         <td>{{ $project->description }}</td>
-                        <td>
-                          <ul class="list-unstyled m-0 avatar-group d-flex align-items-center">
-                            <li
-                              data-bs-toggle="tooltip"
-                              data-popup="tooltip-custom"
-                              data-bs-placement="top"
-                              class="avatar avatar-xs pull-up"
-                              title="Lilian Fuller">
-                              <img src="../assets/img/avatars/2.png" alt="Avatar" class="rounded-circle" />
-                            </li>
-                            <li
-                              data-bs-toggle="tooltip"
-                              data-popup="tooltip-custom"
-                              data-bs-placement="top"
-                              class="avatar avatar-xs pull-up"
-                              title="Sophia Wilkerson">
-                              <img src="../assets/img/avatars/3.png" alt="Avatar" class="rounded-circle" />
-                            </li>
-                            <li
-                              data-bs-toggle="tooltip"
-                              data-popup="tooltip-custom"
-                              data-bs-placement="top"
-                              class="avatar avatar-xs pull-up"
-                              title="Christina Parker">
-                              <img src="../assets/img/avatars/4.png" alt="Avatar" class="rounded-circle" />
-                            </li>
-                          </ul>
-                        </td>
-                        <td><span class="badge bg-label-primary me-1">Active</span></td>
+                        
+                        <td><span class="badge bg-label-primary me-1">{{ $project->created_at->diffForHumans() }}</span></td>
                         <td>
                           <div class="dropdown">
                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">

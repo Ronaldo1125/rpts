@@ -27,7 +27,7 @@
                   @foreach($chapters as $chapter)
                     <tr>
                         <td>
-                          <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> <span>{{ $chapter->chapter_name }}</span>
+                           <span>{{ $chapter->chapter_name }}</span>
                         </td>
                         <td><span class="badge bg-label-primary me-1">{{ $chapter->created_at->diffForHumans() }}</span></td>
                         <td>
@@ -73,6 +73,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('chapters.store') }}" method="POST" id="add-form">
               @csrf
       <div class="modal-body">
@@ -109,6 +110,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('chapters.update', $chapter->id) }}" method="POST" id="add-form">
               @csrf
               @method('PUT')

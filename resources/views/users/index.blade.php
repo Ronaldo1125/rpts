@@ -29,7 +29,7 @@
                   @foreach($users as $user)
                     <tr>
                         <td>
-                          <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> <span>{{$user->name}}</span>
+                          <span>{{$user->name}}</span>
                         </td>
                         <td>{{ $user->email }}</td>
                         <td>
@@ -79,6 +79,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('users.store') }}" method="POST" id="add-form">
               @csrf
       <div class="modal-body">
@@ -155,6 +156,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('users.update', $user->id) }}" method="POST" id="add-form">
               @csrf
               @method('PUT')

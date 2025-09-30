@@ -20,8 +20,7 @@
                     <tr>
                         <th>RDC Resolution</th>
                         <th>Resolution Date</th>
-                        <th>Users</th>
-                        <th>Status</th>
+                        <th>Created At</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -29,38 +28,11 @@
                   @foreach($endorsements as $endorsement)
                     <tr>
                         <td>
-                          <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> <span>{{ $endorsement->rdc_resolution }}</span>
+                          {{-- <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> --}} <span>{{ $endorsement->rdc_resolution }}</span> 
                         </td>
-                        <td>{{ $endorsement->resolution_date }}</td>
-                        <td>
-                          <ul class="list-unstyled m-0 avatar-group d-flex align-items-center">
-                            <li
-                              data-bs-toggle="tooltip"
-                              data-popup="tooltip-custom"
-                              data-bs-placement="top"
-                              class="avatar avatar-xs pull-up"
-                              title="Lilian Fuller">
-                              <img src="../assets/img/avatars/2.png" alt="Avatar" class="rounded-circle" />
-                            </li>
-                            <li
-                              data-bs-toggle="tooltip"
-                              data-popup="tooltip-custom"
-                              data-bs-placement="top"
-                              class="avatar avatar-xs pull-up"
-                              title="Sophia Wilkerson">
-                              <img src="../assets/img/avatars/3.png" alt="Avatar" class="rounded-circle" />
-                            </li>
-                            <li
-                              data-bs-toggle="tooltip"
-                              data-popup="tooltip-custom"
-                              data-bs-placement="top"
-                              class="avatar avatar-xs pull-up"
-                              title="Christina Parker">
-                              <img src="../assets/img/avatars/4.png" alt="Avatar" class="rounded-circle" />
-                            </li>
-                          </ul>
-                        </td>
-                        <td><span class="badge bg-label-primary me-1">Active</span></td>
+                        <td class="text-center">{{ $endorsement->resolution_date }}</td>
+                        <td><span class="badge bg-label-primary me-1">{{ $endorsement->created_at->diffForHumans() }}</span></td>
+                        
                         <td>
                           <form action="{{ route('endorsements.destroy', $endorsement->id) }}" method="POST">
                             <div class="dropdown">
@@ -104,6 +76,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('endorsements.store') }}" method="POST" id="add-form">
               @csrf
       <div class="modal-body">
@@ -143,6 +116,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('endorsements.update', $endorsement->id) }}" method="POST" id="add-form">
               @csrf
               @method('PUT')

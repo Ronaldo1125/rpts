@@ -18,10 +18,8 @@
             <table class="table table-hover" id="myTable">
                 <thead>
                     <tr>
-                        <th>Sector Name</th>
-                       
-                        <th>Users</th>
-                        <th>Status</th>
+                        <th>Status Name</th>
+                        <th>Created At</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -29,38 +27,9 @@
                   @foreach($statuses as $status)
                     <tr>
                         <td>
-                          <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> <span>{{ $status->status_name }}</span>
+                           <span>{{ $status->status_name }}</span>
                         </td>
-                      
-                        <td>
-                          <ul class="list-unstyled m-0 avatar-group d-flex align-items-center">
-                            <li
-                              data-bs-toggle="tooltip"
-                              data-popup="tooltip-custom"
-                              data-bs-placement="top"
-                              class="avatar avatar-xs pull-up"
-                              title="Lilian Fuller">
-                              <img src="../assets/img/avatars/2.png" alt="Avatar" class="rounded-circle" />
-                            </li>
-                            <li
-                              data-bs-toggle="tooltip"
-                              data-popup="tooltip-custom"
-                              data-bs-placement="top"
-                              class="avatar avatar-xs pull-up"
-                              title="Sophia Wilkerson">
-                              <img src="../assets/img/avatars/3.png" alt="Avatar" class="rounded-circle" />
-                            </li>
-                            <li
-                              data-bs-toggle="tooltip"
-                              data-popup="tooltip-custom"
-                              data-bs-placement="top"
-                              class="avatar avatar-xs pull-up"
-                              title="Christina Parker">
-                              <img src="../assets/img/avatars/4.png" alt="Avatar" class="rounded-circle" />
-                            </li>
-                          </ul>
-                        </td>
-                        <td><span class="badge bg-label-primary me-1">Active</span></td>
+                        <td><span class="badge bg-label-primary me-1">{{ $status->created_at->diffForHumans() }}</span></td>
                         <td>
                           <form action="{{ route('statuses.destroy', $status->id) }}" method="POST">
                             <div class="dropdown">
@@ -104,6 +73,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('statuses.store') }}" method="POST" id="add-form">
               @csrf
       <div class="modal-body">
@@ -138,6 +108,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('statuses.update', $status->id) }}" method="POST" id="add-form">
               @csrf
               @method('PUT')

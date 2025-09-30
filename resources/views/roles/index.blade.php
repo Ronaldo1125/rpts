@@ -28,7 +28,7 @@
                   @foreach($roles as $role)
                     <tr>
                         <td>
-                          <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> <span>{{ $role->name }}</span>
+                           <span>{{ $role->name }}</span>
                         </td>
                         <td>
                           @if($role->permissions->count() > 0)
@@ -81,6 +81,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('roles.store') }}" method="POST" id="add-form">
               @csrf
       <div class="modal-body">
@@ -125,6 +126,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('roles.update', $role->id) }}" method="POST" id="add-form">
               @csrf
               @method('PUT')

@@ -242,7 +242,10 @@
       </li>
 
       <!-- Cards -->
-      <li class="menu-item">
+      <li class="menu-item  @if(document_path() == 'reports')
+      active
+      @endif
+      ">
         <a href="{{ route('reports.index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-detail"></i>
           <div class="text-truncate" data-i18n="Basic">Report Generation</div>

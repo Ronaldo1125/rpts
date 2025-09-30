@@ -1,4 +1,15 @@
-<!-- Button in the start -->
+@extends('layouts.app')
+
+@section('content')
+
+<div class="content-wrapper">
+    <!-- Content -->
+    <div class="container-xxl flex-grow-1 container-p-y">
+        
+        <h3 class="p-5">Report Generation</h3>
+        
+
+        <!-- Button in the start -->
 <div class="input-group mb-3">
     <button
         class="btn btn-outline-secondary dropdown-toggle"
@@ -21,3 +32,26 @@
         aria-label="Text input with dropdown button"
     />
 </div>
+
+
+
+    
+    </div>
+</div>
+
+
+@endsection
+
+@section('jsvalidator')
+{!! JsValidator::formRequest('App\Http\Requests\StoreSectorRequest') !!}
+@endsection
+
+
+
+
+
+
+
+
+
+

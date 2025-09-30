@@ -27,7 +27,7 @@
                   @foreach($permissions as $permission)
                     <tr>
                         <td>
-                          <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> <span>{{ $permission->name }}</span>
+                          <span>{{ $permission->name }}</span>
                         </td>
                         <td><span class="badge bg-label-primary me-1">{{ $permission->created_at->diffForHumans() }}</span></td>
                         <td>
@@ -73,6 +73,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('permissions.store') }}" method="POST" id="add-form">
               @csrf
       <div class="modal-body">
@@ -109,6 +110,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+         <hr>
       <form action="{{ route('permissions.update', $permission->id) }}" method="POST" id="add-form">
               @csrf
               @method('PUT')

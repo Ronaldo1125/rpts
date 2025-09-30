@@ -28,7 +28,7 @@
                   @foreach($agencies as $agency)
                     <tr>
                         <td>
-                          <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> <span>{{ $agency->agency_name }}</span>
+                          <span>{{ $agency->agency_name }}</span>
                         </td>
                         <td class="text-center">
                           {{ $agency->sector_id }}
@@ -77,6 +77,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+      <hr>
       <form action="{{ route('agencies.store') }}" method="POST" id="add-form">
               @csrf
       <div class="modal-body">
@@ -129,6 +130,7 @@
             data-bs-dismiss="modal"
             aria-label="Close"></button>
       </div>
+      <hr>
       <form action="{{ route('agencies.update', $agency->id) }}" method="POST" id="add-form">
               @csrf
               @method('PUT')
