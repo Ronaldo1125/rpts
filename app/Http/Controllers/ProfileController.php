@@ -43,7 +43,7 @@ class ProfileController extends Controller
     {
         $request->validated();
 
-        // dd($request);
+        dd($request);
 
         Profile::create([
             'user_id' => $request->input('user_id'),
@@ -75,10 +75,9 @@ class ProfileController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(ProfileUpdateRequest $request, Profile $profile)
-    {  
-        $request->validated();
-
+    public function update(Request $request, Profile $profile)
+    { 
+        
         $profile->where('id', $request->id)->update([
             'mobile_number' => $request->mobile_number,
             'address' => $request->address

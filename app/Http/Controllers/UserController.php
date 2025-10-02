@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Agency;
+use App\Models\Profile;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
@@ -49,9 +50,13 @@ class UserController extends Controller
             'agency_id' => $request->agency_id,
         ]);
 
+        $profile = Profile::create([
+            'user_id' => $user->id,
+        ]);
+
         $user->assignRole($request->input('role'));
 
-        toast('User data added successfully!','success');
+        toast('User and Profile data added successfully!','success');
 
          return redirect()->route('users.index');
 
@@ -99,8 +104,12 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(User $user)
     {
-        //
+         $user->delete();
+
+        toast('User data deleted successfully!', 'success');
+
+        return redirect()->route('users.index');
     }
 }

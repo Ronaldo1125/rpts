@@ -17,8 +17,7 @@
                           </div>
                           <div class="text-center">
                             <h5>User Profile</h5>
-                        
-                            <img src="{{asset('/images')}}/{{is_null($userProfile) ? 'no-pic.png' : $userProfile->picture}}" alt="avatar" class="rounded-circle bg-dark img-fluid" style="width: 150px;">
+                              <img src="{{asset('/images')}}/{{$userProfile->picture}}" alt="avatar" class="rounded-circle bg-dark img-fluid" style="width: 150px;">
                             <div class="row justify-content-center p-2">
                                 <a href="javascript:void(0)" id="upload_pic" class="text-lg text-bold" data-bs-toggle="modal" data-bs-target="#ProfilePicModal">
                                     <i class="icon-base icon-lg bx bx-pencil"></i>
@@ -26,8 +25,8 @@
                             </div>
                                 <h5 class="my-3 font-weight-bold">{{$userInfo->name}}</h5>
                                 <p class="text-sm mb-1">{{$userInfo->email}}</p>
-                                <p class="text-sm mb-1">{{is_null($userProfile) ? '' : $userProfile->mobile_number}}</p>
-                                <p class="text-sm mb-1">{{is_null($userProfile) ? '' : $userProfile->address}}</p>
+                                <p class="text-sm mb-1">{{$userProfile->mobile_number}}</p>
+                                <p class="text-sm mb-1">{{$userProfile->address}}</p>
                                 <a href="javascript:void(0)" class="mt-3 btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#proInfoModal">Edit Profile Info</a>
                           </div>
                             
@@ -97,12 +96,12 @@
           <div class="modal-body">
             <div class="row justify-content-center">
               <div class="col mb-6">
-               <img src="{{asset('/images')}}/{{$userProfile->picture}}" alt="avatar" class="rounded-circle bg-dark img-fluid" style="width: 150px;">
+                    <img src="{{asset('/images')}}/{{$userProfile->picture}}" alt="avatar" class="rounded-circle bg-dark img-fluid" style="width: 150px;">
               </div>
               <div class="col-md-6 pt-5">
                   <form id="edit-form" enctype="multipart/form-data" action="{{route('profiles.updatePic')}}" method="POST">
                       @csrf
-                          <input type="hidden" name="user_id" value="{{ $userProfile->user_id }}">
+                          <input type="hidden" name="user_id" value="{{ $userInfo->id }}">
                           <div class="row justify-content-center">
                           <input id="avatar" type="file" name="avatar" class="form-control">
                           </div>
@@ -124,7 +123,7 @@
      <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel3">{{ is_null($userProfile) ? 'Create' : 'Update' }} Profile Info</h5>
+            <h5 class="modal-title" id="exampleModalLabel3">Update Profile Info</h5>
               <button
                 type="button"
                 class="btn-close"
@@ -132,27 +131,23 @@
                 aria-label="Close"></button>
           </div>
            <hr>
-            @if(is_null($userProfile))
-              <form action="{{ route('profiles.store') }}" method="POST" id="add-form">
-                <input type="hidden" name="user_id" value="{{ $userInfo->id }}"/>
-            @else
               <form action="{{ route('profiles.update') }}" method="POST" id="edit-form">
                 <input type="hidden" name="id" value="{{ $userProfile->id }}"/>
-            @endif
+                <input type="hidden" name="user_id" value="{{ $userProfile->user_id }}"/>
               @csrf
         
           <div class="modal-body">
             <div class="row">
               <div class="col mb-6">
                 <label for="mobile_number" class="form-label">Mobile Number</label>
-                <input type="number" name="mobile_number" id="mobile_number" class="form-control" value="{{ is_null($userProfile) ? '' : $userProfile->mobile_number }}" placeholder="Enter Mobile Number" />
+                <input type="number" name="mobile_number" id="mobile_number" class="form-control" value="{{ $userProfile->mobile_number }}" placeholder="Enter Mobile Number" />
               </div>
             </div>
 
             <div class="row">
               <div class="col mb-6">
                 <label for="address" class="form-label">Address</label>
-                <input type="text" name="address" id="address" class="form-control" value="{{ is_null($userProfile) ? '' : $userProfile->address }}" placeholder="Enter Address" />
+                <input type="text" name="address" id="address" class="form-control" value="{{ $userProfile->address }}" placeholder="Enter Address" />
               </div>
             </div>
           </div>

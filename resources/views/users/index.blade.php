@@ -145,7 +145,7 @@
 
 <!-- Edit Permission Modal -->
 @foreach($users as $user)
-<div class="modal fade" id="editUser{{$user->id}}" tabindex="-1" aria-hidden="true">
+<div class="modal fade editUser" id="editUser{{$user->id}}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -227,4 +227,5 @@
 
 @section('jsvalidator')
 {!! JsValidator::formRequest('App\Http\Requests\StoreUserRequest') !!}
+
 @endsection
