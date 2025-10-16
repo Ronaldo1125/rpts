@@ -32,9 +32,11 @@ Route::group(['middleware' => ['auth']], function() {
 
     Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
+    Route::get('projects/edit/{id}', [ProjectController::class, 'edit'])->name('projects.edit');
+    Route::post('projects/update/{id}', [ProjectController::class, 'update'])->name('projects.update');
     Route::post('projects/store', [ProjectController::class, 'store'])->name('projects.store');
     Route::post('projects/media', [ProjectController::class, 'storeMedia'])->name('projects.storeMedia');
-
+    Route::delete('projects/{id}',[ProjectController::class, 'destroy'])->name('projects.destroy');
 
     //Route of Sectors
     Route::resource('/sectors', SectorController::class);

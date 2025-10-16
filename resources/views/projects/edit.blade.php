@@ -6,7 +6,7 @@
     <!-- Content -->
     <div class="container-xxl flex-grow-1 container-p-y">
         
-        <h3 class="p-5">Add Project</h3>
+        <h3 class="p-5">Update Project</h3>
          <p class="text-end">
           <a href="{{ route('projects.index')}}"><button class="btn btn-success btn-sm"><< Back to Project List</button></a>
         </p>
@@ -17,7 +17,7 @@
   <div class="col-12">
     <div class="card">
       <div class="card-body">
-        <form action="{{ route('projects.store') }}" class="row g-5" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('projects.update', $project->id) }}" class="row g-5" method="POST" enctype="multipart/form-data">
           <!-- Account Details -->
           @csrf
           <div class="col-12">
@@ -27,12 +27,12 @@
       
             <div class="col-md-12 form-control-validation">
             <label class="form-label" for="project_title">Project Title</label>
-            <input type="text" id="project_title" class="form-control" placeholder="Enter Project Title" name="project_title" />
+            <input type="text" id="project_title" class="form-control" placeholder="Enter Project Title" name="project_title" value="{{ $project->project_title }}" />
             </div>
           
           <div class="col-md-12 form-control-validation">
             <label class="form-label" for="description">Project Description</label>
-            <textarea id="description" name="description" class="form-control" placeholder="Enter Project Description"></textarea>
+            <textarea id="description" name="description" class="form-control" placeholder="Enter Project Description">{{ $project->description }}</textarea>
           </div>
 
            <div class="col-md-4 form-control-validation">
@@ -40,7 +40,7 @@
             <select id="status_id" name="status_id" class="form-select">
                   <option value="">-- Select Status --</option>
                 @foreach($statuses as $key => $status)
-                  <option value="{{ $key }}">{{ $status }}</option>
+                  <option value="{{ $key }}" {{ ($project->status_id == $key) ? "selected='selected'" : "" }}>{{ $status }}</option>
                 @endforeach
             </select>  
           </div>
@@ -49,14 +49,14 @@
             <select id="endorsement_id" name="endorsement_id" class="form-select">
               <option value="">-- Select Endorsement --</option>
               @foreach($endorsements as $key => $endorsement)
-              <option value="{{ $key }}">{{ $endorsement }}</option>
+              <option value="{{ $key }}" {{ ($project->endorsement_id == $key) ? "selected='selected'" : "" }}>{{ $endorsement }}</option>
               @endforeach
             </select>  
           </div>
 
           <div class="col-md-4 form-control-validation">
             <label class="form-label" for="funding_requirement">Funding Requirement</label>
-            <input type="number" class="form-control" name="funding_requirement" step="any" id="funding_requirement" />  
+            <input type="number" class="form-control" name="funding_requirement" step="any" value="{{ $project->funding_requirement }}" id="funding_requirement" />  
           </div>
 
           <div class="row">
@@ -64,7 +64,7 @@
               <label class="form-label" for="rdp_chapters">RDP Chapter</label>
             <select id="rdp_chapters" name="rdp_chapters[]" class="form-select js-example-basic-multiple" multiple="multiple">
                 @foreach($chapters as $key => $chapter)
-                <option value="{{ $key }}">{{ $chapter }}</option>
+                <option value="{{ $key }}" {{ in_array($key, $arrValueSelectedChapters) ? "selected='selected'" : "" }}>{{ $chapter }}</option>
                 @endforeach
               </select>  
             </div>
@@ -76,7 +76,7 @@
            <select id="province_id" name="province_id" class="form-select">
               <option value="">-- Select Province --</option>
               @foreach($provinces as $key => $province)
-              <option value="{{ $key }}">{{ $province }}</option>
+              <option value="{{ $key }}" {{ ($key==$project->project_location->province_id) ? ' selected="selected" ' : ''}}>{{ $province }}</option>
               @endforeach
             </select>  
           </div>
@@ -98,73 +98,73 @@
           <span class="mb-0">Physical Target</span>
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2023">2023</label>
-            <input type="number" class="form-control" name="target_year_2023" step="any" id="target_year_2023" />  
+            <input type="number" class="form-control" name="target_year_2023" value="{{ $project->project_cost_target->target_year_2023 }}" step="any" id="target_year_2023" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2024">2024</label>
-            <input type="number" class="form-control" name="target_year_2024" step="any" id="target_year_2024" />  
+            <input type="number" class="form-control" name="target_year_2024" value="{{ $project->project_cost_target->target_year_2024 }}" step="any" id="target_year_2024" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2025">2025</label>
-            <input type="number" class="form-control" name="target_year_2025" step="any" id="target_year_2025" />  
+            <input type="number" class="form-control" name="target_year_2025" value="{{ $project->project_cost_target->target_year_2025 }}" step="any" id="target_year_2025" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2026">2026</label>
-            <input type="number" class="form-control" name="target_year_2026" step="any" id="target_year_2026" />  
+            <input type="number" class="form-control" name="target_year_2026" value="{{ $project->project_cost_target->target_year_2026 }}" step="any" id="target_year_2026" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2027">2027</label>
-            <input type="number" class="form-control" name="target_year_2027" step="any" id="target_year_2027" />  
+            <input type="number" class="form-control" name="target_year_2027" value="{{ $project->project_cost_target->target_year_2027 }}" step="any" id="target_year_2027" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2028">2028</label>
-            <input type="number" class="form-control" name="target_year_2028" step="any" id="target_year_2028" />  
+            <input type="number" class="form-control" name="target_year_2028" value="{{ $project->project_cost_target->target_year_2028 }}" step="any" id="target_year_2028" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_succeeding_years">Succeeding Years</label>
-            <input type="number" class="form-control" name="target_succeeding_years" step="any" id="target_succeeding_years" />  
+            <input type="number" class="form-control" name="target_succeeding_years" value="{{ $project->project_cost_target->target_succeeding_years }}" step="any" id="target_succeeding_years" />  
           </div>
 
           <span class="mb-0">Project Cost(PM)</span>
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2023">2023</label>
-            <input type="number" class="form-control" name="cost_year_2023" step="any" id="cost_year_2023" />  
+            <input type="number" class="form-control" name="cost_year_2023" value="{{ $project->project_cost_target->cost_year_2023 }}" step="any" id="cost_year_2023" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2024">2024</label>
-            <input type="number" class="form-control" name="cost_year_2024" step="any" id="cost_year_2024" />  
+            <input type="number" class="form-control" name="cost_year_2024" value="{{ $project->project_cost_target->cost_year_2024 }}" step="any" id="cost_year_2024" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2025">2025</label>
-            <input type="number" class="form-control" name="cost_year_2025" step="any" id="cost_year_2025" />  
+            <input type="number" class="form-control" name="cost_year_2025" value="{{ $project->project_cost_target->cost_year_2025 }}" step="any" id="cost_year_2025" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2026">2026</label>
-            <input type="number" class="form-control" name="cost_year_2026" step="any" id="cost_year_2026" />  
+            <input type="number" class="form-control" name="cost_year_2026" value="{{ $project->project_cost_target->cost_year_2026 }}" step="any" id="cost_year_2026" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2027">2027</label>
-            <input type="number" class="form-control" name="cost_year_2027" step="any" id="cost_year_2027" />  
+            <input type="number" class="form-control" name="cost_year_2027" value="{{ $project->project_cost_target->cost_year_2027 }}" step="any" id="cost_year_2027" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2028">2028</label>
-            <input type="number" class="form-control" name="cost_year_2028" step="any" id="cost_year_2028" />  
+            <input type="number" class="form-control" name="cost_year_2028" value="{{ $project->project_cost_target->cost_year_2028 }}" step="any" id="cost_year_2028" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_succeeding_years">Succeeding Years</label>
-            <input type="number" class="form-control" name="cost_succeeding_years" step="any" id="cost_succeeding_years" />  
+            <input type="number" class="form-control" name="cost_succeeding_years" value="{{ $project->project_cost_target->cost_succeeding_years }}" step="any" id="cost_succeeding_years" />  
           </div>
 
           <span class="mb-0">Attachments</span>
@@ -186,7 +186,7 @@
 
           <div class="col-md-12 form-control-validation">
             <label class="form-label" for="remarks">Remarks</label>
-            <textarea id="remarks" name="remarks" class="form-control" placeholder="Enter Project Remarks"></textarea>
+            <textarea id="remarks" name="remarks" class="form-control" placeholder="Enter Project Remarks">{{ $project->remarks }}</textarea>
           </div>
 
          
@@ -194,6 +194,9 @@
             <button type="submit" name="submitButton" class="btn btn-primary">Submit</button>
           </div>
         </form>
+        <input type="hidden" name="sprovince_id" id="sprovince_id" value="{{ $project->project_location->province_id }}" />
+        <input type="hidden" name="sdistrict_id" id="sdistrict_id" value="{{ $project->project_location->district_id }}" />
+        <input type="hidden" name="smunicipality_id" id="smunicipality_id" value="{{ $project->project_location->municipality_id }}" />
       </div>
     </div>
   </div>
@@ -206,7 +209,7 @@
 
 @section('jsvalidator')
 
-{!! JsValidator::formRequest('App\Http\Requests\StoreProjectRequest') !!}
+{!! JsValidator::formRequest('App\Http\Requests\UpdateProjectRequest') !!}
 
 @endsection
 
@@ -214,15 +217,31 @@
 
 <script type="text/javascript">
 
+var sel = ' selected="selected" ';
+
 $(document).ready(function() {
 
 var province 			 = $("#province_id"); 
 var district 			 = $("#district_id"); 
-var municipality	 = $("#municipality_id"); 
+var municipality	 = $("#municipality_id");
+
+var selectedProvince 	 = $("#sprovince_id"); 
+var selectedDistrict     = $("#sdistrict_id"); 
+var selectedMunicipality = $("#smunicipality_id"); 
 
 // Disable Elements on load
 	$(district).attr({disabled:"disabled"});
 	$(municipality).attr({disabled:"disabled"});
+
+//Preselection
+
+if($(selectedProvince).val() != '') {
+  getDistricts(district, $(selectedProvince).val(), true);
+}
+
+if($(selectedDistrict).val() != ""){
+			getMunicipalities(municipality, $(selectedProvince).val(), $(selectedDistrict).val(), true);
+	}
 
   // Onchange Event
 	
@@ -258,17 +277,22 @@ var municipality	 = $("#municipality_id");
         },
         success: function (data) {
 
-          $(el).html('<option value="">-- Select District --</option>');
+          var options = '<option value="">-- Select District --</option>';
          
           $.each(data, function (id, value){
-            $(el).append('<option value="' + value.id + '">' + value.district_name + '</option>')
+            options += '<option value="' + value.id + '"';
+              if(value.id == $(selectedDistrict).val() && preselect == true) {
+                  options += sel;
+              }
+              options += '>' + value.district_name + '</option>';
           });
-          $(el).removeAttr('disabled');
+          $(el).html(options).removeAttr('disabled');
         }
     });
   }
 
   function getMunicipalities(el, provinceValue, districtValue, preselect) {
+    var selectedMunicipality = $("#smunicipality_id");
     $(el).html("<option value=''>Loading City/Municipality</option>");
 
     $.ajax({
@@ -279,13 +303,21 @@ var municipality	 = $("#municipality_id");
       },
       success: function(data) {
 
-        // console.log(data);
-        $(el).html("<option value=''>-- Select City/Municipality --</option>");
-
+        //console.log(data);
+        //$(el).html("<option value=''>-- Select City/Municipality --</option>");
+        var options = '<option value="">-- Select City/Municipality --</option>';
         $.each(data, function(id, value) {
-          $(el).append('<option value="' + value.id + '">' + value.municipality_name + '</option>');
+          options += '<option value="' + value.id + '"';
+
+          if(value.id == $(selectedMunicipality).val() && preselect == true) {
+            options += sel;
+          }
+
+          options += '>' + value.municipality_name + '</option>';
+         
         });
-        $(el).removeAttr('disabled');
+
+        $(el).html(options).removeAttr('disabled');
       }
 
     });
@@ -342,10 +374,6 @@ $(document).ready(function () {
     }
     });
 });
-
-
- 
-
 
 </script>
 @endsection

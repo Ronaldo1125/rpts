@@ -23,11 +23,26 @@ class Project extends Model implements HasMedia
         'user_id',
     ];
 
+    public static function last() 
+    {
+        return static::all()->last();
+    }
+
     public function registerMediaConversions(?Media $media = null): void
     {
         $this
             ->addMediaConversion('preview')
             ->fit(Fit::Contain, 300, 300)
             ->nonQueued();
+    }
+
+    public function project_cost_target() 
+    {
+        return $this->hasOne(ProjectCostTarget::class, 'project_id');
+    }
+
+    public function project_location()
+    {
+        return $this->hasOne(ProjectLocation::class, 'project_id');
     }
 }

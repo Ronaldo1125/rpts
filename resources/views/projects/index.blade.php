@@ -9,6 +9,8 @@
         <h3 class="p-5">Manage Projects</h3>
          <p class="text-end">
           <a href="{{ route('projects.create')}}"><button class="btn btn-success btn-sm">Create Project</button></a>
+          {{-- <button class="btn btn-success btn-sm" data-bs-toggle="modal"
+            data-bs-target="#addProject">Create Project</button> --}}
         </p>
 
 <!-- Hoverable Table rows -->
@@ -38,10 +40,12 @@
                               <i class="icon-base bx bx-dots-vertical-rounded"></i>
                             </button>
                             <div class="dropdown-menu">
-                              <a class="dropdown-item" href="javascript:void(0);"
+                              <a class="dropdown-item" href="{{ route('projects.edit', $project->id) }}"
                                 ><i class="icon-base bx bx-edit-alt me-1"></i> Edit</a
                               >
-                              <a class="dropdown-item" href="javascript:void(0);"
+                              @csrf
+                              @method('DELETE')
+                              <a class="dropdown-item" href="{{route('projects.destroy', $project->id)}}" data-confirm-delete="true"
                                 ><i class="icon-base bx bx-trash me-1"></i> Delete</a
                               >
                             </div>
@@ -58,8 +62,8 @@
 </div>
 
 <!-- Large Modal -->
-<div class="modal fade" id="largeModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
+<div class="modal fade" id="addProject" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel3">Add Project</h5>
@@ -70,32 +74,162 @@
             aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div class="row">
-          <div class="col mb-6">
-            <label for="nameLarge" class="form-label">Name</label>
-            <input type="text" id="nameLarge" class="form-control" placeholder="Enter Name" />
+        
+           <div class="modal-footer">
+            {{-- <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save</button> --}}
           </div>
-        </div>
-        <div class="row g-6">
-          <div class="col mb-0">
-            <label for="emailLarge" class="form-label">Email</label>
-              <input
-                type="email"
-                id="emailLarge"
-                class="form-control"
-                placeholder="xxxx@xxx.xx" />
-          </div>
-          <div class="col mb-0">
-            <label for="dobLarge" class="form-label">DOB</label>
-            <input type="date" id="dobLarge" class="form-control" />
-          </div>
-        </div>
+         
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save</button>
-      </div>
-    </div>
+     
+    </div>   
   </div>
 </div>
+@endsection
+
+@section('jsvalidator')
+
+{!! JsValidator::formRequest('App\Http\Requests\StoreProjectRequest') !!}
+
+@endsection
+
+@section('script')
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+var province 			 = $("#province_id"); 
+var district 			 = $("#district_id"); 
+var municipality	 = $("#municipality_id"); 
+
+// Disable Elements on load
+	$(district).attr({disabled:"disabled"});
+	$(municipality).attr({disabled:"disabled"});
+
+  // Onchange Event
+	
+	$(province).change( function(){
+			if(this.value == ''){
+					$(district).html("<option value=''>-- Select District --</option>").attr({disabled:"disabled"});
+					$(municipality).html("<option value=''>-- Select City/Municipality --</option>").attr({disabled:"disabled"});
+			}else{		 	
+					getDistricts(district,this.value,false); 
+					$(district).removeAttr("disabled"); 	
+					$(municipality).html("<option value=''>-- Select City/Municipality --</option>").attr({disabled:"disabled"});
+			}
+	});
+
+	$(district).change( function(){
+			if(this.value == ''){					
+					$(municipality).html("<option value=''>-- Select City/Municipality --</option>").attr({disabled:"disabled"});
+			}else{				  	
+					getMunicipalities(municipality,$(province).val(),this.value, false);
+					$(municipality).removeAttr("disabled"); 
+			}
+	});
+
+
+  function getDistricts(el, provinceValue, preselect){
+		var selectedDistrict 	=	$("#sdistrict_id"); 
+		$(el).html("<option value=''>Loading Districts...</option>");
+
+    $.ajax({
+        url: "{{ route('location.getDistricts') }}",
+        data: {
+          province_id: provinceValue
+        },
+        success: function (data) {
+
+          $(el).html('<option value="">-- Select District --</option>');
+         
+          $.each(data, function (id, value){
+            $(el).append('<option value="' + value.id + '">' + value.district_name + '</option>')
+          });
+          $(el).removeAttr('disabled');
+        }
+    });
+  }
+
+  function getMunicipalities(el, provinceValue, districtValue, preselect) {
+    $(el).html("<option value=''>Loading City/Municipality</option>");
+
+    $.ajax({
+      url: "{{ route('location.getMunicipalities') }}",
+      data: {
+        province_id: provinceValue,
+        district_id: districtValue
+      },
+      success: function(data) {
+
+        // console.log(data);
+        $(el).html("<option value=''>-- Select City/Municipality --</option>");
+
+        $.each(data, function(id, value) {
+          $(el).append('<option value="' + value.id + '">' + value.municipality_name + '</option>');
+        });
+        $(el).removeAttr('disabled');
+      }
+
+    });
+  }
+
+
+});
+
+$(document).ready(function() {
+    $('.js-example-basic-multiple').select2({
+        placeholder: 'Select RDP Chapters',
+        dropdownParent: $('#addProject .modal-body')
+    });
+});
+
+
+$(document).ready(function () {
+    var uploadedDocumentMap = {};
+    Dropzone.autoDiscover = false;
+   $("div#myAttach").dropzone({ 
+        url: "{{ url('projects/media') }}",
+        maxFilesize: 2, // MB
+        maxFiles: 3,
+        addRemoveLinks: true,
+        headers: {
+                'X-CSRF-TOKEN': "{{ csrf_token() }}"
+            },
+    success: function (file, response) {
+    //console.log(response.name);
+      $('form').append('<input type="hidden" name="document[]" value="' + response.name + '">')
+      uploadedDocumentMap[file.name] = response.name
+    },
+    removedfile: function (file) {
+      file.previewElement.remove()
+      var name = ''
+      if (typeof file.file_name !== 'undefined') {
+        name = file.file_name
+      } else {
+        name = uploadedDocumentMap[file.name]
+      }
+      //console.log(name);
+      $('form').find('input[name="document[]"][value="' + name + '"]').remove()
+    },
+    init: function () {
+      @if(isset($project) && $project->document)
+        var files = [];
+          {!! json_encode($project->document) !!}
+        for (var i in files) {
+          var file = files[i]
+          this.options.addedfile.call(this, file)
+          file.previewElement.classList.add('dz-complete')
+          $('form').append('<input type="hidden" name="document[]" value="' + file.file_name + '">')
+        }
+      @endif
+    }
+    });
+});
+
+
+ 
+
+
+</script>
 @endsection
