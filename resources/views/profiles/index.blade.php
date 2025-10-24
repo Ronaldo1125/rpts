@@ -12,9 +12,15 @@
                     
                     <div class="card">
                         <div class="card-body">
-                          <div class="badge bg-label-danger p-4 rounded mb-4">
-                              <i class="icon-base bx bx-rocket icon-24px"></i>
+                          <div class="badge bg-label-primary p-4 rounded mb-4">
+                             <div class="avatar flex-shrink-0">
+                      <img
+                        src="../assets/img/icons/unicons/employee.png"
+                        alt="wallet info"
+                        class="rounded" />
+                    </div>
                           </div>
+                        
                           <div class="text-center">
                             <h5>User Profile</h5>
                               <img src="{{asset('/images')}}/{{$userProfile->picture}}" alt="avatar" class="rounded-circle bg-dark img-fluid" style="width: 150px;">
@@ -39,8 +45,17 @@
                 <!-- Horizontal Scrollbar -->
                 <div class="col-md-6 col-sm-12">
                   <div class="card">
-                    <h5 class="card-header text-center">Change Password</h5>
+                    
                     <div class="card-body" id="horizontal-example">
+                      <div class="badge bg-label-primary p-4 mb-4">
+                             <div class="avatar flex-shrink-0">
+                      <img
+                        src="../assets/img/icons/unicons/engagement.png"
+                        alt="wallet info"
+                        class="rounded" />
+                    </div>
+                          </div>
+                          <h5 class="card-header text-center">Change Password</h5>
                      <p>Ensure your account is using a long, random password to stay secure.</p>
                     <form action="{{ route('profiles.updatePassword', $userInfo->id) }}" method="POST" id="update-form" enctype="multipart/form-data">
                       @csrf

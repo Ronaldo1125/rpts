@@ -160,7 +160,7 @@
       @endif
       ">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
-          <i class="menu-icon tf-icons bx bx-store"></i>
+          <i class="menu-icon tf-icons bx bx-user"></i>
           <div class="text-truncate" data-i18n="Front Pages">User Management</div>
         </a>
         <ul class="menu-sub">
@@ -204,7 +204,7 @@
       @endif
       ">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
-          <i class="menu-icon tf-icons bx bx-store"></i>
+          <i class="menu-icon tf-icons bx bx-lock-open-alt"></i>
           <div class="text-truncate" data-i18n="Front Pages">Role Management</div>
         </a>
         <ul class="menu-sub">
@@ -247,7 +247,7 @@
       @endif
       ">
         <a href="{{ route('reports.index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-detail"></i>
+          <i class="menu-icon tf-icons bx bx-file-find"></i>
           <div class="text-truncate" data-i18n="Basic">Report Generation</div>
         </a>
       </li>

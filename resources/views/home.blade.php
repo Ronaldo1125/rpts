@@ -39,7 +39,7 @@
                   <div class="card-title d-flex align-items-start justify-content-between mb-4">
                     <div class="avatar flex-shrink-0">
                       <img
-                        src="../assets/img/icons/unicons/chart-success.png"
+                        src="../assets/img/icons/unicons/self-service.png"
                         alt="chart success"
                         class="rounded" />
                     </div>
