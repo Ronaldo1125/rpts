@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Project Tracking System</title>
+    <title>Regional Project Tracking System</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="../assets/img/favicon/favicon.ico" />
@@ -56,20 +56,20 @@
                         <a href="{{ url('/') }}" class="nav-link">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#learn" class="nav-link">What You'll Learn</a>
+                        <a href="https://dro5.depdev.gov.ph" class="nav-link" target="_blank">DEPDev 5 Website</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">Reports</a>
+                        <a href="#" class="nav-link">About RDIP</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">Contact Us</a>
+                        <a href="#" class="nav-link">CIPG Submission</a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ route('login') }}" class="nav-link">Login</a>
                     </li>
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a href="{{ route('register') }}" class="nav-link">Register</a>
-                    </li>
+                    </li> --}}
                 </ul>
             </div>
         </div>    
@@ -100,7 +100,7 @@
     </section>
 
     <!-- Newsletter -->
-    <section class="bg-primary p-5">
+    {{-- <section class="bg-primary p-5">
         <div class="container">
             <div class="d-md-flex justify-content-between align-items-center">
                 <h3 class="mb-3 mb-md-0 text-white">Sign Up For Our Newsletter</h3>
@@ -111,10 +111,10 @@
                 </div>
             </div> 
         </div>
-    </section>
+    </section> --}}
 
     <!-- Boxes -->
-    <section class="p-5">
+    {{-- <section class="p-5">
         <div class="container">
             <div class="row text-center gy-4">
                 <div class="col-md">
@@ -170,10 +170,10 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section> --}}
 
     <!-- Learn Sections -->
-    <section id="learn" class="p-5">
+    {{-- <section id="learn" class="p-5">
         <div class="container">
             <div class="row align-items-center justify-content-between">
                 <div class="col-md">
@@ -191,9 +191,9 @@
 
             </div>
         </div>
-    </section>
+    </section> --}}
 
-     <section id="learn" class="p-5 mt-3 bg-dark text-light">
+     {{-- <section id="learn" class="p-5 mt-3 bg-dark text-light">
         <div class="container">
             <div class="row align-items-center justify-content-between">
                 <div class="col-md p-5">
@@ -211,10 +211,10 @@
 
             </div>
         </div>
-    </section>
+    </section> --}}
 
     <!-- Questions Accordion -->
-    <section class="p-5" id="questions">
+    {{-- <section class="p-5" id="questions">
         <div class="container">
             <h2 class="text-center mb-4">Frequently Asked Questions</h2>
 
@@ -254,9 +254,9 @@
             </div>
             </div>
         </div>
-    </section>
+    </section> --}}
 
-    <section class="p-5 bg-primary">
+    {{-- <section class="p-5 bg-primary">
         <div class="container">
             <h2 class="text-center text-white">Our Instructors</h2>
             <p class="lead text-center text-white mb-5">
@@ -309,12 +309,12 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section> --}}
 
     <!-- Contact Us -->
     <section class="p-5">
         <div class="container">
-            <div class="row g-4">
+            {{-- <div class="row g-4">
                 <div class="col-md">
                     <h2 class="text-center mb-4">Contact Info</h2>
                     <ul class="list-group list-group-flush lead">
@@ -323,7 +323,7 @@
                         </li>
                     </ul>
                 </div>
-            </div>
+            </div> --}}
         </div>
     </section>
 
@@ -331,7 +331,7 @@
     <footer class="p-5 bg-dark text-center text-white position-relative">
         <div class="container">
             <p class="lead">Copyright &copy; 2025 DepDev 5 Regional Project Tracking System</p>
-            <a href="#" class="position-absolute bottom-0 end-0 p-5"><i class='icon-base bx  bx-arrow-up-circle h1'></i> </a>
+           
         </div>
     </footer>
 

@@ -9,7 +9,7 @@
         <h3 class="p-5">Manage Users</h3>
         <p class="text-end">
           <button class="btn btn-success btn-sm" data-bs-toggle="modal"
-            data-bs-target="#addUser">Create User</button>
+            data-bs-target="#addUser"><i class="icon-base bx bx-bell-plus icon-sm"></i>Create User</button>
         </p>
 
 <!-- Hoverable Table rows -->

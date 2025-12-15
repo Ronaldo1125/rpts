@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('project_location', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained()->onDelete('cascade');
-            $table->foreignId('province_id')->constrained();
-            $table->foreignId('district_id')->constrained();
-            $table->foreignId('municipality_id')->constrained();
+            $table->foreignId('province_id')->nullable()->constrained();
+            $table->foreignId('district_id')->nullable()->constrained();
+            $table->foreignId('municipality_id')->nullable()->constrained();
             $table->timestamps();
         });
     }

@@ -15,9 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('project_title')->unique();
             $table->text('description')->nullable();
+            $table->foreignId('component_project_id')->nullable()->constrained();
+            $table->foreignId('agency_id')->constrained();
             $table->foreignId('status_id')->constrained();
-            $table->foreignId('endorsement_id')->constrained();
             $table->decimal('funding_requirement', 9, 2)->default(0);
+            $table->foreignId('funding_category_id')->constrained();
+            $table->string('location');
             $table->text('remarks')->nullable();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();

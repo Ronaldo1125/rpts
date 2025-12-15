@@ -100,7 +100,7 @@
    <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel3">Update Profile Picture</h5>
+            <h5 class="modal-title" id="ProfilePicModalLabel">Update Profile Picture</h5>
               <button
                 type="button"
                 class="btn-close"
@@ -114,7 +114,7 @@
                     <img src="{{asset('/images')}}/{{$userProfile->picture}}" alt="avatar" class="rounded-circle bg-dark img-fluid" style="width: 150px;">
               </div>
               <div class="col-md-6 pt-5">
-                  <form id="edit-form" enctype="multipart/form-data" action="{{route('profiles.updatePic')}}" method="POST">
+                  <form id="edit-form-picture" enctype="multipart/form-data" action="{{route('profiles.updatePic')}}" method="POST">
                       @csrf
                           <input type="hidden" name="user_id" value="{{ $userInfo->id }}">
                           <div class="row justify-content-center">
@@ -146,7 +146,7 @@
                 aria-label="Close"></button>
           </div>
            <hr>
-              <form action="{{ route('profiles.update') }}" method="POST" id="edit-form">
+              <form action="{{ route('profiles.update') }}" method="POST" id="edit-form-profile">
                 <input type="hidden" name="id" value="{{ $userProfile->id }}"/>
                 <input type="hidden" name="user_id" value="{{ $userProfile->user_id }}"/>
               @csrf
@@ -182,7 +182,7 @@
 
 
 @section('script')
-<script type="text/javascript" charset="utf8" src="{{ url('/dist/js/datatables/jquery.dataTables.min.js') }}"></script>
+
 <script type="text/javascript">
 
 function togglePasswordVisibility(id) {

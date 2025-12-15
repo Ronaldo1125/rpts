@@ -23,9 +23,8 @@ class StoreAgencyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'agency_name' => ['required', 'min:8', Rule::unique('agencies', 'agency_name')->ignore($this->route('agency'))],
-            'agency_acronym' => ['required', Rule::unique('agencies', 'agency_acronym')->ignore($this->route('agency'))],
-            'sector_id'=> ['required'],
+            'agency_name' => ['required', 'min:8', Rule::unique('agencies', 'agency_name')],
+            'agency_acronym' => ['required', Rule::unique('agencies', 'agency_acronym')],
         ];
     }
 }

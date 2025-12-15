@@ -78,21 +78,56 @@
         </a>
       </li>
 
-       <!-- Cards -->
+       <!-- Project Input -->
       <li class="menu-item 
-      @if(document_path() == 'projects')
+      @if(in_array(document_path(), ['projects']))
+      active open
+      @endif
+      ">
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
+          <i class="menu-icon tf-icons bx bx-detail"></i>
+          <div class="text-truncate" data-i18n="Layouts">Projects</div>
+        </a>
+        <ul class="menu-sub">
+          <li class="menu-item 
+            @if(document_path() == 'projects')
+              active
+            @endif
+          ">
+              <a href="{{ route('projects.index') }}" class="menu-link">
+                
+                <div class="text-truncate" data-i18n="Without navbar">Single Project</div>
+              </a>
+          </li>
+          <li class="menu-item 
+            @if(document_path() == 'components')
+              active
+            @endif
+          ">
+              <a href="{{ route('components.index') }}" class="menu-link">
+                
+                <div class="text-truncate" data-i18n="Without navbar">Component Project</div>
+              </a>
+          </li>
+        </ul>
+       
+      </li>
+
+      <!-- Project Input -->
+      <li class="menu-item 
+      @if(document_path() == 'cipgs')
       active
       @endif
       ">
-        <a href="{{ route('projects.index') }}" class="menu-link">
+        <a href="{{ route('cipgs.index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-detail"></i>
-          <div class="text-truncate" data-i18n="Basic">Project Inputs</div>
+          <div class="text-truncate" data-i18n="Basic">CIPG Submissions</div>
         </a>
       </li>
-
+  
       <!-- Layouts -->
       <li class="menu-item 
-      @if(in_array(document_path(),['agencies','chapters','sectors','statuses','endorsements']))
+      @if(in_array(document_path(),['agencies','chapters','sectors','statuses', 'funding_categories', 'sub_sectors', 'indicators', 'endorse_years']))
       active open
       @endif
       ">
@@ -129,6 +164,16 @@
               <div class="text-truncate" data-i18n="Without menu">Sector</div>
             </a>
           </li>
+
+          <li class="menu-item 
+          @if(document_path() == 'sub_sectors')
+            active
+          @endif
+          ">
+            <a href="{{ route('sub_sectors.index') }}" class="menu-link">
+              <div class="text-truncate" data-i18n="Without menu">Sub-Sector</div>
+            </a>
+          </li>
           
           <li class="menu-item 
           @if(document_path() == 'statuses')
@@ -141,17 +186,38 @@
           </li>
 
           <li class="menu-item 
-          @if(document_path() == 'endorsements')
+          @if(document_path() == 'endorse_years')
             active
           @endif
           ">
-            <a href="{{ route('endorsements.index') }}" class="menu-link">
-              <div class="text-truncate" data-i18n="Without navbar">Endorsement</div>
+            <a href="{{ route('endorse_years.index') }}" class="menu-link">
+              <div class="text-truncate" data-i18n="Without navbar">Endorse Year</div>
+            </a>
+          </li>
+
+          <li class="menu-item 
+          @if(document_path() == 'indicators')
+            active
+          @endif
+          ">
+            <a href="{{ route('indicators.index') }}" class="menu-link">
+              <div class="text-truncate" data-i18n="Without navbar">Indicator</div>
+            </a>
+          </li>
+
+          <li class="menu-item 
+          @if(document_path() == 'funding_categories')
+            active
+          @endif
+          ">
+            <a href="{{ route('funding_categories.index') }}" class="menu-link">
+              <div class="text-truncate" data-i18n="Without navbar">Funding Category</div>
             </a>
           </li>
           
         </ul>
       </li>
+  
 
       <!-- Front Pages -->
       <li class="menu-item 
@@ -197,7 +263,9 @@
         </ul>
       </li>
 
-      <!-- Front Pages -->
+      
+
+      <!-- Admin Management -->
       <li class="menu-item 
       @if(in_array(document_path(),['roles', 'permissions']))
       active open
@@ -241,15 +309,37 @@
         </ul>
       </li>
 
-      <!-- Cards -->
-      <li class="menu-item  @if(document_path() == 'reports')
-      active
+      <!-- Front Pages -->
+      <li class="menu-item 
+      @if(in_array(document_path(),['reports']))
+      active open
       @endif
       ">
-        <a href="{{ route('reports.index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-file-find"></i>
-          <div class="text-truncate" data-i18n="Basic">Report Generation</div>
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+          <i class="menu-icon tf-icons bx bx-lock-open-alt"></i>
+          <div class="text-truncate" data-i18n="Front Pages">Reports</div>
         </a>
+        <ul class="menu-sub">
+          <li class="menu-item 
+          @if(document_path() == 'reports')
+            active
+          @endif
+          ">
+            <a
+              href="{{route('reports.index')}}"
+              class="menu-link">
+              <div class="text-truncate" data-i18n="Landing">Project Report</div>
+            </a>
+          </li>
+          {{-- <li class="menu-item">
+            <a
+              href="#"
+              class="menu-link">
+              <div class="text-truncate" data-i18n="Pricing">Change Password</div>
+            </a>
+          </li> --}}
+          
+        </ul>
       </li>
 
       <li class="menu-item">

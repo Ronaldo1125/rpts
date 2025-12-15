@@ -45,9 +45,9 @@
     <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
 
     <!-- Page CSS -->
-    {{-- <link rel="stylesheet" href="../assets/css/dataTable.css" /> --}}
+    <link rel="stylesheet" href="/assets/css/datatables.css" />
 
-<link rel="stylesheet" href="https://cdn.datatables.net/2.3.1/css/dataTables.dataTables.css" />
+{{-- <link rel="stylesheet" href="https://cdn.datatables.net/2.3.1/css/dataTables.dataTables.css" /> --}}
 
 {{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> --}}
 <link rel="stylesheet" href="/assets/css/select2.css"/>
@@ -132,6 +132,10 @@
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li>
                       <a class="dropdown-item" href="#">
+                        @php
+                          //Retrive the first role name assigned to the authenticated users
+                          $role = auth()->user()->getRoleNames()->first();
+                        @endphp
                         <div class="d-flex">
                           <div class="flex-shrink-0 me-3">
                             <div class="avatar avatar-online">
@@ -140,7 +144,7 @@
                           </div>
                           <div class="flex-grow-1">
                             <h6 class="mb-0">{{ Auth::user()->name }}</h6>
-                            <small class="text-body-secondary">Admin</small>
+                            <small class="text-body-secondary">{{ ucfirst($role) }}</small>
                           </div>
                         </div>
                       </a>
@@ -262,15 +266,23 @@
     <!-- Page JS -->
     <script src="/assets/js/dashboards-analytics.js"></script>
 
-    <!-- Dropzone JS -->
-    <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
-
+    
+    
     <!-- DataTables JS -->
-
-    <script src="/assets/js/dataTables.js"></script>
+    {{-- @if(document_path() == 'reports')
+    <script src="/assets/js/datatables.min.js"></script>
+    {<script src="/assets/js/pdfmake.min.js"></script>
+    <script src="/assets/js/vfs_fonts.js"></script>
+     @else --}}
+    <script src="/assets/js/datatables.js"></script>
+    {{-- @endif --}}
     {{-- <script src="https://cdn.datatables.net/2.3.1/js/dataTables.js"></script> --}}
 
     {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
+
+    
+    <!-- Dropzone JS -->
+    <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
 
     <script src="/assets/js/select2.full.min.js"></script>
 

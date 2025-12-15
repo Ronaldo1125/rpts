@@ -9,7 +9,7 @@
         <h3 class="p-5">Manage Roles</h3>
          <p class="text-end">
           <button class="btn btn-success btn-sm" data-bs-toggle="modal"
-            data-bs-target="#addRole">Create Role</button>
+            data-bs-target="#addRole"><i class="icon-base bx bx-bell-plus icon-sm"></i>Create Role</button>
         </p>
 
 <!-- Hoverable Table rows -->
@@ -31,11 +31,22 @@
                            <span>{{ $role->name }}</span>
                         </td>
                         <td>
-                          @if($role->permissions->count() > 0)
+                          {{-- @if($role->permissions->count() > 0)
+                              @php
+                                $countByFive = 0;
+                              @endphp --}}
+                            
                             @foreach($role->permissions->pluck('name') as $name )
-                            <span class="badge bg-label-alert me-1 mb-1">{{ $name }}</span>
+                              <span class="badge bg-label-alert me-1 mb-1">{{ $name }}</span>
+                              {{-- @php
+                                $countByFive++;
+                              @endphp
+  
+                              @if($countByFive % 5 === 0)
+                                <br/>
+                              @endif --}}
                             @endforeach
-                          @endif
+                          {{-- @endif --}}
                         </td>
                         <td><span class="badge bg-label-primary me-1">{{ $role->created_at->diffForHumans() }}</span></td>
                         <td>

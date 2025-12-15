@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('agency_name')->unique();
             $table->string('agency_acronym')->unique();
-            $table->foreignId('sector_id')->constrained();
             $table->timestamps();
         });
     }

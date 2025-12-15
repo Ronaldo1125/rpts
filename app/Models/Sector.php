@@ -10,4 +10,9 @@ class Sector extends Model
         'sector_name',
         'sector_acronym'
     ];
+
+    public function project_sector()
+    {
+        return $this->hasOne(ProjectSector::class, 'sector_id');
+    }
 }

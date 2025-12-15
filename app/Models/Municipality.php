@@ -11,4 +11,9 @@ class Municipality extends Model
         'province_id',
         'district_id'
     ];
+
+    public function project_location()
+    {
+        return $this->hasOne(ProjectLocation::class, 'municipality_id');
+    }
 }

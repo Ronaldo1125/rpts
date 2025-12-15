@@ -20,4 +20,14 @@ class ProjectLocation extends Model
     {
         return $this->belongsTo(Project::class);
     }
+
+    public function province()
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function municipality()
+    {
+        return $this->belongsTo(Municipality::class);
+    }
 }

@@ -9,7 +9,7 @@
         <h3 class="p-5">Manage Sectors</h3>
          <p class="text-end">
           <button class="btn btn-success btn-sm" data-bs-toggle="modal"
-            data-bs-target="#addSector">Create Sector</button>
+            data-bs-target="#addSector"><i class="icon-base bx bx-bell-plus icon-sm"></i>Create Sector</button>
         </p>
 
 <!-- Hoverable Table rows -->

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Agency;
+use App\Models\Project;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -51,5 +53,15 @@ class User extends Authenticatable
     public function profile()
     {
         return $this->hasOne(Profile::class, 'user_id');
+    }
+
+    public function project()
+    {
+        return $this->hasOne(Project::class, 'user_id');
+    }
+
+    public function agency()
+    {
+        return $this->belongsTo(Agency::class);
     }
 }

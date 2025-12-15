@@ -2,16 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agency;
+use App\Models\Sector;
 use App\Models\Status;
 use App\Models\Chapter;
 use App\Models\Project;
 use App\Models\Province;
+use App\Models\Indicator;
+use App\Models\SubSector;
 use App\Models\Attachment;
 use App\Models\Endorsement;
+use App\Models\EndorseYear;
+use App\Models\MainProject;
 use Illuminate\Http\Request;
-use App\Models\ChapterProject;
+use App\Models\ProjectSector;
+use App\Models\ProjectChapter;
+use App\Models\FundingCategory;
 use App\Models\ProjectLocation;
+use Illuminate\Validation\Rule;
+use App\Models\ProjectIndicator;
 use App\Models\ProjectCostTarget;
+use App\Models\ProjectEndorsement;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
@@ -23,8 +34,11 @@ class ProjectController extends Controller
      */
     public function index()
     {
+        
         //$path = request()->path();
         $projects = Project::all();
+
+        //dd($mainProjects);
 
         $title = 'Delete Project Record!';
         $text = "Are you sure? This will be deleted permanently.";
@@ -39,11 +53,15 @@ class ProjectController extends Controller
     public function create()
     {
         $statuses = Status::pluck('status_name', 'id')->all();
-        $endorsements = Endorsement::pluck('rdc_resolution', 'id')->all();
+        $agencies = Agency::pluck('agency_acronym', 'id')->all();
+        $funding_categories = FundingCategory::pluck('category_name', 'id')->all();
         $provinces = Province::pluck('province_name', 'id')->all();
         $chapters = Chapter::pluck('chapter_name', 'id')->all();
+        $sectors = Sector::pluck('sector_name', 'id')->all();
+        $endorse_years = EndorseYear::pluck('year', 'id')->all();
+        $indicators = Indicator::pluck('indicator_name', 'id')->all();
 
-        return view('projects.create', compact('statuses', 'endorsements', 'provinces' , 'chapters'));
+        return view('projects.create', compact('statuses', 'agencies', 'funding_categories', 'provinces' , 'chapters', 'sectors', 'endorse_years', 'indicators'));
     }
 
     /**
@@ -60,20 +78,58 @@ class ProjectController extends Controller
         $project = Project::create([
             'project_title' => $request->project_title,
             'description' => $request->description,
+            'agency_id' => $request->agency_id,
             'status_id' => $request->status_id,
-            'endorsement_id' => $request->endorsement_id,
+            'funding_category_id' => $request->funding_category_id,
             'funding_requirement' => $request->funding_requirement,
+            'location' => $request->location,
             'remarks' => $request->remarks,
             'user_id' => Auth::id(),
         ]);
 
-        //Save project_location data to the database
-        ProjectLocation::create([
+        //Project Location selected locationspecific
+        if($request->location == 'locationspecific') {
+            ProjectLocation::create([
             'project_id' => $project->id,
             'province_id' => $request->province_id,
             'district_id' => $request->district_id,
             'municipality_id' => $request->municipality_id,
+            ]);
+        }
+
+        //Project Location selected interprovince
+        if($request->location == 'interprovince') {
+            $interprovince = [];
+            foreach($request->provinces as $province) {
+                $interprovince['project_id'] = $project->id;
+                $interprovince['province_id'] = $province;
+
+                ProjectLocation::create($interprovince);
+            }
+        }
+
+        //Save Project Indicators Data
+        ProjectIndicator::create([
+            'project_id' => $project->id,
+            'indicator_id' => $request->indicator_id,
+            'indicator_quantity' => $request->indicator_quantity,
         ]);
+
+        //Save Project Sector Data
+        ProjectSector::create([
+            'project_id' => $project->id,
+            'sector_id' => $request->sector_id,
+            'sub_sector_id' => $request->sub_sector_id,
+        ]);
+
+        //Save Project Endorsement Data
+        ProjectEndorsement::create([
+            'project_id' => $project->id,
+            'endorse_year_id' => $request->endorse_year_id,
+            'rdc_endorsement_number' => $request->rdc_endorsement_number,
+        ]);
+
+        
 
         // Save project_cost_target data to the database
         $tc = [];
@@ -105,7 +161,7 @@ class ProjectController extends Controller
                 $chapter['project_id'] = $project->id;
                 $chapter['chapter_id'] = $rdc_chapter;
 
-                ChapterProject::create($chapter);
+                ProjectChapter::create($chapter);
             }
         }
 
@@ -152,10 +208,36 @@ class ProjectController extends Controller
     {
         $project = Project::where('id', '=', $id)->first();
         $statuses = Status::pluck('status_name', 'id')->all();
-        $endorsements = Endorsement::pluck('rdc_resolution', 'id')->all();
+        $agencies = Agency::pluck('agency_acronym', 'id')->all();
+        $funding_categories = FundingCategory::pluck('category_name', 'id')->all();
         $chapters = Chapter::pluck('chapter_name', 'id')->all();
         $provinces = Province::pluck('province_name', 'id')->all();
-        $selectedChapters = ChapterProject::where('project_id', '=', $id)->get();
+        $sectors = Sector::pluck('sector_name', 'id')->all();
+        $endorse_years = EndorseYear::pluck('year', 'id')->all();
+        $indicators = Indicator::pluck('indicator_name', 'id')->all();
+        $arrInterProvinces = [];
+        $provinceId = '';
+
+        $selectedChapters = ProjectChapter::where('project_id', '=', $id)->get();
+        $selectedInterProvinces = ProjectLocation::where('project_id', $id)
+                                                 ->whereNull('district_id')
+                                                 ->whereNull('municipality_id')
+                                                 ->get();
+        $locationSpecific = ProjectLocation::where('project_id', $id)
+                                           ->whereNotNull('district_id')
+                                           ->whereNotNull('municipality_id')
+                                           ->first();
+
+        if($locationSpecific != null) {
+            $provinceId = $locationSpecific->province_id;
+        }
+
+        if(count($selectedInterProvinces) > 0)
+        {
+            foreach($selectedInterProvinces as $selectedInterProvince) {
+                $arrInterProvinces[] = $selectedInterProvince['province_id'];
+            }  
+        }
 
         foreach($selectedChapters as $selectedChapter) {
             $arrValueSelectedChapters[] = $selectedChapter['chapter_id'];
@@ -163,32 +245,74 @@ class ProjectController extends Controller
 
         //dd($arrValueSelectedChapters);
 
-        return view('projects.edit', compact('project', 'statuses', 'endorsements', 'chapters', 'provinces', 'arrValueSelectedChapters'));
+        return view('projects.edit', compact('project', 'agencies', 'statuses', 'funding_categories', 'chapters', 'provinceId', 'provinces', 'sectors','endorse_years', 'indicators', 'arrValueSelectedChapters', 'arrInterProvinces', 'locationSpecific'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateProjectRequest $request, $id)
     {
-        //$request->validated();
+        
+        $request->validated();
+
+        //dd($request);
+        
         $project = Project::find($id);
 
         $project->update([
-                    'project_title' => $request->project_title,
-                    'description' => $request->description,
-                    'status_id' => $request->status_id,
-                    'endorsement_id' => $request->endorsement_id,
-                    'funding_requirement' => $request->funding_requirement,
-                    'remarks' => $request->remarks,
-                    //'user_id' => Auth::id(),
-                ]);
+            'project_title' => $request->project_title,
+            'description' => $request->description,
+             'agency_id' => $request->agency_id,
+            'status_id' => $request->status_id,
+            'funding_category_id' => $request->funding_category_id,
+            'funding_requirement' => $request->funding_requirement,
+            'location' => $request->location,
+            'remarks' => $request->remarks,
+            //'user_id' => Auth::id(),
+        ]);
 
-        //update the project_location data to the database
-        ProjectLocation::where('project_id', $id)->update([
+        // Delete project location by ID
+        $location = ProjectLocation::where('project_id', $id);
+            $location->delete();
+        
+        if($request->location == 'locationspecific') {
+            ProjectLocation::create([
+            'project_id' => $project->id,
             'province_id' => $request->province_id,
             'district_id' => $request->district_id,
             'municipality_id' => $request->municipality_id,
+            ]);
+        }
+
+        //Project Location selected interprovince
+        if($request->location == 'interprovince') {
+            $interprovince = [];
+            
+            foreach($request->provinces as $province) {
+                $interprovince['project_id'] = $project->id;
+                $interprovince['province_id'] = $province;
+
+                ProjectLocation::create($interprovince);
+            }
+        }
+
+        //Save Project Indicators Data
+        ProjectIndicator::where('project_id', $id)->update([
+            'indicator_id' => $request->indicator_id,
+            'indicator_quantity' => $request->indicator_quantity,
+        ]);
+
+        //Save Project Sector Data
+        ProjectSector::where('project_id', $id)->update([
+            'sector_id' => $request->sector_id,
+            'sub_sector_id' => $request->sub_sector_id,
+        ]);
+
+        //Save Project Endorsement Data
+        ProjectEndorsement::where('project_id', $id)->update([
+            'endorse_year_id' => $request->endorse_year_id,
+            'rdc_endorsement_number' => $request->rdc_endorsement_number,
         ]);
 
         // Save project_cost_target data to the database
@@ -215,7 +339,7 @@ class ProjectController extends Controller
         //Save rdp_chapters
         if($request->rdp_chapters) {
             $chapter = [];
-            $rdcChapter = ChapterProject::where('project_id', $id);
+            $rdcChapter = ProjectChapter::where('project_id', $id);
             $rdcChapter->delete();
 
             foreach($request->rdp_chapters as $rdc_chapter) {
@@ -223,7 +347,7 @@ class ProjectController extends Controller
                 $chapter['project_id'] = $id;
                 $chapter['chapter_id'] = $rdc_chapter;
 
-                ChapterProject::create($chapter);
+                ProjectChapter::create($chapter);
             }
         }
 
@@ -286,5 +410,14 @@ class ProjectController extends Controller
             'name'          => $name,
             'original_name' => $file->getClientOriginalName(),
         ]);
+    }
+
+    public function getSubSectors(Request $request)
+    {
+        $sector_id = $request->sector_id;
+
+        $sub_sectors = SubSector::where('sector_id', $sector_id)->get();
+
+        return response()->json($sub_sectors);
     }
 }

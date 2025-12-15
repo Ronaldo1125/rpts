@@ -9,7 +9,7 @@
         <h3 class="p-5">Manage RDP Chapters</h3>
          <p class="text-end">
           <button class="btn btn-success btn-sm" data-bs-toggle="modal"
-            data-bs-target="#addChapter">Create RDP Chapter</button>
+            data-bs-target="#addChapter"><i class="icon-base bx bx-bell-plus icon-sm"></i>Create RDP Chapter</button>
         </p>
 
 <!-- Hoverable Table rows -->

@@ -15,15 +15,12 @@ class AgencyController extends Controller
     public function index()
     {
         $agencies = Agency::all();
-        $sectors = Sector::pluck('sector_name', 'id')->all();
-
-        //dd($sectors);
 
         $title = 'Delete Agency Record!';
         $text = "Are you sure? This will be deleted permanently.";
         confirmDelete($title, $text);
         
-        return view('agencies.index', compact('agencies', 'sectors'));
+        return view('agencies.index', compact('agencies'));
     }
 
     /**
@@ -67,6 +64,7 @@ class AgencyController extends Controller
      */
     public function update(StoreAgencyRequest $request, Agency $agency)
     {
+   
         $agency->update($request->validated());
 
           toast('Agency data updated successfully!','success');

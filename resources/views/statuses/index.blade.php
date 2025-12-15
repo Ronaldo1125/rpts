@@ -9,7 +9,7 @@
         <h3 class="p-5">Manage Statuses</h3>
          <p class="text-end">
           <button class="btn btn-success btn-sm" data-bs-toggle="modal"
-            data-bs-target="#addStatus">Create Status</button>
+            data-bs-target="#addStatus"><i class="icon-base bx bx-bell-plus icon-sm"></i>Create Status</button>
         </p>
 
 <!-- Hoverable Table rows -->

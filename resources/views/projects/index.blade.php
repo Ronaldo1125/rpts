@@ -2,13 +2,16 @@
 
 @section('content')
 
+
+
+
 <div class="content-wrapper">
     <!-- Content -->
     <div class="container-xxl flex-grow-1 container-p-y">
         
         <h3 class="p-5">Manage Projects</h3>
          <p class="text-end">
-          <a href="{{ route('projects.create')}}"><button class="btn btn-success btn-sm">Create Project</button></a>
+          <a href="{{ route('projects.create')}}"><button class="btn btn-success btn-sm"><i class="icon-base bx bx-bell-plus icon-sm"></i>Create Project</button></a>
           {{-- <button class="btn btn-success btn-sm" data-bs-toggle="modal"
             data-bs-target="#addProject">Create Project</button> --}}
         </p>
@@ -16,11 +19,13 @@
 <!-- Hoverable Table rows -->
     <div class="card">
         <div class="table-responsive text-nowrap p-5">
-            <table class="table table-hover" id="myTable">
+            <table class="table table-hover" id="myTableProject">
                 <thead>
                     <tr>
                         <th>Project Name</th>
                         <th>Description</th>
+                        <th>Documents</th>
+                        <th>Funding Category</th>
                         <th>Created At</th>
                         <th>Actions</th>
                     </tr>
@@ -29,9 +34,23 @@
                   @foreach($projects as $project)
                     <tr>
                         <td>
-                          <i class="icon-base bx bxl-angular icon-md text-danger me-4"></i> <span>{{$project->project_title }}</span>
+                          {{$project->project_title }}
                         </td>
                         <td>{{ $project->description }}</td>
+
+                        @php
+                          $medias = $project->getMedia('document');
+                        @endphp
+
+                        <td class="text-center">
+                          @foreach ($medias as $media)
+                              <a href="{{ $media->getUrl() }}" data-toggle="tooltip" data-placement="bottom" title="{{ $media->name }}"><p class="mb-2 small"><i class="menu-icon tf-icons bx bx-paperclip"></i></p></a>
+                          @endforeach
+                        </td>
+
+                        <td>
+                            {{ $project->funding_category->category_name }}
+                        </td>
                         
                         <td><span class="badge bg-label-primary me-1">{{ $project->created_at->diffForHumans() }}</span></td>
                         <td>
@@ -45,7 +64,7 @@
                               >
                               @csrf
                               @method('DELETE')
-                              <a class="dropdown-item" href="{{route('projects.destroy', $project->id)}}" data-confirm-delete="true"
+                              <a class="dropdown-item" href="{{ route('projects.destroy', $project->id) }}" data-confirm-delete="true"
                                 ><i class="icon-base bx bx-trash me-1"></i> Delete</a
                               >
                             </div>
@@ -96,6 +115,26 @@
 @section('script')
 
 <script type="text/javascript">
+
+
+$(document).ready(function() {
+
+  $('#myTableProject').DataTable({
+    autoWidth: false,
+    columns: [
+        { width: '20%' },
+        { width: '30%' },
+        { width: '10%' },
+        { width: '13%' },
+        { width: '11%' },
+        { width: '11%' },
+    ]
+  });
+});
+
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
 
 $(document).ready(function() {
 

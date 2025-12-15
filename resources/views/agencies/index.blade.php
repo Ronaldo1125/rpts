@@ -9,7 +9,7 @@
         <h3 class="p-5">Manage Agencies</h3>
          <p class="text-end">
           <button class="btn btn-success btn-sm" data-bs-toggle="modal"
-            data-bs-target="#addAgency">Create Agency</button>
+            data-bs-target="#addAgency"><i class="icon-base bx bx-bell-plus icon-sm"></i>Create Agency</button>
         </p>
 
 <!-- Hoverable Table rows -->
@@ -31,7 +31,7 @@
                           <span>{{ $agency->agency_name }}</span>
                         </td>
                         <td class="text-center">
-                          {{ $agency->sector_id }}
+                          {{ $agency->agency_acronym }}
                         </td>
                         <td><span class="badge bg-label-primary me-1">{{ $agency->created_at->diffForHumans() }}</span></td>
                         <td>
@@ -66,7 +66,7 @@
 </div>
 
 <!-- Add Sector Modal -->
-<div class="modal fade" id="addAgency" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="addAgency" tabindex="-1">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -94,19 +94,6 @@
             <input type="text" name="agency_acronym" id="agency_acronym" class="form-control" placeholder="Enter Agency Acronym" />
           </div>
         </div>
-
-        <div class="row">
-          <div class="col mb-3">
-            <label for="sector_id" class="form-label">Sector</label>
-              <select class="form-control" name="sector_id" id="sector_id">
-                <option value="">Select a sector ...</option>
-                @foreach ($sectors as $key => $sector)
-                <option value="{{ $key }}">{{ $sector }}</option>
-                @endforeach
-              </select>
-          </div>
-        </div>
-
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
@@ -119,7 +106,7 @@
 
 <!-- Edit Agency Modal -->
 @foreach($agencies as $agency)
-<div class="modal fade" id="editAgency{{$agency->id}}" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="editAgency{{$agency->id}}" tabindex="-1">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -146,18 +133,6 @@
           <div class="col mb-6">
             <label for="agency_acronym" class="form-label">Agency Acronym</label>
             <input type="text" name="agency_acronym" id="agency_acronym" class="form-control" value="{{ $agency->agency_acronym }}" placeholder="Enter Sector Acronym" />
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col mb-3">
-            <label for="sector_id" class="form-label">Sector</label>
-              <select class="form-control" name="sector_id" id="sector_id">
-                <option value="">Select a sector ...</option>
-                @foreach ($sectors as $key => $sector)
-                <option value="{{ $key }}" {{ ($agency->sector_id == $key) ? "selected='selected'" : "" }}>{{ $sector }}</option>
-                @endforeach
-              </select>
           </div>
         </div>
 

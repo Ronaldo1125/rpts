@@ -9,7 +9,7 @@
         <h3 class="p-5">Manage Permissions</h3>
          <p class="text-end">
           <button class="btn btn-success btn-sm" data-bs-toggle="modal"
-            data-bs-target="#addPermission">Create Permission</button>
+            data-bs-target="#addPermission"><i class="icon-base bx bx-bell-plus icon-sm"></i>Create Permission</button>
         </p>
 
 <!-- Hoverable Table rows -->

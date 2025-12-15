@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('chapter_projects', function (Blueprint $table) {
+        Schema::create('funding_categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('project_id')->constrained()->onDelete('cascade');
-            $table->foreignId('chapter_id')->constrained();
+            $table->string('category_name');
             $table->timestamps();
         });
     }
@@ -24,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('chapter_project');
+        Schema::dropIfExists('funding_categories');
     }
 };

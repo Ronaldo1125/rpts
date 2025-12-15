@@ -25,4 +25,9 @@ class ProjectCostTarget extends Model
         'cost_year_2028',
         'cost_succeeding_years',
     ];
+
+    public function project() 
+    {
+        return $this->belongsTo(Project::class);
+    }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CipgController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AgencyController;
@@ -11,8 +12,13 @@ use App\Http\Controllers\ChapterController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\ComponentController;
+use App\Http\Controllers\IndicatorController;
+use App\Http\Controllers\SubSectorController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\EndorsementController;
+use App\Http\Controllers\EndorseYearController;
+use App\Http\Controllers\FundingCategoryController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -37,9 +43,15 @@ Route::group(['middleware' => ['auth']], function() {
     Route::post('projects/store', [ProjectController::class, 'store'])->name('projects.store');
     Route::post('projects/media', [ProjectController::class, 'storeMedia'])->name('projects.storeMedia');
     Route::delete('projects/{id}',[ProjectController::class, 'destroy'])->name('projects.destroy');
+    Route::get('projects/getSubSectors', [ProjectController::class, 'getSubSectors'])->name('projects.getSubSectors');
+
+    Route::get('components', [ComponentController::class, 'index'])->name('components.index');
 
     //Route of Sectors
     Route::resource('/sectors', SectorController::class);
+
+    //Route of Sectors
+    Route::resource('/sub_sectors', SubSectorController::class);
 
     //Route of Agencies
     Route::resource('/agencies', AgencyController::class);
@@ -50,17 +62,31 @@ Route::group(['middleware' => ['auth']], function() {
     //Route of Statuses
     Route::resource('/statuses', StatusController::class);
 
-    //Route of Endorsements
-    Route::resource('endorsements', EndorsementController::class);
+    //Route of Indicators
+    Route::resource('/indicators', IndicatorController::class);
+
+
+     //Route of Endorse Years
+    Route::resource('/endorse_years', EndorseYearController::class);
+
+    //Route of Funding Categories
+    Route::resource('/funding_categories', FundingCategoryController::class);
 
     //Route of Report Generation
-    Route::resource('/reports', ReportController::class);
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::post('/reports/searchReport', [ReportController::class, 'searchReport'])->name('reports.searchReport');
+    Route::get('/reports/generatePdf', [ReportController::class, 'generatePdf'])->name('reports.generatePdf');
+    Route::get('/reports/generateExcel', [ReportController::class, 'generateExcel'])->name('reports.generateExcel');
 
     //Route of Role
     Route::resource('/roles', RoleController::class);
 
     //Route of Permission
     Route::resource('/permissions', PermissionController::class);
+
+    //Route of CIPG Submission
+    Route::resource('/cipgs', CipgController::class);
+    Route::post('cipgs/media', [CipgController::class, 'storeMedia'])->name('cipgs.storeMedia');
     
     // Route of Profiles
 
