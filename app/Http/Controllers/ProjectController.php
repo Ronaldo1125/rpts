@@ -36,7 +36,7 @@ class ProjectController extends Controller
     {
         
         //$path = request()->path();
-        $projects = Project::all();
+        $projects = Project::whereNull('component_project_id')->get();
 
         //dd($mainProjects);
 
@@ -72,120 +72,8 @@ class ProjectController extends Controller
         
         $request->validated();
 
-        //dd($request->all());
+        $this->storeProject($request);
 
-        // Save Project Data
-        $project = Project::create([
-            'project_title' => $request->project_title,
-            'description' => $request->description,
-            'agency_id' => $request->agency_id,
-            'status_id' => $request->status_id,
-            'funding_category_id' => $request->funding_category_id,
-            'funding_requirement' => $request->funding_requirement,
-            'location' => $request->location,
-            'remarks' => $request->remarks,
-            'user_id' => Auth::id(),
-        ]);
-
-        //Project Location selected locationspecific
-        if($request->location == 'locationspecific') {
-            ProjectLocation::create([
-            'project_id' => $project->id,
-            'province_id' => $request->province_id,
-            'district_id' => $request->district_id,
-            'municipality_id' => $request->municipality_id,
-            ]);
-        }
-
-        //Project Location selected interprovince
-        if($request->location == 'interprovince') {
-            $interprovince = [];
-            foreach($request->provinces as $province) {
-                $interprovince['project_id'] = $project->id;
-                $interprovince['province_id'] = $province;
-
-                ProjectLocation::create($interprovince);
-            }
-        }
-
-        //Save Project Indicators Data
-        ProjectIndicator::create([
-            'project_id' => $project->id,
-            'indicator_id' => $request->indicator_id,
-            'indicator_quantity' => $request->indicator_quantity,
-        ]);
-
-        //Save Project Sector Data
-        ProjectSector::create([
-            'project_id' => $project->id,
-            'sector_id' => $request->sector_id,
-            'sub_sector_id' => $request->sub_sector_id,
-        ]);
-
-        //Save Project Endorsement Data
-        ProjectEndorsement::create([
-            'project_id' => $project->id,
-            'endorse_year_id' => $request->endorse_year_id,
-            'rdc_endorsement_number' => $request->rdc_endorsement_number,
-        ]);
-
-        
-
-        // Save project_cost_target data to the database
-        $tc = [];
-
-        $tc['project_id'] = $project->id;
-        $tc['target_year_2023'] = (is_null($request->target_year_2023)) ? 0 : $request->target_year_2023;
-        $tc['target_year_2024'] = (is_null($request->target_year_2024)) ? 0 : $request->target_year_2024;
-        $tc['target_year_2025'] = (is_null($request->target_year_2025)) ? 0 : $request->target_year_2025;
-        $tc['target_year_2026'] = (is_null($request->target_year_2026)) ? 0 : $request->target_year_2026;
-        $tc['target_year_2027'] = (is_null($request->target_year_2027)) ? 0 : $request->target_year_2027;
-        $tc['target_year_2028'] = (is_null($request->target_year_2028)) ? 0 : $request->target_year_2028;
-        $tc['target_succeeding_years'] = (is_null($request->target_succeeding_years)) ? 0 : $request->target_succeeding_years;
-
-        $tc['cost_year_2023'] = (is_null($request->cost_year_2023)) ? 0 : $request->cost_year_2023;
-        $tc['cost_year_2024'] = (is_null($request->cost_year_2024)) ? 0 : $request->cost_year_2024;
-        $tc['cost_year_2025'] = (is_null($request->cost_year_2025)) ? 0 : $request->cost_year_2025;
-        $tc['cost_year_2026'] = (is_null($request->cost_year_2026)) ? 0 : $request->cost_year_2026;
-        $tc['cost_year_2027'] = (is_null($request->cost_year_2027)) ? 0 : $request->cost_year_2027;
-        $tc['cost_year_2028'] = (is_null($request->cost_year_2028)) ? 0 : $request->cost_year_2028;
-        $tc['cost_succeeding_years'] = (is_null($request->cost_succeeding_years)) ? 0 : $request->cost_succeeding_years;
-
-        ProjectCostTarget::create($tc);
-
-        // Save rdp_chapters
-        if($request->rdp_chapters) {
-            $chapter = [];
-            foreach($request->rdp_chapters as $rdc_chapter) {
-            
-                $chapter['project_id'] = $project->id;
-                $chapter['chapter_id'] = $rdc_chapter;
-
-                ProjectChapter::create($chapter);
-            }
-        }
-
-        // Save Image on the Attachments Table
-        if($request->document) {
-            foreach ($request->input('document', []) as $file) {
-                $project->addMedia(storage_path('app/media/' . $file))->toMediaCollection('document');
-            }
-        }
-        
-
-        // if($request->file('attachments')) {
-        //     $response = [];
-        //     $file = [];
-        //     foreach($request->file('attachments') as $attachment) {
-        //         $filename = time().'.'.$attachment->getClientOriginalExtension();
-        //         $response[] = $attachment->storeAs('attachments', $filename);
-
-        //         $file['project_id'] = $project->id;
-        //         $file['attachment_filename'] = $filename;
-
-        //         Attachment::create($file);
-        //     }
-        // }
 
         toast('Project Data Stored Successfully!','success');
         
@@ -258,117 +146,7 @@ class ProjectController extends Controller
 
         //dd($request);
         
-        $project = Project::find($id);
-
-        $project->update([
-            'project_title' => $request->project_title,
-            'description' => $request->description,
-             'agency_id' => $request->agency_id,
-            'status_id' => $request->status_id,
-            'funding_category_id' => $request->funding_category_id,
-            'funding_requirement' => $request->funding_requirement,
-            'location' => $request->location,
-            'remarks' => $request->remarks,
-            //'user_id' => Auth::id(),
-        ]);
-
-        // Delete project location by ID
-        $location = ProjectLocation::where('project_id', $id);
-            $location->delete();
-        
-        if($request->location == 'locationspecific') {
-            ProjectLocation::create([
-            'project_id' => $project->id,
-            'province_id' => $request->province_id,
-            'district_id' => $request->district_id,
-            'municipality_id' => $request->municipality_id,
-            ]);
-        }
-
-        //Project Location selected interprovince
-        if($request->location == 'interprovince') {
-            $interprovince = [];
-            
-            foreach($request->provinces as $province) {
-                $interprovince['project_id'] = $project->id;
-                $interprovince['province_id'] = $province;
-
-                ProjectLocation::create($interprovince);
-            }
-        }
-
-        //Save Project Indicators Data
-        ProjectIndicator::where('project_id', $id)->update([
-            'indicator_id' => $request->indicator_id,
-            'indicator_quantity' => $request->indicator_quantity,
-        ]);
-
-        //Save Project Sector Data
-        ProjectSector::where('project_id', $id)->update([
-            'sector_id' => $request->sector_id,
-            'sub_sector_id' => $request->sub_sector_id,
-        ]);
-
-        //Save Project Endorsement Data
-        ProjectEndorsement::where('project_id', $id)->update([
-            'endorse_year_id' => $request->endorse_year_id,
-            'rdc_endorsement_number' => $request->rdc_endorsement_number,
-        ]);
-
-        // Save project_cost_target data to the database
-        $tc = [];
-
-        $tc['target_year_2023'] = (is_null($request->target_year_2023)) ? 0 : $request->target_year_2023;
-        $tc['target_year_2024'] = (is_null($request->target_year_2024)) ? 0 : $request->target_year_2024;
-        $tc['target_year_2025'] = (is_null($request->target_year_2025)) ? 0 : $request->target_year_2025;
-        $tc['target_year_2026'] = (is_null($request->target_year_2026)) ? 0 : $request->target_year_2026;
-        $tc['target_year_2027'] = (is_null($request->target_year_2027)) ? 0 : $request->target_year_2027;
-        $tc['target_year_2028'] = (is_null($request->target_year_2028)) ? 0 : $request->target_year_2028;
-        $tc['target_succeeding_years'] = (is_null($request->target_succeeding_years)) ? 0 : $request->target_succeeding_years;
-
-        $tc['cost_year_2023'] = (is_null($request->cost_year_2023)) ? 0 : $request->cost_year_2023;
-        $tc['cost_year_2024'] = (is_null($request->cost_year_2024)) ? 0 : $request->cost_year_2024;
-        $tc['cost_year_2025'] = (is_null($request->cost_year_2025)) ? 0 : $request->cost_year_2025;
-        $tc['cost_year_2026'] = (is_null($request->cost_year_2026)) ? 0 : $request->cost_year_2026;
-        $tc['cost_year_2027'] = (is_null($request->cost_year_2027)) ? 0 : $request->cost_year_2027;
-        $tc['cost_year_2028'] = (is_null($request->cost_year_2028)) ? 0 : $request->cost_year_2028;
-        $tc['cost_succeeding_years'] = (is_null($request->cost_succeeding_years)) ? 0 : $request->cost_succeeding_years;
-
-        ProjectCostTarget::where('project_id', $id)->update($tc);
-
-        //Save rdp_chapters
-        if($request->rdp_chapters) {
-            $chapter = [];
-            $rdcChapter = ProjectChapter::where('project_id', $id);
-            $rdcChapter->delete();
-
-            foreach($request->rdp_chapters as $rdc_chapter) {
-            
-                $chapter['project_id'] = $id;
-                $chapter['chapter_id'] = $rdc_chapter;
-
-                ProjectChapter::create($chapter);
-            }
-        }
-
-        if($request->document) {     
-            if (count($project->getMedia('document')) > 0) {
-                // With error on this
-                foreach ($project->getMedia('document') as $media) {
-                    if (!in_array($media->file_name, $request->input('document', []))) {
-                        $media->delete();
-                    }
-                }
-            }
-
-            $media = $project->getMedia('document')->pluck('file_name')->toArray();
-
-            foreach ($request->input('document', []) as $file) {
-                if (count($media) === 0 || !in_array($file, $media)) {
-                    $project->addMedia(storage_path('app/media/' . $file))->toMediaCollection('document');
-                }
-            }
-        }
+        $this->updateProject($request, $id);
 
         toast('Project Data Updated Successfully!','success');
         
@@ -382,7 +160,7 @@ class ProjectController extends Controller
     public function destroy($id)
     {
 
-       $project = Project::find($id);
+       $project = Project::findOrFail($id);
        $project->delete();
 
         toast('Project data deleted successfully!', 'success');

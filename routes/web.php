@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CipgController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AgencyController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SectorController;
@@ -18,11 +19,17 @@ use App\Http\Controllers\SubSectorController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\EndorsementController;
 use App\Http\Controllers\EndorseYearController;
+use App\Http\Controllers\CipgSubmissionController;
 use App\Http\Controllers\FundingCategoryController;
+use App\Http\Controllers\ProjectDashBoardController;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/projectDashboard', [ProjectDashBoardController::class, 'index'])->name('projectDashboard.index');
+Route::get('/about', [AboutController::class, 'index'])->name('about.index');
+Route::get('/cipgSubmission', [CipgSubmissionController::class, 'index'])->name('cipg_submissions.index');
 
 Auth::routes();
 
@@ -46,6 +53,13 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('projects/getSubSectors', [ProjectController::class, 'getSubSectors'])->name('projects.getSubSectors');
 
     Route::get('components', [ComponentController::class, 'index'])->name('components.index');
+    Route::get('components/create/{component_id}', [ComponentController::class, 'create'])->name('components.create');
+    Route::post('components/store', [ComponentController::class, 'store'])->name('components.store');
+    Route::get('components/edit/{id}', [ComponentController::class, 'edit'])->name('components.edit');
+    Route::delete('components/{id}', [ComponentController::class, 'destroy'])->name('components.destroy');
+    Route::delete('components/subProjectDestroy/{component_id}/{id}', [ComponentController::class, 'subProjectDestroy'])->name('components.subProjectDestroy');
+    Route::get('components/{component_id}/subproject/edit/{id}', [ComponentController::class, 'editSubProject'])->name('components.editSubProject');
+    Route::post('components/subproject/update/{id}', [ComponentController::class, 'updateSubProject'])->name('components.updateSubProject');
 
     //Route of Sectors
     Route::resource('/sectors', SectorController::class);
@@ -85,8 +99,9 @@ Route::group(['middleware' => ['auth']], function() {
     Route::resource('/permissions', PermissionController::class);
 
     //Route of CIPG Submission
-    Route::resource('/cipgs', CipgController::class);
     Route::post('cipgs/media', [CipgController::class, 'storeMedia'])->name('cipgs.storeMedia');
+    Route::resource('/cipgs', CipgController::class);
+    
     
     // Route of Profiles
 

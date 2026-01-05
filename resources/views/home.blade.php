@@ -49,7 +49,7 @@
                 <p class="mb-1">
                   <h4 class="text-success">Projects</h4>
                 </p>
-                  <h1 class="card-title mb-3 text-success">{{ number_format($totalProjectCost) }}</h1>
+                  <h2 class="card-title mb-3 text-success">{{ number_format($totalProjectCost) }}</h2>
                   <small class="text-success fw-medium text-center">Total Cost (in Millions)</small>
               </div>
             </div>
@@ -75,7 +75,7 @@
                 <p class="mb-1">
                   <h4 class="text-primary">Proposed</h4>
                 </p>
-                  <h1 class="card-title mb-3 text-primary">{{ ($statusNameCount['proposed']) ? $statusNameCount['proposed'] : 0 }}</h1>
+                  <h2 class="card-title mb-3 text-primary">{{ ($statusNameCount['proposed']) ? $statusNameCount['proposed'] : 0 }}</h2>
                   <small class="text-primary fw-medium text-center">Number of Projects</small>
               </div>
             </div>
@@ -97,7 +97,7 @@
                 <p class="mb-1">
                   <h4 class="text-danger">Terminated</h4>
                 </p>
-                  <h1 class="text-danger card-title mb-3">{{ (isset($statusNameCount['terminated'])) ? $statusNameCount['terminated'] : 0 }}</h1>
+                  <h2 class="text-danger card-title mb-3">{{ (isset($statusNameCount['terminated'])) ? $statusNameCount['terminated'] : 0 }}</h2>
                   <small class="text-danger fw-medium text-center">Number of Projects</small>
               </div>
             </div>
@@ -119,16 +119,12 @@
                 <p class="mb-1">
                   <h4 class="text-danger">Suspended</h4>
                 </p>
-                  <h1 class="card-title mb-3 text-danger">{{ (isset($statusNameCount['suspended'])) ? $statusNameCount['suspended'] : 0 }}</h1>
+                  <h2 class="card-title mb-3 text-danger">{{ (isset($statusNameCount['suspended'])) ? $statusNameCount['suspended'] : 0 }}</h2>
                   <small class="text-danger fw-medium text-center">Number of Projects</small>
               </div>
             </div>
           </div>
         </div>
-
-            
-            
-       
       </div>
     </div>
   </div>

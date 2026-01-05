@@ -71,6 +71,11 @@ class Project extends Model implements HasMedia
         return $this->hasOne(ProjectEndorsement::class, 'project_id');
     }
 
+    public function project_chapter()
+    {
+        return $this->hasMany(ProjectChapter::class, 'project_id');
+    }
+
     public function funding_category()
     {
         return $this->belongsTo(FundingCategory::class);

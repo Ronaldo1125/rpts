@@ -80,7 +80,7 @@
 
        <!-- Project Input -->
       <li class="menu-item 
-      @if(in_array(document_path(), ['projects']))
+      @if(in_array(document_path(), ['projects', 'components']))
       active open
       @endif
       ">

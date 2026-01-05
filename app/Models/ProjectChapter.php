@@ -10,4 +10,9 @@ class ProjectChapter extends Model
         'project_id',
         'chapter_id'
     ];
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
 }

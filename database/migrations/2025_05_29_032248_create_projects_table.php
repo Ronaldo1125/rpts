@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('project_title')->unique();
             $table->text('description')->nullable();
-            $table->foreignId('component_project_id')->nullable()->constrained();
+            $table->foreignId('component_project_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('agency_id')->constrained();
             $table->foreignId('status_id')->constrained();
             $table->decimal('funding_requirement', 9, 2)->default(0);
