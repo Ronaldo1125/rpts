@@ -17,21 +17,21 @@
                             @csrf
                             <div class="row">
                              <div class="col-md-3 form-control-validation">
-                                <label class="form-label" for="funding_category_id">Funding Category</label>
-                                <select id="funding_category_id" name="funding_category_id" class="form-select">
+                                <label class="form-label" for="funding_category">Funding Category</label>
+                                <select id="funding_category" name="funding_category" class="form-select">
                                   <option value="">-- Select Funding Category --</option>
-                                  @foreach($funding_categories as $key => $category_name)
-                                  <option value="{{ $key }}" {{ (isset($selectedFundingCategoryId) && $selectedFundingCategoryId == $key) ? 'selected="selected"' : ''}}>{{ $category_name }}</option>
+                                  @foreach($funding_categories as $funding_category)
+                                  <option value="{{ $funding_category->value }}" {{ (isset($selectedFundingCategory) && $selectedFundingCategory == $funding_category->value ) ? 'selected="selected"' : ''}}>{{ $funding_category->label() }}</option>
                                   @endforeach
                                 </select>  
                               </div>
 
                               <div class="col-md-3 form-control-validation">
-                                <label class="form-label" for="status_id">Status</label>
-                                <select id="status_id" name="status_id" class="form-select">
+                                <label class="form-label" for="status">Status</label>
+                                <select id="status" name="status" class="form-select">
                                   <option value="">-- Select Status --</option>
-                                  @foreach($statuses as $key => $status_name)
-                                  <option value="{{ $key }}" {{ (isset($selectedStatusId) && $selectedStatusId == $key) ? 'selected="selected"' : ''}}>{{ $status_name }}</option>
+                                  @foreach($statuses as $status)
+                                  <option value="{{ $status->value }}" {{ (isset($selectedStatus) && $selectedStatus == $status->value) ? 'selected="selected"' : ''}}>{{ $status->label() }}</option>
                                   @endforeach
                                 </select>  
                               </div>
@@ -53,10 +53,10 @@
         <div class="card">
           <div class="card-body text-end">
             <p>Download Reports</p>
-            <a href="{{ route('reports.generateExcel', ['funding_category_id' => $selectedFundingCategoryId, 'status_id' => $selectedStatusId])}}" onclick="return confirm('Are you sure you want to export excel file?');">
+            <a href="{{ route('reports.generateExcel', ['funding_category' => $selectedFundingCategory, 'status' => $selectedStatus])}}" onclick="return confirm('Are you sure you want to export excel file?');">
                 <button class="btn btn-success btn-sm"><i class="icon-base bx bx-export icon-sm"></i> Export Excel</button>
             </a> &nbsp; &nbsp;
-             <a href="{{ route('reports.generatePdf', ['funding_category_id' => $selectedFundingCategoryId, 'status_id' => $selectedStatusId])}}" onclick="return confirm('Are you sure you want to download on pdf file?');">
+             <a href="{{ route('reports.generatePdf', ['funding_category' => $selectedFundingCategory, 'status' => $selectedStatus])}}" onclick="return confirm('Are you sure you want to download on pdf file?');">
                 <button class="btn btn-primary btn-sm"><i class="icon-base bx bx-bxs-file-pdf icon-sm"></i> Download PDF</button>
             </a>
           </div>
@@ -96,10 +96,10 @@
                                 @endforeach
                                 </td>
                                 <td>
-                                  {{ $project->status->status_name }}
+                                  {{ $project->status }}
                                 </td>
                                 <td>
-                                    {{ $project->funding_category->category_name }}
+                                    {{ $project->funding_category }}
                                 </td>
                                 
                                 <td class="text-end">

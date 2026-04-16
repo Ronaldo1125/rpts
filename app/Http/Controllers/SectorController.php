@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 
 class SectorController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Sector::class);
+    }
     /**
      * Display a listing of the resource.
      */

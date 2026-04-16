@@ -15,8 +15,10 @@
         "maatwebsite/excel": "^3.1",
         "proengsoft/laravel-jsvalidation": "^4.10",
         "realrashid/sweet-alert": "^7.3",
+        "spatie/laravel-activitylog": "^4.10",
         "spatie/laravel-medialibrary": "^11.13",
-        "spatie/laravel-permission": "^6.19"
+        "spatie/laravel-permission": "^6.19",
+        "yajra/laravel-datatables": "12.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

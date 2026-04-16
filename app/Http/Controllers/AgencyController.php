@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class AgencyController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->authorizeResource(Agency::class);
+    }
     /**
      * Display a listing of the resource.
      */

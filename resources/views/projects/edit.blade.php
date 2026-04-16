@@ -36,18 +36,14 @@
           </div>
 
           <div class="row mt-5">
-            <div class="col-md-4 form-control-validation">
+            <div class="col-md-10 form-control-validation2">
                <label class="form-label" for="indicator_id">Indicator</label>
-                <select id="indicator_id" name="indicator_id" class="form-select">
+                <select id="indicator_id" name="indicator_id" class="form-select js-indicator-single">
                       <option value="">-- Select Indicator --</option>
                     @foreach($indicators as $key => $indicator)
                       <option value="{{ $key }}" {{ ($project->project_indicator->indicator_id == $key) ? "selected='selected'" : "" }}>{{ $indicator }}</option>
                     @endforeach
                 </select>  
-            </div>
-            <div class="col-md-4 form-control-validation">
-               <label class="form-label" for="indicator_quantity">Indicator Quantity</label>
-                 <input type="text" class="form-control" name="indicator_quantity" id="indicator_quantity" value="{{ $project->project_indicator->indicator_quantity }}" /> 
             </div>
           </div>
 
@@ -80,29 +76,39 @@
             </div>
            </div>
 
-           <div class="col-md-4 form-control-validation">
-            <label class="form-label" for="status_id">Status</label>
-            <select id="status_id" name="status_id" class="form-select">
+           <div class="col-md-3 form-control-validation">
+            <label class="form-label" for="status">Status</label>
+            <select id="status" name="status" class="form-select">
                   <option value="">-- Select Status --</option>
-                @foreach($statuses as $key => $status)
-                  <option value="{{ $key }}" {{ ($project->status_id == $key) ? "selected='selected'" : "" }}>{{ $status }}</option>
+                @foreach($statuses as $status)
+                  <option value="{{ $status->value }}" {{($status->value == $project->status) ? "selected='selected'" : "" }}>{{ $status->label() }}</option>
                 @endforeach
             </select>  
           </div>
 
-          <div class="col-md-4 form-control-validation">
-            <label class="form-label" for="funding_requirement">Funding Requirement</label>
-            <input type="number" class="form-control" name="funding_requirement" step="any" value="{{ $project->funding_requirement }}" id="funding_requirement" />  
-          </div>
-
-           <div class="col-md-4 form-control-validation">
-            <label class="form-label" for="funding_category_id">Funding Category</label>
-            <select id="funding_category_id" name="funding_category_id" class="form-select">
+           <div class="col-md-3 form-control-validation">
+            <label class="form-label" for="funding_category">Funding Category</label>
+            <select id="funding_category" name="funding_category" class="form-select">
               <option value="">-- Select Funding Category --</option>
-              @foreach($funding_categories as $key => $category_name)
-              <option value="{{ $key }}" {{ ($project->funding_category_id == $key) ? "selected='selected'" : "" }}>{{ $category_name }}</option>
+              @foreach($funding_categories as $funding_category)
+              <option value="{{ $funding_category->value }}" {{ ($funding_category->value == $project->funding_category) ? "selected='selected'" : "" }}>{{ $funding_category->label() }}</option>
               @endforeach
             </select>  
+          </div>
+
+          <div class="col-md-3 form-control-validation">
+            <label class="form-label" for="fund_source">Fund Source</label>
+            <select id="fund_source" name="fund_source" class="form-select">
+              <option value="">-- Select Fund Source --</option>
+              @foreach($fund_sources as $fund_source)
+              <option value="{{ $fund_source->value }}" {{($fund_source->value == $project->fund_source) ? "selected='selected'" : '' }}>{{ $fund_source->label() }}</option>
+              @endforeach
+            </select>  
+          </div>
+
+          <div class="col-md-3 form-control-validation">
+            <label class="form-label" id="other_fund_source_label" for="other_fund_source">Other Fund Source</label>
+              <input type="text" name="other_fund_source" class="form-control" id="other_fund_source" value="{{ $project->other_fund_source }}"/>
           </div>
 
           <!-- Year of Endorsement Input Forms -->
@@ -137,9 +143,20 @@
           </div>
 
           <div class="row mt-5">
-                <div class="col-md-8 form-control-validation">
+                <div class="col-md-12 form-control-validation">
                         <span class="fw-medium d-block">Location</span>
+                        @foreach($project_location_types as $project_location_type)
                         <div class="form-check form-check-inline mt-4">
+                          <input
+                            class="form-check-input"
+                            type="radio"
+                            name="location"
+                            id="inlineRadio1"
+                            value="{{ $project_location_type->value }}" {{ ($project_location_type->value == $project->location) ? 'checked="checked"' : '' }} />
+                          <label class="form-check-label" for="inlineRadio1">{{ $project_location_type->label() }}</label>
+                        </div>
+                        @endforeach
+                        {{-- <div class="form-check form-check-inline mt-4">
                           <input
                             class="form-check-input"
                             type="radio"
@@ -165,7 +182,7 @@
                             id="inlineRadio3"
                             value="locationspecific" {{ ($project->location == 'locationspecific') ? 'checked="checked"' : '' }}/>
                           <label class="form-check-label" for="inlineRadio3">Location Specific</label>
-                        </div>
+                        </div> --}}
                       </div>
            
           </div>
@@ -181,13 +198,25 @@
             </div>
           </div>
 
+           <div class="row mt-5" id="provincewide">
+            <div class="col-md-8 form-control-validation2">
+              <label class="form-label" for="province">Province</label>
+            <select id="province" name="province" class="form-select js-province-single">
+               <option value="">-- Select Province --</option>
+                @foreach($provinces as $key => $province_name)
+                <option value="{{ $key }}" {{ ($key == $selectedProvince) ? "selected='selected'" : "" }}>{{ $province_name }}</option>
+                @endforeach
+              </select>  
+            </div>
+          </div>
+
           <div class="row mt-5" id="locationSpecific">
               <div class="col-md-4 form-control-validation mt-2">
               <label class="form-label" for="province_id">Province</label>
             <select id="province_id" name="province_id" class="form-select">
                 <option value="">-- Select Province --</option>
                 @foreach($provinces as $key => $province)
-                <option value="{{ $key }}" {{ ($key == $provinceId) ? 'selected=""' : ''}}>{{ $province }}</option>
+                <option value="{{ $key }}" {{ ($key == $provinceId) ? "selected='selected'" : ""}}>{{ $province }}</option>
                 @endforeach
               </select>  
             </div>
@@ -207,76 +236,93 @@
             </div>
           </div>
 
+           <!-- Maps Input Forms -->
+
+          <div class="row mt-5">
+           
+            <div class="col-md-4 form-control-validation">
+               <label class="form-label" for="latitude">Latitude</label>
+                 <input type="number" class="form-control" name="latitude" id="latitude" value="{{ $project->latitude }}"/> 
+            </div>
+
+
+            <div class="col-md-4 form-control-validation">
+               <label class="form-label" for="longtitude">Longtitude</label>
+                 <input type="number" class="form-control" name="longtitude" id="longtitude" value="{{ $project->longtitude }}" /> 
+            </div>
+
+          </div>
+
           <span class="mb-0">Physical Target</span>
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2023">2023</label>
-            <input type="number" class="form-control" name="target_year_2023" value="{{ $project->project_cost_target->target_year_2023 }}" step="any" id="target_year_2023" />  
+            <input type="number" class="form-control" name="target_year_2023" value="{{ $project->project_cost_target?->target_year_2023 }}" step="any" id="target_year_2023" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2024">2024</label>
-            <input type="number" class="form-control" name="target_year_2024" value="{{ $project->project_cost_target->target_year_2024 }}" step="any" id="target_year_2024" />  
+            <input type="number" class="form-control" name="target_year_2024" value="{{ $project->project_cost_target?->target_year_2024 }}" step="any" id="target_year_2024" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2025">2025</label>
-            <input type="number" class="form-control" name="target_year_2025" value="{{ $project->project_cost_target->target_year_2025 }}" step="any" id="target_year_2025" />  
+            <input type="number" class="form-control" name="target_year_2025" value="{{ $project->project_cost_target?->target_year_2025 }}" step="any" id="target_year_2025" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2026">2026</label>
-            <input type="number" class="form-control" name="target_year_2026" value="{{ $project->project_cost_target->target_year_2026 }}" step="any" id="target_year_2026" />  
+            <input type="number" class="form-control" name="target_year_2026" value="{{ $project->project_cost_target?->target_year_2026 }}" step="any" id="target_year_2026" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2027">2027</label>
-            <input type="number" class="form-control" name="target_year_2027" value="{{ $project->project_cost_target->target_year_2027 }}" step="any" id="target_year_2027" />  
+            <input type="number" class="form-control" name="target_year_2027" value="{{ $project->project_cost_target?->target_year_2027 }}" step="any" id="target_year_2027" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_year_2028">2028</label>
-            <input type="number" class="form-control" name="target_year_2028" value="{{ $project->project_cost_target->target_year_2028 }}" step="any" id="target_year_2028" />  
+            <input type="number" class="form-control" name="target_year_2028" value="{{ $project->project_cost_target?->target_year_2028 }}" step="any" id="target_year_2028" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="target_succeeding_years">Succeeding Years</label>
-            <input type="number" class="form-control" name="target_succeeding_years" value="{{ $project->project_cost_target->target_succeeding_years }}" step="any" id="target_succeeding_years" />  
+            <input type="number" class="form-control" name="target_succeeding_years" value="{{ $project->project_cost_target?->target_succeeding_years }}" step="any" id="target_succeeding_years" />  
           </div>
 
           <span class="mb-0">Project Cost(PM)</span>
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2023">2023</label>
-            <input type="number" class="form-control" name="cost_year_2023" value="{{ $project->project_cost_target->cost_year_2023 }}" step="any" id="cost_year_2023" />  
+            <input type="number" class="form-control" name="cost_year_2023" value="{{ $project->project_cost_target?->cost_year_2023 }}" step="any" id="cost_year_2023" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2024">2024</label>
-            <input type="number" class="form-control" name="cost_year_2024" value="{{ $project->project_cost_target->cost_year_2024 }}" step="any" id="cost_year_2024" />  
+            <input type="number" class="form-control" name="cost_year_2024" value="{{ $project->project_cost_target?->cost_year_2024 }}" step="any" id="cost_year_2024" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2025">2025</label>
-            <input type="number" class="form-control" name="cost_year_2025" value="{{ $project->project_cost_target->cost_year_2025 }}" step="any" id="cost_year_2025" />  
+            <input type="number" class="form-control" name="cost_year_2025" value="{{ $project->project_cost_target?->cost_year_2025 }}" step="any" id="cost_year_2025" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2026">2026</label>
-            <input type="number" class="form-control" name="cost_year_2026" value="{{ $project->project_cost_target->cost_year_2026 }}" step="any" id="cost_year_2026" />  
+            <input type="number" class="form-control" name="cost_year_2026" value="{{ $project->project_cost_target?->cost_year_2026 }}" step="any" id="cost_year_2026" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2027">2027</label>
-            <input type="number" class="form-control" name="cost_year_2027" value="{{ $project->project_cost_target->cost_year_2027 }}" step="any" id="cost_year_2027" />  
+            <input type="number" class="form-control" name="cost_year_2027" value="{{ $project->project_cost_target?->cost_year_2027 }}" step="any" id="cost_year_2027" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_year_2028">2028</label>
-            <input type="number" class="form-control" name="cost_year_2028" value="{{ $project->project_cost_target->cost_year_2028 }}" step="any" id="cost_year_2028" />  
+            <input type="number" class="form-control" name="cost_year_2028" value="{{ $project->project_cost_target?->cost_year_2028 }}" step="any" id="cost_year_2028" />  
           </div>
 
           <div class="col-md-2 form-control-validation mt-2">
             <label class="form-label" for="cost_succeeding_years">Succeeding Years</label>
-            <input type="number" class="form-control" name="cost_succeeding_years" value="{{ $project->project_cost_target->cost_succeeding_years }}" step="any" id="cost_succeeding_years" />  
+            <input type="number" class="form-control" name="cost_succeeding_years" value="{{ $project->project_cost_target?->cost_succeeding_years }}" step="any" id="cost_succeeding_years" />  
           </div>
 
           <span class="mb-0">Attachments</span>
@@ -312,6 +358,7 @@
         <input type="hidden" name="ssector_id" id="ssector_id" value="{{ $project->project_sector->sector_id }}" />
         <input type="hidden" name="ssub_sector_id" id="ssub_sector_id" value="{{ $project->project_sector->sub_sector_id }}" />
         <input type="hidden" name="slocation" id="slocation" value="{{ $project->location }}" />
+        <input type="hidden" name="sfund_source" id="sfund_source" value="{{ $project->fund_source }}" />
       </div>
     </div>
   </div>
@@ -332,39 +379,67 @@
 
 <script type="text/javascript">
 
-var sel = ' selected="selected" ';
+let sel = ' selected="selected" ';
 
 $(document).ready(function() {
 
-var province 			 = $("#province_id"); 
-var district 			 = $("#district_id"); 
-var municipality	 = $("#municipality_id");
-var sector         = $("#sector_id");
-var subsector      = $("#sub_sector_id");
+let province 			 = $("#province_id"); 
+let district 			 = $("#district_id"); 
+let municipality	 = $("#municipality_id");
+let sector         = $("#sector_id");
+let subsector      = $("#sub_sector_id");
+let fundSource    = $("#fund_source");
+let otherFundSource = $("#other_fund_source");
+let otherFundSourceLabel = $("#other_fund_source_label");
 
-var selectedSector = $("#ssector_id");
-var selectedSubSector = $("#ssub_sector_id");
-var selectedProvince 	 = $("#sprovince_id"); 
-var selectedDistrict     = $("#sdistrict_id"); 
-var selectedMunicipality = $("#smunicipality_id"); 
+
+let selectedSector = $("#ssector_id");
+let selectedSubSector = $("#ssub_sector_id");
+let selectedProvince 	 = $("#sprovince_id"); 
+let selectedDistrict     = $("#sdistrict_id"); 
+let selectedMunicipality = $("#smunicipality_id");
+let selectedFundSource = $("#sfund_source"); 
 
 // Disable Elements on load
 	$(district).attr({disabled:"disabled"});
 	$(municipality).attr({disabled:"disabled"});
+  $(otherFundSourceLabel).hide();
+  $(otherFundSource).hide();
 
-//Preselection
+  //Preselection
+  if($(selectedProvince).val() != '') {
+    getDistricts(district, $(selectedProvince).val(), true);
+  }
 
-if($(selectedProvince).val() != '') {
-  getDistricts(district, $(selectedProvince).val(), true);
-}
+  if($(selectedDistrict).val() != ""){
+        getMunicipalities(municipality, $(selectedProvince).val(), $(selectedDistrict).val(), true);
+  }
 
-if($(selectedDistrict).val() != ""){
-			getMunicipalities(municipality, $(selectedProvince).val(), $(selectedDistrict).val(), true);
-}
+  if($(selectedSubSector).val() != ""){
+      getSubSectors(subsector, $(selectedSector).val(), true);
+  }
 
-if($(selectedSubSector).val() != ""){
-    getSubSectors(subsector, $(selectedSector).val(), true);
-}
+  if($(selectedFundSource).val() == "others") {
+    $(otherFundSourceLabel).show();
+    $(otherFundSource).show();
+
+  }
+
+
+  $(fundSource).change( function(){
+
+      if(this.value === 'others')
+      {
+        otherFundSource.show();
+        otherFundSourceLabel.show();
+      } else {
+        otherFundSource.hide();
+        otherFundSourceLabel.hide();
+      }
+
+      console.log(this.value);
+    });
+
 
   // Onchange Event
 	
@@ -500,6 +575,15 @@ $(document).ready(function() {
      $('.js-province-multiple').select2({
         placeholder: 'Select Provinces'
     });
+
+    $('.js-province-single').select2({
+        placeholder: 'Select Province'
+    });
+
+    $(".js-indicator-single").select2({
+      placeholder: 'Select Indicator',
+      dropdownAutoWidth: true,
+    });
 });
 
 $(document).ready(function(){
@@ -508,28 +592,38 @@ $(document).ready(function(){
   // On Load Hide
   $("#locationSpecific").hide();
   $("#interProvince").hide();
+  $("#provincewide").hide();
 
   if($(selectedLocation).val() != '') {
-    if($(selectedLocation).val() == 'interprovince') {
+    if($(selectedLocation).val() == 'inter-province') {
       $('#interProvince').show();
     } else if($(selectedLocation).val() == 'locationspecific') {
       $('#locationSpecific').show();
+    } else if($(selectedLocation).val() == 'provincewide') {
+      $('#provincewide').show();
     }
   }
 
-  $('input[name="location"]').on("click", function(){
+  $('input[name="location"]').on("change", function(){
       
     var location = $('input[name="location"]:checked').val();
    
-      if(location == "regionwide") {
+      if(location == "nationwide" || location == "inter-regional" || location == "regionwide") {
         $("#locationSpecific").hide();
         $("#interProvince").hide();
-      } else if(location == "interprovince"){
+        $("#provincewide").hide();
+      } else if(location == "inter-province"){
         $("#locationSpecific").hide();
         $("#interProvince").show();
+        $("#provincewide").hide();
+      } else if(location == "provincewide") {
+         $("#locationSpecific").hide();
+         $("#interProvince").hide();
+         $("#provincewide").show();
       } else {
         $("#locationSpecific").show();
         $("#interProvince").hide();
+         $("#provincewide").hide();
       }
   });
 });

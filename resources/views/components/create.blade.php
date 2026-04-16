@@ -26,7 +26,6 @@
           @if($component_project_id != 0)
           <div class="col-md-12">
             <div class="row">
-              @foreach($component_projects as $component_project)
               <h5>Component Project Title: <span class="text-info">{{ $component_project->component_project_title }}</span></h5>
               <div class="table-responsive text-nowrap p-5">
             <table class="table table-hover" id="myTableProject">
@@ -34,8 +33,10 @@
                     <tr>
                         <th>Sub-Project Title</th>
                         <th>Description</th>
-                        <th>Documents</th>
+                        <th>Funding Req't</th>
+                        <th>Status</th>
                         <th>Funding Category</th>
+                         <th>Documents</th>
                         <th>Created At</th>
                         <th>Actions</th>
                     </tr>
@@ -47,8 +48,18 @@
                           {{$project->project_title }}
                         </td>
                         <td>{{ $project->description }}</td>
-
                         @php
+                          $funding_requirement = $project->project_cost_target?->cost_year_2023 + $project->project_cost_target?->cost_year_2024 
+                                                   + $project->project_cost_target?->cost_year_2025 + $project->project_cost_target?->cost_year_2026 
+                                                   + $project->project_cost_target?->cost_year_2027 + $project->project_cost_target?->cost_year_2028 
+                                                   +  $project->project_cost_target?->cost_succeeding_years;
+                        @endphp
+                        <td>{{ $funding_requirement }}</td>
+                        <td>{{ $project->status }}</td>
+                        <td>
+                            {{ $project->funding_category }}
+                        </td>
+                         @php
                           $medias = $project->getMedia('document');
                         @endphp
 
@@ -56,10 +67,6 @@
                           @foreach ($medias as $media)
                               <a href="{{ $media->getUrl() }}" data-toggle="tooltip" data-placement="bottom" title="{{ $media->name }}"><p class="mb-2 small"><i class="menu-icon tf-icons bx bx-paperclip"></i></p></a>
                           @endforeach
-                        </td>
-
-                        <td>
-                            {{ $project->funding_category->category_name }}
                         </td>
                         
                         <td><span class="badge bg-label-primary me-1">{{ $project->created_at->diffForHumans() }}</span></td>
@@ -84,7 +91,6 @@
                     </tbody>
                   </table>
                 </div>
-              @endforeach
             </div>
           </div>
           @endif
@@ -115,18 +121,14 @@
           </div>
 
           <div class="row mt-5">
-            <div class="col-md-4 form-control-validation">
+            <div class="col-md-10 form-control-validation2">
                <label class="form-label" for="indicator_id">Indicator</label>
-                <select id="indicator_id" name="indicator_id" class="form-select">
+                <select id="indicator_id" name="indicator_id" class="form-select js-indicator-single">
                       <option value="">-- Select Indicator --</option>
                     @foreach($indicators as $key => $indicator)
                       <option value="{{ $key }}">{{ $indicator }}</option>
                     @endforeach
                 </select>  
-            </div>
-            <div class="col-md-4 form-control-validation">
-               <label class="form-label" for="indicator_quantity">Indicator Quantity</label>
-                 <input type="text" class="form-control" name="indicator_quantity" id="indicator_quantity" /> 
             </div>
           </div>
           
@@ -160,30 +162,39 @@
 
           </div>
 
-           <div class="col-md-4 form-control-validation">
-            <label class="form-label" for="status_id">Status</label>
-            <select id="status_id" name="status_id" class="form-select">
+           <div class="col-md-3 form-control-validation">
+            <label class="form-label" for="status">Status</label>
+            <select id="status" name="status" class="form-select">
                   <option value="">-- Select Status --</option>
-                @foreach($statuses as $key => $status)
-                  <option value="{{ $key }}">{{ $status }}</option>
+                @foreach($statuses as $status)
+                  <option value="{{ $status->value }}">{{ $status->label() }}</option>
                 @endforeach
             </select>  
           </div>
-           
 
-          <div class="col-md-4 form-control-validation">
-            <label class="form-label" for="funding_requirement">Funding Requirement</label>
-            <input type="number" class="form-control" name="funding_requirement" step="any" id="funding_requirement" />  
-          </div>
-
-          <div class="col-md-4 form-control-validation">
-            <label class="form-label" for="funding_category_id">Funding Category</label>
-            <select id="funding_category_id" name="funding_category_id" class="form-select">
+          <div class="col-md-3 form-control-validation">
+            <label class="form-label" for="funding_category">Funding Category</label>
+            <select id="funding_category" name="funding_category" class="form-select">
               <option value="">-- Select Funding Category --</option>
-              @foreach($funding_categories as $key => $category_name)
-              <option value="{{ $key }}">{{ $category_name }}</option>
+              @foreach($funding_categories as $funding_category)
+              <option value="{{ $funding_category->value }}">{{ $funding_category->label() }}</option>
               @endforeach
             </select>  
+          </div>
+
+          <div class="col-md-3 form-control-validation">
+            <label class="form-label" for="fund_source">Fund Source</label>
+            <select id="fund_source" name="fund_source" class="form-select">
+              <option value="">-- Select Fund Source --</option>
+              @foreach($fund_sources as $fund_source)
+              <option value="{{ $fund_source->value }}">{{ $fund_source->label() }}</option>
+              @endforeach
+            </select>  
+          </div>
+
+          <div class="col-md-3 form-control-validation">
+            <label class="form-label" id="other_fund_source_label" for="other_fund_source">Other Fund Source</label>
+              <input type="text" name="other_fund_source" class="form-control" id="other_fund_source" />
           </div>
 
           <!-- Year of Endorsement Input Forms -->
@@ -220,35 +231,20 @@
           </div>
 
           <div class="row mt-5">
-                <div class="col-md-8 form-control-validation">
+                <div class="col-md-12 form-control-validation">
                         <span class="fw-medium d-block">Location</span>
+                        @foreach($project_location_types as $project_location_type)
                         <div class="form-check form-check-inline mt-4">
                           <input
                             class="form-check-input"
                             type="radio"
                             name="location"
                             id="inlineRadio1"
-                            value="regionwide" checked="checked" />
-                          <label class="form-check-label" for="inlineRadio1">Regionwide</label>
+                            value="{{ $project_location_type->value }}" {{ ($project_location_type->value == 'nationwide') ? 'checked="checked"' : '' }} />
+                          <label class="form-check-label" for="inlineRadio1">{{ $project_location_type->label() }}</label>
                         </div>
-                        <div class="form-check form-check-inline">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="location"
-                            id="inlineRadio2"
-                            value="interprovince" />
-                          <label class="form-check-label" for="inlineRadio2">Inter-Province</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="location"
-                            id="inlineRadio3"
-                            value="locationspecific" />
-                          <label class="form-check-label" for="inlineRadio3">Location Specific</label>
-                        </div>
+                        @endforeach
+                       
                       </div>
            
           </div>
@@ -257,6 +253,18 @@
             <div class="col-md-8 form-control-validation2">
               <label class="form-label" for="rdp_chapters">Provinces</label>
             <select id="provinces" name="provinces[]" class="form-select js-province-multiple" multiple="multiple">
+                @foreach($provinces as $key => $province_name)
+                <option value="{{ $key }}">{{ $province_name }}</option>
+                @endforeach
+              </select>  
+            </div>
+          </div>
+
+          <div class="row mt-5" id="provincewide">
+            <div class="col-md-8 form-control-validation2">
+              <label class="form-label" for="province">Province</label>
+            <select id="province" name="province" class="form-select js-province-single">
+               <option value="">-- Select Province --</option>
                 @foreach($provinces as $key => $province_name)
                 <option value="{{ $key }}">{{ $province_name }}</option>
                 @endforeach
@@ -288,6 +296,23 @@
                 <option value="">-- Select City/Municipality --</option>
               </select>   
             </div>
+          </div>
+
+           <!-- Maps Input Forms -->
+
+          <div class="row mt-5">
+           
+            <div class="col-md-4 form-control-validation">
+               <label class="form-label" for="latitude">Latitude</label>
+                 <input type="number" class="form-control" name="latitude" id="latitude" /> 
+            </div>
+
+
+            <div class="col-md-4 form-control-validation">
+               <label class="form-label" for="longtitude">Longtitude</label>
+                 <input type="number" class="form-control" name="longtitude" id="longtitude" /> 
+            </div>
+
           </div>
 
           <div class="row mt-5">
@@ -419,11 +444,13 @@ $(document).ready(function() {
   $('#myTableProject').DataTable({
     autoWidth: false,
     columns: [
+        { width: '15%' },
         { width: '20%' },
-        { width: '30%' },
-        { width: '10%' },
-        { width: '13%' },
         { width: '11%' },
+        { width: '11%' },
+        { width: '11%' },
+        { width: '11%' },
+        { width: '10%' },
         { width: '11%' },
     ]
   });
@@ -431,7 +458,7 @@ $(document).ready(function() {
 
 $(function () {
   $('[data-toggle="tooltip"]').tooltip()
-})
+});
 
 $(document).ready(function() {
 
@@ -555,6 +582,39 @@ $(document).ready(function() {
     $('.js-province-multiple').select2({
         placeholder: 'Select Provinces'
     });
+
+     $('.js-province-single').select2({
+        placeholder: 'Select Province'
+    });
+
+    $(".js-indicator-single").select2({
+      placeholder: 'Select Indicator',
+      dropdownAutoWidth: true,
+    });
+});
+
+$(document).ready(function()
+{
+  let otherFundSource = $("#other_fund_source");
+  let otherFundSourceLabel = $("#other_fund_source_label");
+  let fundSource = $("#fund_source");
+  otherFundSource.hide();
+  otherFundSourceLabel.hide();
+
+  $(fundSource).change( function(){
+
+    if(this.value === 'others')
+    {
+      
+      otherFundSource.show();
+      otherFundSourceLabel.show();
+    } else {
+      otherFundSource.hide();
+      otherFundSourceLabel.hide();
+    }
+
+    console.log(this.value);
+  });
 });
 
 $(document).ready(function(){
@@ -562,19 +622,27 @@ $(document).ready(function(){
   // On Load Hide
   $("#locationSpecific").hide();
   $("#interProvince").hide();
-  $('input[name="location"]').on("click", function(){
+  $("#provincewide").hide();
+  $('input[name="location"]').on("change", function(){
       
-    var location = $('input[name="location"]:checked').val();
+    let location = $('input[name="location"]:checked').val();
    
-      if(location == "regionwide") {
+     if(location == "nationwide" || location == "inter-regional" || location == "regionwide") {
         $("#locationSpecific").hide();
         $("#interProvince").hide();
-      } else if(location == "interprovince"){
+        $("#provincewide").hide();
+      } else if(location == "inter-province"){
         $("#locationSpecific").hide();
         $("#interProvince").show();
+        $("#provincewide").hide();
+      } else if(location == "provincewide") {
+         $("#locationSpecific").hide();
+         $("#interProvince").hide();
+         $("#provincewide").show();
       } else {
         $("#locationSpecific").show();
         $("#interProvince").hide();
+         $("#provincewide").hide();
       }
   });
 });

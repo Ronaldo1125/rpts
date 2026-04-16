@@ -36,18 +36,14 @@
           </div>
 
           <div class="row mt-5">
-            <div class="col-md-4 form-control-validation">
+            <div class="col-md-10 form-control-validation2">
                <label class="form-label" for="indicator_id">Indicator</label>
-                <select id="indicator_id" name="indicator_id" class="form-select">
-                      <option value="">-- Select Indicator --</option>
+                <select id="indicator_id" name="indicator_id" class="form-select js-indicator-single">
+                   <option value="">-- Select Indicator --</option>
                     @foreach($indicators as $key => $indicator)
                       <option value="{{ $key }}">{{ $indicator }}</option>
                     @endforeach
                 </select>  
-            </div>
-            <div class="col-md-4 form-control-validation">
-               <label class="form-label" for="indicator_quantity">Indicator Quantity</label>
-                 <input type="text" class="form-control" name="indicator_quantity" id="indicator_quantity" /> 
             </div>
           </div>
           
@@ -81,30 +77,39 @@
 
           </div>
 
-           <div class="col-md-4 form-control-validation">
-            <label class="form-label" for="status_id">Status</label>
-            <select id="status_id" name="status_id" class="form-select">
+           <div class="col-md-3 form-control-validation">
+            <label class="form-label" for="status">Status</label>
+            <select id="status" name="status" class="form-select">
                   <option value="">-- Select Status --</option>
-                @foreach($statuses as $key => $status)
-                  <option value="{{ $key }}">{{ $status }}</option>
+                @foreach($statuses as $status)
+                  <option value="{{ $status->value }}">{{ $status->label() }}</option>
                 @endforeach
             </select>  
           </div>
-           
 
-          <div class="col-md-4 form-control-validation">
-            <label class="form-label" for="funding_requirement">Funding Requirement</label>
-            <input type="number" class="form-control" name="funding_requirement" step="any" id="funding_requirement" />  
-          </div>
-
-          <div class="col-md-4 form-control-validation">
-            <label class="form-label" for="funding_category_id">Funding Category</label>
-            <select id="funding_category_id" name="funding_category_id" class="form-select">
+          <div class="col-md-3 form-control-validation">
+            <label class="form-label" for="funding_category">Funding Category</label>
+            <select id="funding_category" name="funding_category" class="form-select">
               <option value="">-- Select Funding Category --</option>
-              @foreach($funding_categories as $key => $category_name)
-              <option value="{{ $key }}">{{ $category_name }}</option>
+              @foreach($funding_categories as $funding_category)
+              <option value="{{ $funding_category->value }}">{{ $funding_category->label() }}</option>
               @endforeach
             </select>  
+          </div>
+
+          <div class="col-md-3 form-control-validation">
+            <label class="form-label" for="fund_source">Fund Source</label>
+            <select id="fund_source" name="fund_source" class="form-select">
+              <option value="">-- Select Fund Source --</option>
+              @foreach($fund_sources as $fund_source)
+              <option value="{{ $fund_source->value }}">{{ $fund_source->label() }}</option>
+              @endforeach
+            </select>  
+          </div>
+
+          <div class="col-md-3 form-control-validation">
+            <label class="form-label" id="other_fund_source_label" for="other_fund_source">Other Fund Source</label>
+              <input type="text" name="other_fund_source" class="form-control" id="other_fund_source" />
           </div>
 
           <!-- Year of Endorsement Input Forms -->
@@ -141,18 +146,22 @@
           </div>
 
           <div class="row mt-5">
-                <div class="col-md-8 form-control-validation">
+                <div class="col-md-12 form-control-validation">
                         <span class="fw-medium d-block">Location</span>
+                        @foreach($project_location_types as $project_location_type)
                         <div class="form-check form-check-inline mt-4">
                           <input
                             class="form-check-input"
                             type="radio"
                             name="location"
                             id="inlineRadio1"
-                            value="regionwide" checked="checked" />
-                          <label class="form-check-label" for="inlineRadio1">Regionwide</label>
+                            value="{{ $project_location_type->value }}" {{ ($project_location_type->value == 'nationwide') ? 'checked="checked"' : '' }} />
+                          <label class="form-check-label" for="inlineRadio1">{{ $project_location_type->label() }}</label>
                         </div>
-                        <div class="form-check form-check-inline">
+                        @endforeach
+
+
+                        {{-- <div class="form-check form-check-inline">
                           <input
                             class="form-check-input"
                             type="radio"
@@ -169,15 +178,27 @@
                             id="inlineRadio3"
                             value="locationspecific" />
                           <label class="form-check-label" for="inlineRadio3">Location Specific</label>
-                        </div>
+                        </div>--}}
                       </div>
            
           </div>
 
           <div class="row mt-5" id="interProvince">
             <div class="col-md-8 form-control-validation2">
-              <label class="form-label" for="rdp_chapters">Provinces</label>
+              <label class="form-label" for="provinces">Provinces</label>
             <select id="provinces" name="provinces[]" class="form-select js-province-multiple" multiple="multiple">
+                @foreach($provinces as $key => $province_name)
+                <option value="{{ $key }}">{{ $province_name }}</option>
+                @endforeach
+              </select>  
+            </div>
+          </div>
+
+          <div class="row mt-5" id="provincewide">
+            <div class="col-md-8 form-control-validation2">
+              <label class="form-label" for="province">Province</label>
+            <select id="province" name="province" class="form-select js-province-single">
+               <option value="">-- Select Province --</option>
                 @foreach($provinces as $key => $province_name)
                 <option value="{{ $key }}">{{ $province_name }}</option>
                 @endforeach
@@ -209,6 +230,23 @@
                 <option value="">-- Select City/Municipality --</option>
               </select>   
             </div>
+          </div>
+
+          <!-- Maps Input Forms -->
+
+          <div class="row mt-5">
+           
+            <div class="col-md-4 form-control-validation">
+               <label class="form-label" for="latitude">Latitude</label>
+                 <input type="number" class="form-control" name="latitude" id="latitude" /> 
+            </div>
+
+
+            <div class="col-md-4 form-control-validation">
+               <label class="form-label" for="longtitude">Longtitude</label>
+                 <input type="number" class="form-control" name="longtitude" id="longtitude" /> 
+            </div>
+
           </div>
 
           <div class="row mt-5">
@@ -457,26 +495,72 @@ $(document).ready(function() {
     $('.js-province-multiple').select2({
         placeholder: 'Select Provinces'
     });
+
+    $('.js-province-single').select2({
+        placeholder: 'Select Province'
+    });
+
+    $(".js-indicator-single").select2({
+      placeholder: 'Select Indicator',
+      dropdownAutoWidth: true,
+    });
+
+
 });
+
+$(document).ready(function()
+{
+  let otherFundSource = $("#other_fund_source");
+  let otherFundSourceLabel = $("#other_fund_source_label");
+  let fundSource = $("#fund_source");
+  otherFundSource.hide();
+  otherFundSourceLabel.hide();
+
+  $(fundSource).change( function(){
+
+    if(this.value === 'others')
+    {
+      
+      otherFundSource.show();
+      otherFundSourceLabel.show();
+    } else {
+      otherFundSource.hide();
+      otherFundSourceLabel.hide();
+    }
+
+    console.log(this.value);
+  });
+});
+
 
 $(document).ready(function(){
 
   // On Load Hide
   $("#locationSpecific").hide();
   $("#interProvince").hide();
-  $('input[name="location"]').on("click", function(){
+  $("#provincewide").hide();
+  $('input[name="location"]').on("change", function(){
       
-    var location = $('input[name="location"]:checked').val();
+    const location = $('input[name="location"]:checked').val();
+
+    console.log(location);
    
-      if(location == "regionwide") {
+      if(location == "nationwide" || location == "inter-regional" || location == "regionwide") {
         $("#locationSpecific").hide();
         $("#interProvince").hide();
-      } else if(location == "interprovince"){
+        $("#provincewide").hide();
+      } else if(location == "inter-province"){
         $("#locationSpecific").hide();
         $("#interProvince").show();
+        $("#provincewide").hide();
+      } else if(location == "provincewide") {
+         $("#locationSpecific").hide();
+         $("#interProvince").hide();
+         $("#provincewide").show();
       } else {
         $("#locationSpecific").show();
         $("#interProvince").hide();
+         $("#provincewide").hide();
       }
   });
 });

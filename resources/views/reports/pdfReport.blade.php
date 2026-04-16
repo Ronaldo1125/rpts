@@ -245,7 +245,7 @@ table, thead, th, tr, td {
 					<td>{{ $project->project_indicator->indicator->indicator_name }}</td>
 					<td></td>
 					<td></td>
-                    <td style="text-align: center;">{{ $project->funding_category->category_name }}</td>
+                    <td style="text-align: center;">{{ $project->funding_category }}</td>
                     <td style="text-align: right;">{{ number_format($project->funding_requirement, 2) }}</td>
 					
 					<td style="text-align: right;">{{ ($project->project_cost_target->target_year_2023 > 0) ? number_format($project->project_cost_target->target_year_2023, 2) : "" }}</td>

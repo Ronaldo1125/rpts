@@ -9,6 +9,12 @@ use App\Http\Requests\UpdateSubSectorRequest;
 
 class SubSectorController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->authorizeResource(SubSector::class);
+    }
+    
     /**
      * Display a listing of the resource.
      */

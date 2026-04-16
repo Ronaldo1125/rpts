@@ -43,7 +43,7 @@ class ProfileController extends Controller
     {
         $request->validated();
 
-        dd($request);
+        //dd($request);
 
         Profile::create([
             'user_id' => $request->input('user_id'),

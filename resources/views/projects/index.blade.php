@@ -19,15 +19,17 @@
 <!-- Hoverable Table rows -->
     <div class="card">
         <div class="table-responsive text-nowrap p-5">
-            <table class="table table-hover" id="myTableProject">
+            <table class="table table-hover datatable">
                 <thead>
                     <tr>
                         <th>Project Name</th>
                         <th>Description</th>
-                        <th>Documents</th>
+                        <th>Funding Requirement</th>
+                        <th>Status</th>
                         <th>Funding Category</th>
+                        <th>Documents</th>
                         <th>Created At</th>
-                        <th>Actions</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
@@ -36,7 +38,20 @@
                         <td>
                           {{$project->project_title }}
                         </td>
-                        <td>{{ $project->description }}</td>
+                        <td>
+                            {{ $project->description }}
+                        </td>
+                        <td>
+                           {{ number_format($project->funding_requirement , 2, '.', ',') }}
+                        </td>
+
+                        <td>
+                            {{ $project->status }}
+                        </td>
+
+                        <td>
+                            {{ $project->funding_category }}
+                        </td>
 
                         @php
                           $medias = $project->getMedia('document');
@@ -47,10 +62,6 @@
                               <a href="{{ $media->getUrl() }}" data-toggle="tooltip" data-placement="bottom" title="{{ $media->name }}"><p class="mb-2 small"><i class="menu-icon tf-icons bx bx-paperclip"></i></p></a>
                           @endforeach
                         </td>
-
-                        <td>
-                            {{ $project->funding_category->category_name }}
-                        </td>
                         
                         <td><span class="badge bg-label-primary me-1">{{ $project->created_at->diffForHumans() }}</span></td>
                         <td>
@@ -59,14 +70,18 @@
                               <i class="icon-base bx bx-dots-vertical-rounded"></i>
                             </button>
                             <div class="dropdown-menu">
+                              @can('project-update')
                               <a class="dropdown-item" href="{{ route('projects.edit', $project->id) }}"
                                 ><i class="icon-base bx bx-edit-alt me-1"></i> Edit</a
                               >
+                              @endcan
+                              @can('project-delete')
                               @csrf
                               @method('DELETE')
                               <a class="dropdown-item" href="{{ route('projects.destroy', $project->id) }}" data-confirm-delete="true"
                                 ><i class="icon-base bx bx-trash me-1"></i> Delete</a
                               >
+                              @endcan
                             </div>
                           </div>
                         </td>
@@ -116,21 +131,41 @@
 
 <script type="text/javascript">
 
+  // Server-Side DataTables Implementation
+  // $(document).ready(function() {
+  //   $('.datatable').DataTable({
+  //     serverSide: true,
+  //     processing: true,
+  //     ajax: {
+  //       url: '{{ route("projects.index") }}'
+  //     },
+  //     columns: [
+  //       { data: 'project_title', name: 'project_title'},
+  //       { data: 'description',   name: 'description'},
+  //       { data: 'status',        name: 'status'},
+  //       { data: 'funding_category', name: 'funding_category'},
+  //       { data: 'created_at', name: 'created_at'},
+  //       { data: 'action', name: 'action'},
+  //     ]
+  //   });
+  // });
 
-$(document).ready(function() {
-
-  $('#myTableProject').DataTable({
-    autoWidth: false,
+  // Client-Side DataTables Implementation
+  $(document).ready(function() {
+    $('.datatable').DataTable({
+      autoWidth: false,
     columns: [
+        { width: '18%' },
         { width: '20%' },
-        { width: '30%' },
+        { width: '11%' },
         { width: '10%' },
-        { width: '13%' },
         { width: '11%' },
-        { width: '11%' },
-    ]
+        { width: '10%' },
+        { width: '10%' },
+        { width: '10%' },
+      ]
+    });
   });
-});
 
 $(function () {
   $('[data-toggle="tooltip"]').tooltip()

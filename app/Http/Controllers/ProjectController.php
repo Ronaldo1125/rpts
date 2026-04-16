@@ -2,43 +2,108 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agency;
-use App\Models\Sector;
-use App\Models\Status;
-use App\Models\Chapter;
-use App\Models\Project;
-use App\Models\Province;
-use App\Models\Indicator;
-use App\Models\SubSector;
-use App\Models\Attachment;
-use App\Models\Endorsement;
-use App\Models\EndorseYear;
-use App\Models\MainProject;
-use Illuminate\Http\Request;
-use App\Models\ProjectSector;
-use App\Models\ProjectChapter;
-use App\Models\FundingCategory;
-use App\Models\ProjectLocation;
-use Illuminate\Validation\Rule;
-use App\Models\ProjectIndicator;
-use App\Models\ProjectCostTarget;
-use App\Models\ProjectEndorsement;
-use Illuminate\Support\Facades\Auth;
+use App\FundSource;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
+use App\Models\Agency;
+use App\Models\Chapter;
+use App\Models\EndorseYear;
+use App\Models\Indicator;
+use App\Models\Project;
+use App\Models\ProjectChapter;
+use App\Models\ProjectLocation;
+use App\Models\Province;
+use App\Models\Sector;
+use App\Models\SubSector;
+use App\ProjectFundingCategory;
+use App\ProjectLocationType;
+use App\ProjectStatus;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\CollectionDataTable;
+use Yajra\DataTables\Facades\DataTables;
 
 class ProjectController extends Controller
 {
+    public $statuses;
+    public $indicators;
+    public $agencies;
+    public $sectors;
+    public $funding_categories;
+    public $endorse_years;
+    public $chapters;
+    public $project_location_types;
+    public $provinces;
+    public $fund_sources;
+
+    public function __construct()
+    {
+        //$this->authorizeResource(Project::class);
+        $this->statuses = ProjectStatus::cases();
+        $this->indicators = Indicator::orderBy('indicator_name')->pluck('indicator_name', 'id')->all();
+        $this->agencies = Agency::pluck('agency_acronym', 'id')->all();
+        $this->sectors = Sector::pluck('sector_name', 'id')->all();
+        $this->funding_categories = ProjectFundingCategory::cases();
+        $this->endorse_years = EndorseYear::pluck('year', 'id')->all();
+        $this->chapters = Chapter::pluck('chapter_name', 'id')->all();
+        $this->project_location_types = ProjectLocationType::cases();
+        $this->provinces = Province::pluck('province_name', 'id')->all();
+        $this->fund_sources = FundSource::cases();
+       
+       
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        
-        //$path = request()->path();
-        $projects = Project::whereNull('component_project_id')->get();
+        // Server-Side Datatables Implementation
+        // if ($request->ajax()) {
+        //     $projects = Project::query();
+        //     if(!Auth::user()->hasRole('administrator')) {
+        //         $projects->where('user_id', auth()->id());
+        //     }
+        //     $projects->whereNull('component_project_id');
 
-        //dd($mainProjects);
+        //     return DataTables::eloquent($projects)
+            
+        //     ->addColumn('created_at', function($projects){
+        //         return Carbon::parse($projects->created_at)->format('Y-m-d H:i:s');
+        //     })
+            
+        //     ->addColumn('action', function($projects){
+        //         return '<div class="dropdown">
+        //                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+        //                       <i class="icon-base bx bx-dots-vertical-rounded"></i>
+        //                     </button>
+        //                     <div class="dropdown-menu"><a class="dropdown-item" href="' . route('projects.edit', $projects->id) . '"
+        //                         ><i class="icon-base bx bx-edit-alt me-1"></i> Edit</a>
+        //                         <a class="dropdown-item" href="'. route('projects.destroy', $projects->id) . '" data-confirm-delete="true"
+        //                         ><i class="icon-base bx bx-trash me-1"></i> Delete</a
+        //                       >
+        //                       </div>
+        //                   </div>';
+        //     })
+        //     ->toJson();
+        // }
+
+        // return view('projects.index');
+
+        // Client-Side Datatables Implementation
+        
+        $projects = (Auth::user()->hasRole('administrator')) ? Project::whereNull('component_project_id')
+                    ->get() : Project::where('user_id', auth()->id())->
+                    whereNull('component_project_id')
+                    ->get();
+
+       
+        foreach($projects as $key => $project) {
+            $projects[$key]['funding_requirement'] = $project->project_cost_target?->cost_year_2023 + $project->project_cost_target?->cost_year_2024 
+                                                   + $project->project_cost_target?->cost_year_2025 + $project->project_cost_target?->cost_year_2026 
+                                                   + $project->project_cost_target?->cost_year_2027 + $project->project_cost_target?->cost_year_2028 
+                                                   +  $project->project_cost_target?->cost_succeeding_years;
+        }
 
         $title = 'Delete Project Record!';
         $text = "Are you sure? This will be deleted permanently.";
@@ -52,16 +117,28 @@ class ProjectController extends Controller
      */
     public function create()
     {
-        $statuses = Status::pluck('status_name', 'id')->all();
-        $agencies = Agency::pluck('agency_acronym', 'id')->all();
-        $funding_categories = FundingCategory::pluck('category_name', 'id')->all();
-        $provinces = Province::pluck('province_name', 'id')->all();
-        $chapters = Chapter::pluck('chapter_name', 'id')->all();
-        $sectors = Sector::pluck('sector_name', 'id')->all();
-        $endorse_years = EndorseYear::pluck('year', 'id')->all();
-        $indicators = Indicator::pluck('indicator_name', 'id')->all();
+        //$statuses = ProjectStatus::cases();
+        //$project_location_types = ProjectLocationType::cases();
+        
+        
+       //$provinces = Province::pluck('province_name', 'id')->all();
+        
+        
+        //$endorse_years = EndorseYear::pluck('year', 'id')->all();
+        //$indicators = Indicator::pluck('indicator_name', 'id')->all();
 
-        return view('projects.create', compact('statuses', 'agencies', 'funding_categories', 'provinces' , 'chapters', 'sectors', 'endorse_years', 'indicators'));
+        return view('projects.create', [
+            'statuses' => $this->statuses, 
+            'agencies' => $this->agencies, 
+            'funding_categories' => $this->funding_categories, 
+            'provinces' => $this->provinces, 
+            'chapters' => $this->chapters, 
+            'sectors' => $this->sectors, 
+            'endorse_years' => $this->endorse_years, 
+            'indicators' => $this->indicators, 
+            'project_location_types' => $this->project_location_types,
+            'fund_sources' => $this->fund_sources
+        ]);
     }
 
     /**
@@ -73,6 +150,8 @@ class ProjectController extends Controller
         $request->validated();
 
         $this->storeProject($request);
+
+        //activity()->log('Look mum, I logged something');
 
 
         toast('Project Data Stored Successfully!','success');
@@ -94,46 +173,85 @@ class ProjectController extends Controller
      */
     public function edit($id)
     {
-        $project = Project::where('id', '=', $id)->first();
-        $statuses = Status::pluck('status_name', 'id')->all();
-        $agencies = Agency::pluck('agency_acronym', 'id')->all();
-        $funding_categories = FundingCategory::pluck('category_name', 'id')->all();
-        $chapters = Chapter::pluck('chapter_name', 'id')->all();
-        $provinces = Province::pluck('province_name', 'id')->all();
-        $sectors = Sector::pluck('sector_name', 'id')->all();
-        $endorse_years = EndorseYear::pluck('year', 'id')->all();
-        $indicators = Indicator::pluck('indicator_name', 'id')->all();
+        //$this->authorize('edit', $id);
+
+         $project = Project::where('id', '=', $id)->first();
+
+        if(!Auth::user()->hasRole('administrator')) {
+            if($project->user->isNot(Auth::user())) 
+            {
+                abort(403);
+            }
+        }
+       
         $arrInterProvinces = [];
+        $arrValueSelectedChapters = [];
         $provinceId = '';
+        $selectedProvince = '';
+        $locationSpecific = '';
 
         $selectedChapters = ProjectChapter::where('project_id', '=', $id)->get();
-        $selectedInterProvinces = ProjectLocation::where('project_id', $id)
+
+        if($project->location == 'inter-province') {
+            $selectedInterProvinces = ProjectLocation::where('project_id', $id)
                                                  ->whereNull('district_id')
                                                  ->whereNull('municipality_id')
                                                  ->get();
+
+            if(count($selectedInterProvinces) > 0)
+            {
+                foreach($selectedInterProvinces as $selectedInterProvince) {
+                    $arrInterProvinces[] = $selectedInterProvince['province_id'];
+                }  
+            }
+        }
+
+        if($project->location == 'provincewide') {
+
+             $provinceWide = ProjectLocation::where('project_id', $id)
+                                            ->whereNull('district_id')
+                                            ->whereNull('municipality_id')
+                                            ->first();
+            
+            $selectedProvince = $provinceWide->province_id;
+
+        }
+
         $locationSpecific = ProjectLocation::where('project_id', $id)
                                            ->whereNotNull('district_id')
                                            ->whereNotNull('municipality_id')
                                            ->first();
-
-        if($locationSpecific != null) {
+        
+        if(!is_null($locationSpecific)) {
             $provinceId = $locationSpecific->province_id;
         }
 
-        if(count($selectedInterProvinces) > 0)
-        {
-            foreach($selectedInterProvinces as $selectedInterProvince) {
-                $arrInterProvinces[] = $selectedInterProvince['province_id'];
-            }  
+        if(count($selectedChapters) > 0) {
+            foreach($selectedChapters as $selectedChapter) {
+                $arrValueSelectedChapters[] = $selectedChapter['chapter_id'];
+            }
+
         }
-
-        foreach($selectedChapters as $selectedChapter) {
-            $arrValueSelectedChapters[] = $selectedChapter['chapter_id'];
-        }
-
-        //dd($arrValueSelectedChapters);
-
-        return view('projects.edit', compact('project', 'agencies', 'statuses', 'funding_categories', 'chapters', 'provinceId', 'provinces', 'sectors','endorse_years', 'indicators', 'arrValueSelectedChapters', 'arrInterProvinces', 'locationSpecific'));
+        
+        return view('projects.edit', [
+                                        'project' => $project, 
+                                        'agencies' => $this->agencies, 
+                                        'statuses' => $this->statuses, 
+                                        'funding_categories' => $this->funding_categories, 
+                                        'fund_sources' => $this->fund_sources,
+                                        'chapters' => $this->chapters, 
+                                        'provinceId' => $provinceId, 
+                                        'provinces' => $this->provinces,
+                                        'selectedProvince' => $selectedProvince, 
+                                        'sectors' => $this->sectors,
+                                        'endorse_years' => $this->endorse_years, 
+                                        'indicators' => $this->indicators, 
+                                        'arrValueSelectedChapters' => $arrValueSelectedChapters, 
+                                        'arrInterProvinces' => $arrInterProvinces, 
+                                        'locationSpecific' => $locationSpecific, 
+                                        'project_location_types' => $this->project_location_types,
+                                        
+                                        ]);
     }
 
     /**
@@ -150,7 +268,8 @@ class ProjectController extends Controller
 
         toast('Project Data Updated Successfully!','success');
         
-        return redirect()->route('projects.index');
+        //return redirect()->route('projects.index');
+        return redirect()->route('projects.edit', ['id' => $id ]);
 
     }
 
@@ -161,7 +280,15 @@ class ProjectController extends Controller
     {
 
        $project = Project::findOrFail($id);
-       $project->delete();
+
+       if(!Auth::user()->hasRole('administrator')) {
+            if($project->user->isNot(Auth::user())) 
+            {
+                abort(403);
+            }
+        } 
+        
+        $project->delete();
 
         toast('Project data deleted successfully!', 'success');
 

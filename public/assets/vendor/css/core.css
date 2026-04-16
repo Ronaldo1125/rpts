@@ -197,6 +197,8 @@
 
 :root {
   font-size: var(--bs-root-font-size);
+  --background-color: #ffffff; /* Background color for the entire website, including individual sections */
+   --accent-color: #2487ce; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
 }
 @media (prefers-reduced-motion: no-preference) {
   :root {

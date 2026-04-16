@@ -10,8 +10,15 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\StoreUserRequest;
 
+
 class UserController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->authorizeResource(User::class);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -49,6 +56,16 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'agency_id' => $request->agency_id,
         ]);
+
+
+        activity('user')
+        ->performedOn($user)
+        ->withProperties([
+            'name' => $request->name,
+            'email' => $request->email
+            ])
+        ->event('created')
+        ->log('created');
 
         $profile = Profile::create([
             'user_id' => $user->id,
@@ -94,6 +111,15 @@ class UserController extends Controller
             'agency_id' => $request->agency_id,
         ]);
 
+        activity('user')
+        ->performedOn($user)
+        ->withProperties([
+            'name' => $request->name,
+            'email' => $request->email
+            ])
+        ->event('updated')
+        ->log('updated');
+
         $user->syncRoles($request->input('role'));
 
         toast('User data updated successfully!','success');
@@ -107,6 +133,15 @@ class UserController extends Controller
     public function destroy(User $user)
     {
          $user->delete();
+
+         activity('user')
+        ->performedOn($user)
+        ->withProperties([
+            'name' => $user->name,
+            'email' => $user->email
+            ])
+        ->event('deleted')
+        ->log('deleted');
 
         toast('User data deleted successfully!', 'success');
 

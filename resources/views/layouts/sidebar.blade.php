@@ -77,7 +77,7 @@
           <div class="text-truncate" data-i18n="Dashboards">Dashboards</div>
         </a>
       </li>
-
+    @can('project-view')
        <!-- Project Input -->
       <li class="menu-item 
       @if(in_array(document_path(), ['projects', 'components']))
@@ -112,8 +112,10 @@
         </ul>
        
       </li>
+      @endcan
 
-      <!-- Project Input -->
+      @can('cipg_submission-view')
+      <!-- CIPG Submission Input -->
       <li class="menu-item 
       @if(document_path() == 'cipgs')
       active
@@ -124,10 +126,12 @@
           <div class="text-truncate" data-i18n="Basic">CIPG Submissions</div>
         </a>
       </li>
+      @endcan
   
-      <!-- Layouts -->
+      @role('administrator')
+      <!-- Admin Management -->
       <li class="menu-item 
-      @if(in_array(document_path(),['agencies','chapters','sectors','statuses', 'funding_categories', 'sub_sectors', 'indicators', 'endorse_years']))
+      @if(in_array(document_path(),['agencies','chapters','sectors','statuses', 'funding_categories', 'sub_sectors', 'indicators', 'endorse_years', 'activity_logs']))
       active open
       @endif
       ">
@@ -175,15 +179,7 @@
             </a>
           </li>
           
-          <li class="menu-item 
-          @if(document_path() == 'statuses')
-            active
-          @endif
-          ">
-            <a href="{{ route('statuses.index') }}" class="menu-link">
-              <div class="text-truncate" data-i18n="Without navbar">Status</div>
-            </a>
-          </li>
+          
 
           <li class="menu-item 
           @if(document_path() == 'endorse_years')
@@ -206,20 +202,20 @@
           </li>
 
           <li class="menu-item 
-          @if(document_path() == 'funding_categories')
+          @if(document_path() == 'activity_logs')
             active
           @endif
           ">
-            <a href="{{ route('funding_categories.index') }}" class="menu-link">
-              <div class="text-truncate" data-i18n="Without navbar">Funding Category</div>
+            <a href="{{ route('activity_logs.index') }}" class="menu-link">
+              <div class="text-truncate" data-i18n="Without navbar">Activity Logs</div>
             </a>
           </li>
-          
         </ul>
       </li>
+      @endrole
   
 
-      <!-- Front Pages -->
+      <!-- User Management -->
       <li class="menu-item 
       @if(in_array(document_path(),['users', 'profiles']))
       active open
@@ -230,6 +226,7 @@
           <div class="text-truncate" data-i18n="Front Pages">User Management</div>
         </a>
         <ul class="menu-sub">
+          @role('administrator')
           <li class="menu-item 
           @if(document_path() == 'users')
             active
@@ -241,6 +238,7 @@
               <div class="text-truncate" data-i18n="Landing">Users</div>
             </a>
           </li>
+          @endrole
           <li class="menu-item 
           @if(document_path() == 'profiles')
             active
@@ -265,7 +263,8 @@
 
       
 
-      <!-- Admin Management -->
+      <!-- Role Management -->
+      @role('administrator')
       <li class="menu-item 
       @if(in_array(document_path(),['roles', 'permissions']))
       active open
@@ -308,6 +307,7 @@
           
         </ul>
       </li>
+      @endrole
 
       <!-- Front Pages -->
       <li class="menu-item 

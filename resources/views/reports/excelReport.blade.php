@@ -66,7 +66,7 @@ table, thead, th, tr, td {
                     @endif
              </td>
             <td>{{ $project->agency->agency_acronym }}</td>
-            <td style="text-align: center;">{{ $project->funding_category->category_name }}</td>
+            <td style="text-align: center;">{{ $project->funding_category }}</td>
             <td style="text-align: right;">{{ number_format($project->funding_requirement, 2) }}</td>
             
             <td style="text-align: right;">{{ ($project->project_cost_target->target_year_2023 > 0) ? number_format($project->project_cost_target->target_year_2023, 2) : "" }}</td>

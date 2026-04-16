@@ -8,6 +8,11 @@ use App\Http\Requests\UpdateEndorseYearRequest;
 
 class EndorseYearController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(EndorseYear::class);
+    }
+
     /**
      * Display a listing of the resource.
      */

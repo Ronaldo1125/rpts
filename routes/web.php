@@ -17,6 +17,7 @@ use App\Http\Controllers\ComponentController;
 use App\Http\Controllers\IndicatorController;
 use App\Http\Controllers\SubSectorController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\EndorsementController;
 use App\Http\Controllers\EndorseYearController;
 use App\Http\Controllers\CipgSubmissionController;
@@ -73,8 +74,7 @@ Route::group(['middleware' => ['auth']], function() {
     //Route of RDP Chapters
     Route::resource('/chapters', ChapterController::class);
 
-    //Route of Statuses
-    Route::resource('/statuses', StatusController::class);
+   
 
     //Route of Indicators
     Route::resource('/indicators', IndicatorController::class);
@@ -83,8 +83,6 @@ Route::group(['middleware' => ['auth']], function() {
      //Route of Endorse Years
     Route::resource('/endorse_years', EndorseYearController::class);
 
-    //Route of Funding Categories
-    Route::resource('/funding_categories', FundingCategoryController::class);
 
     //Route of Report Generation
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -101,6 +99,9 @@ Route::group(['middleware' => ['auth']], function() {
     //Route of CIPG Submission
     Route::post('cipgs/media', [CipgController::class, 'storeMedia'])->name('cipgs.storeMedia');
     Route::resource('/cipgs', CipgController::class);
+
+    //Route of Activity Logs
+    Route::get('/activity_logs', [ActivityLogController::class, 'index'])->name('activity_logs.index');
     
     
     // Route of Profiles

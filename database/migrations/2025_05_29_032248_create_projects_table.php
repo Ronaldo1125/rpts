@@ -17,10 +17,12 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->foreignId('component_project_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('agency_id')->constrained();
-            $table->foreignId('status_id')->constrained();
+            $table->string('status');
             $table->decimal('funding_requirement', 9, 2)->default(0);
-            $table->foreignId('funding_category_id')->constrained();
+            $table->string('funding_category');
             $table->string('location');
+            $table->string('latitude')->nullable();
+            $table->string('longtitude')->nullable();
             $table->text('remarks')->nullable();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();

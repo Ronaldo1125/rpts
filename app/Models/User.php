@@ -5,8 +5,10 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Agency;
 use App\Models\Project;
+//use Spatie\Activitylog\LogOptions;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
+//use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -37,6 +39,15 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //     ->logOnly(['name', 'email'])
+    //     ->useLogName('user');
+    //     // Chain fluent methods for configuration options
+    // }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -57,7 +68,7 @@ class User extends Authenticatable
 
     public function project()
     {
-        return $this->hasOne(Project::class, 'user_id');
+        return $this->hasMany(Project::class, 'user_id');
     }
 
     public function agency()

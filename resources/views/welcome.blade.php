@@ -880,4 +880,24 @@
       </div>
 
     </section><!-- /Contact Section --> --}}
+
+    <script type="text/javascript">
+    
+      const reverseFunc = (normalText) => {
+        let reverseText = '';
+
+        for(let i = normalText.length - 1; i >= 0; i--) {
+
+          reverseText += normalText[i];
+
+        }
+
+        return reverseText;
+
+      }
+
+      console.log(reverseFunc('programmer'));
+
+    
+    </script>
 @endsection

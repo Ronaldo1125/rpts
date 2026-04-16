@@ -22,6 +22,9 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    
+
     <link
       href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
       rel="stylesheet" />
@@ -35,6 +38,9 @@
 
     <link rel="stylesheet" href="/assets/vendor/css/core.css" />
     <link rel="stylesheet" href="/assets/css/demo.css" />
+
+    <!-- Main CSS File -->
+  <link href="/assets/onepage/css/main.css" rel="stylesheet">
 
     <!-- Vendors CSS -->
 
@@ -56,10 +62,6 @@
 
 <link rel="stylesheet" href="/assets/css/bootstrap-select.min.css"/>
   
-
-    
-
-
     <!-- Helpers -->
     <script src="/assets/vendor/js/helpers.js"></script>
     <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
@@ -68,8 +70,7 @@
 
     <script src="/assets/js/config.js"></script>
 
-    
-
+   
   </head>
 
   <body>
@@ -197,6 +198,7 @@
           <!-- / Navbar -->
 
          @yield("content")
+
          
             <!-- Footer -->
             <footer class="content-footer footer bg-footer-theme">
@@ -243,6 +245,9 @@
     </div>
     <!-- / Layout wrapper -->
 
+    <!-- Preloader -->
+  <div id="preloader"></div>
+
     <!-- Core JS -->
 
     <script src="/assets/vendor/libs/jquery/jquery.js"></script>
@@ -265,6 +270,8 @@
 
     <!-- Page JS -->
     <script src="/assets/js/dashboards-analytics.js"></script>
+
+    {{-- <script src="/assets/onepage/js/main.js"></script> --}}
 
     
     
@@ -289,9 +296,22 @@
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/bootstrap-select.min.js"></script>
 
+    <!-- RPTS JS -->
+    {{-- <script src="/assets/js/rpts.js"></script> --}}
+
     <script type="text/javascript">
 
       $('#myTable').DataTable();
+
+          /**
+       * Preloader
+       */
+      const preloader = document.querySelector('#preloader');
+      if (preloader) {
+        window.addEventListener('load', () => {
+          preloader.remove();
+        });
+      }
     
     </script>
 

@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 
 class ChapterController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->authorizeResource(Chapter::class);
+    }
+
     /**
      * Display a listing of the resource.
      */

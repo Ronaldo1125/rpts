@@ -24,6 +24,9 @@
   <link href="/assets/onepage/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
   <link href="/assets/onepage/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 
+  <!-- Datatable CSS -->
+    <link rel="stylesheet" href="/assets/css/datatables.css" />
+
   <!-- Main CSS File -->
   <link href="/assets/onepage/css/main.css" rel="stylesheet">
 
@@ -34,6 +37,7 @@
   * Author: BootstrapMade.com
   * License: https://bootstrapmade.com/license/
   ======================================================== -->
+  @yield('style')
 </head>
 
 <body class="index-page">
@@ -134,7 +138,7 @@
              class="active" 
              @endif
              >Home</a></li>
-            <li><a href="https://dro5.depdev.gov.ph">DEPDev 5 Website</a></li>
+            <li><a href="https://dro5.depdev.gov.ph" target="_blank">DEPDev 5 Website</a></li>
             <li><a href="{{ route('projectDashboard.index')}}" 
             @if(document_path() == 'projectDashboard')
              class="active"
@@ -194,6 +198,10 @@
   <!-- Preloader -->
   <div id="preloader"></div>
 
+  <!-- Jquery -->
+  <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+  <script src="/assets/vendor/libs/popper/popper.js"></script>
+
   <!-- Vendor JS Files -->
   <script src="/assets/onepage/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/onepage/vendor/php-email-form/validate.js"></script>
@@ -203,9 +211,20 @@
   <script src="/assets/onepage/vendor/swiper/swiper-bundle.min.js"></script>
   <script src="/assets/onepage/vendor/imagesloaded/imagesloaded.pkgd.min.js"></script>
   <script src="/assets/onepage/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+   <script src="/assets/js/datatables.js"></script>
 
   <!-- Main JS File -->
   <script src="/assets/onepage/js/main.js"></script>
+
+  <!-- HighCharts JS File -->
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>
+  <script src="https://code.highcharts.com/modules/export-data.js"></script>
+  <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+  <script src="https://code.highcharts.com/themes/adaptive.js"></script>
+
+
+@yield('script')
 
 </body>
 

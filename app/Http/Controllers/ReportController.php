@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Pdf;
-use App\Models\Status;
+use App\ProjectStatus;
 use App\Models\Project;
 use Illuminate\Http\Request;
-use App\Models\FundingCategory;
+use App\ProjectFundingCategory;
 use App\Exports\ProjectDataExport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -14,43 +14,43 @@ class ReportController extends Controller
 {
     public function index()
     {
-        $selectedFundingCategoryId = "";
-        $selectedStatusId = "";
+        $selectedFundingCategory = "";
+        $selectedStatus = "";
 
         $projects = Project::all();
-        $funding_categories = FundingCategory::pluck('category_name', 'id')->all();
-        $statuses = Status::pluck('status_name', 'id')->all();
+        $funding_categories = ProjectFundingCategory::cases();
+        $statuses = ProjectStatus::cases();
 
-        return view('reports.index', compact('projects', 'funding_categories', 'statuses', 'selectedFundingCategoryId', 'selectedStatusId'));
+        return view('reports.index', compact('projects', 'funding_categories', 'statuses', 'selectedFundingCategory', 'selectedStatus'));
     }
 
 
     public function searchReport(Request $request) {
 
-        $selectedFundingCategoryId = "";
-        $selectedStatusId = "";
+        $selectedFundingCategory = "";
+        $selectedStatus = "";
         //$projects = Project::all();
-        $funding_categories = FundingCategory::pluck('category_name', 'id')->all();
-        $statuses = Status::pluck('status_name', 'id')->all();
+        $funding_categories = ProjectFundingCategory::cases();
+        $statuses = ProjectStatus::cases();
 
         $query = Project::query();
 
-        if($request->funding_category_id != "") {
+        if($request->funding_category != "") {
             
-            $selectedFundingCategoryId = $request->funding_category_id;
-            $query->where('funding_category_id', $selectedFundingCategoryId); 
+            $selectedFundingCategory = $request->funding_category;
+            $query->where('funding_category', $selectedFundingCategory); 
         }
 
-        if($request->status_id != "") 
+        if($request->status != "") 
         {    
-            $selectedStatusId = $request->status_id;
-            $query->where('status_id', $selectedStatusId); 
+            $selectedStatus = $request->status;
+            $query->where('status', $selectedStatus); 
         }
 
         $projects = $query->get();
 
         //return redirect()->route('reports.index', compact('projects'));
-        return view('reports.index', compact('projects', 'funding_categories', 'statuses', 'selectedFundingCategoryId', 'selectedStatusId'));
+        return view('reports.index', compact('projects', 'funding_categories', 'statuses', 'selectedFundingCategory', 'selectedStatus'));
     }
 
     public function generatePdf(Request $request) {
@@ -58,14 +58,14 @@ class ReportController extends Controller
 
         $query = Project::query();
 
-        if($request->funding_category_id != null) 
+        if($request->funding_category != null) 
         {
-            $query->where('funding_category_id', $request->funding_category_id); 
+            $query->where('funding_category', $request->funding_category); 
         }
 
-        if($request->status_id != null) 
+        if($request->status != null) 
         {    
-            $query->where('status_id', $request->status_id); 
+            $query->where('status', $request->status); 
         }
 
         $projects = $query->get();
@@ -78,6 +78,6 @@ class ReportController extends Controller
     public function generateExcel(Request $request)
     {
 
-        return Excel::download(new ProjectDataExport($request->funding_category_id, $request->status_id), time() . '_' . 'excelReport.xlsx');
+        return Excel::download(new ProjectDataExport($request->funding_category, $request->status), time() . '_' . 'excelReport.xlsx');
     }
 }

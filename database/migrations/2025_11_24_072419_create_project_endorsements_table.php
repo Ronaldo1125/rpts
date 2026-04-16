@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('project_endorsements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained()->onDelete('cascade');
-            $table->foreignId('endorse_year_id')->constrained();
+            $table->foreignId('endorse_year_id')->nullable()->constrained();
             $table->string('rdc_endorsement_number')->nullable();
             $table->timestamps();
         });

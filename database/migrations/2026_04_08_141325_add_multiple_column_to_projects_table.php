@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('statuses', function (Blueprint $table) {
-            $table->id();
-            $table->string('status_name');
-            $table->timestamps();
+        Schema::table('projects', function (Blueprint $table) {
+            $table->string('fund_source')->after('agency_id');
+            $table->string('other_fund_source')->nullable()->after('fund_source');
         });
     }
 
@@ -23,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('statuses');
+        Schema::table('projects', function (Blueprint $table) {
+            $table->dropColumn(['fund_source','other_fund_source']);
+        });
     }
 };

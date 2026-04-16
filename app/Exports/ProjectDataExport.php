@@ -20,10 +20,10 @@ class ProjectDataExport implements FromView, ShouldAutoSize, WithStyles, WithCol
     private $selectedFundingCategoryId;
     private $selectedStatusId;
 
-    public function __construct($selectedFundingCategoryId, $selectedStatusId)
+    public function __construct($selectedFundingCategory, $selectedStatus)
     {
-        $this->selectedFundingCategoryId = $selectedFundingCategoryId;
-        $this->selectedStatusId = $selectedStatusId;
+        $this->selectedFundingCategory = $selectedFundingCategory;
+        $this->selectedStatus = $selectedStatus;
 
     }
    
@@ -31,14 +31,14 @@ class ProjectDataExport implements FromView, ShouldAutoSize, WithStyles, WithCol
     {
         $query = Project::query();
 
-        if($this->selectedFundingCategoryId != null) 
+        if($this->selectedFundingCategory != null) 
         {
-            $query->where('funding_category_id', $this->selectedFundingCategoryId); 
+            $query->where('funding_category', $this->selectedFundingCategory); 
         }
 
-        if($this->selectedStatusId != null) 
+        if($this->selectedStatus != null) 
         {    
-            $query->where('status_id', $this->selectedStatusId); 
+            $query->where('status', $this->selectedStatus); 
         }
 
         $projects = $query->get();
