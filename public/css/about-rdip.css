@@ -1,0 +1,773 @@
+/* ============================================================
+   ABOUT RDIP — White Card / Island Layout
+   Clean white cards over the dark DepDev building background,
+   matching the project dashboard and login form aesthetic.
+============================================================ */
+
+.rdip-wrapper {
+    width: 90%;
+    max-width: 1200px; /* Restore standard width */
+    margin: 0 auto;
+    padding: 7rem 0 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem; /* GENEROUS GAP */
+    font-family: 'Inter', sans-serif;
+}
+
+/* ━━━ SHARED WHITE ISLAND BASE ━━━ */
+.rdip-island {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    border-radius: 16px;
+    padding: 2.5rem; /* RESTORE FULL PADDING */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ━━━ HERO ISLAND — white card, matches all other islands ━━━ */
+.rdip-hero-island {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    border-radius: 16px;
+    padding: 3rem 2.5rem 3.5rem; /* COMPACT HERO */
+    position: relative;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+}
+
+/* no pseudo-element needed on white card */
+.rdip-hero-island::before {
+    display: none;
+}
+
+/* Back button — dark on white, inverts to white on hover */
+.rdip-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #0f172a;
+    border: 1.5px solid #0f172a;
+    color: #ffffff;
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.28s ease, color 0.28s ease, transform 0.28s ease;
+    position: absolute;
+    top: 1.5rem;
+    left: 1.75rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.rdip-back-btn:hover {
+    background: #ffffff;
+    color: #0f172a;
+    transform: translateX(-2px);
+}
+
+.rdip-hero-body {
+    padding-top: 1.5rem;
+}
+
+/* Hero text — dark on white card */
+.rdip-overline {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.32em;
+    color: #94a3b8;
+    margin-bottom: 0.9rem;
+}
+
+.rdip-main-title {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: clamp(2.6rem, 6vw, 4.8rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #0f172a;
+    line-height: 1.08;
+    margin-bottom: 1.25rem;
+}
+
+.rdip-subtitle {
+    font-size: 1rem;
+    color: #475569;
+    max-width: 640px;
+    margin: 0 auto 2rem;
+    line-height: 1.85;
+    font-weight: 400;
+}
+
+/* "Visit DepDev 5" pill — dark filled, inverts to white on hover */
+.rdip-pill-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #0f172a;
+    border: 1.5px solid #0f172a;
+    color: #ffffff;
+    padding: 0.65rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    text-decoration: none;
+    transition: background 0.28s ease, color 0.28s ease, transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.rdip-pill-link:hover {
+    background: #ffffff;
+    color: #0f172a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* ━━━ STAT CARDS ROW — white ━━━ */
+.rdip-stat-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+}
+
+.rdip-stat-card {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    border-radius: 10px;
+    padding: 1.75rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.rdip-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+}
+
+.rdip-stat-num {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.rdip-stat-lbl {
+    font-size: 0.63rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #94a3b8;
+}
+
+@media (max-width: 900px) {
+    .rdip-stat-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .rdip-stat-cards {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ━━━ TWO-COLUMN LAYOUT ━━━ */
+.rdip-cards-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem; /* UNIFIED GAP */
+}
+
+@media (max-width: 900px) {
+    .rdip-cards-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ━━━ WHITE CARD TYPOGRAPHY ━━━ */
+.rdip-card-chip {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 0.55rem;
+}
+
+.rdip-card-title {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1.65rem; /* SLIGHTLY REDUCED FROM 1.8 */
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 1.25rem;
+    line-height: 1.18;
+}
+
+.rdip-card-body {
+    font-size: 0.875rem;
+    color: #475569;
+    line-height: 1.88;
+    margin-bottom: 0.9rem;
+    font-weight: 400;
+}
+
+.rdip-card-body strong {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+/* ━━━ TIMELINE (How it Works card) ━━━ */
+.rdip-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.rdip-tl-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.rdip-tl-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.rdip-tl-item:first-child {
+    padding-top: 0;
+}
+
+.rdip-tl-badge {
+    background: #f1f5f9;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 6px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+.rdip-tl-body h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.2rem;
+    font-family: 'Inter', sans-serif;
+    padding-top: 0.45rem;
+}
+
+.rdip-tl-body p {
+    font-size: 0.78rem;
+    color: #64748b;
+    line-height: 1.65;
+}
+
+/* ━━━ FULL-WIDTH ISLAND (Strategic Pillars) ━━━ */
+/* inherits .rdip-island (white) */
+
+.rdip-island-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.rdip-island-intro {
+    font-size: 0.875rem;
+    color: #64748b;
+    line-height: 1.8;
+    max-width: 480px;
+    font-weight: 400;
+    padding-top: 2rem;
+}
+
+/* ━━━ TABBED NAVIGATION ━━━ */
+.rdip-tabs-nav {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 2px solid #f1f5f9;
+    margin-bottom: 2.5rem;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.rdip-tab-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    position: relative;
+    top: 2px;
+}
+
+.rdip-tab-btn:hover {
+    color: #475569;
+}
+
+.rdip-tab-btn.active {
+    color: #0f172a;
+    border-bottom-color: #0f172a;
+}
+
+.rdip-tab-panel {
+    display: none;
+    animation: fadeIn 0.4s ease forwards;
+}
+
+.rdip-tab-panel.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ━━━ PANEL HEADER (simplified for tabs) ━━━ */
+.rdip-panel-header {
+    margin-bottom: 1.25rem;
+}
+
+.rdip-panel-header h3 {
+    font-size: 1.4rem;
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+
+/* ━━━ SECTOR CARDS GRID ━━━ */
+.rdip-sector-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.1rem;
+}
+
+@media (max-width: 800px) {
+    .rdip-sector-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 500px) {
+    .rdip-sector-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.rdip-sector-card {
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    border-radius: 10px;
+    padding: 1.5rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rdip-sector-card:hover {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.rdip-sector-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+    color: #000000;
+}
+
+.rdip-sector-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.rdip-sector-card h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+    font-family: 'Inter', sans-serif;
+}
+
+.rdip-sector-card p {
+    font-size: 0.78rem;
+    color: #64748b;
+    line-height: 1.62;
+    flex: 1;
+}
+
+.rdip-agency-row {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
+}
+
+.rdip-agency-row span {
+    background: #e2e8f0;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    color: #475569;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.18rem 0.55rem;
+    border-radius: 4px;
+}
+
+/* ━━━ CTA ISLAND — white with dark navy button ━━━ */
+.rdip-cta-island {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.rdip-cta-icon-wrap {
+    width: 44px; /* SMALLER ICON */
+    height: 44px;
+    background: #f1f5f9;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #334155;
+    flex-shrink: 0;
+}
+
+.rdip-cta-text {
+    flex: 1;
+    min-width: 200px;
+}
+
+.rdip-cta-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 0.4rem;
+}
+
+.rdip-cta-sub {
+    font-size: 0.82rem; /* SMALLER DESC */
+    color: #475569;
+    line-height: 1.6;
+    font-weight: 400;
+    max-width: 500px;
+}
+
+.rdip-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #0f172a;
+    color: #ffffff;
+    border: 1.5px solid #0f172a;
+    padding: 0.6rem 1.75rem; /* SMALLER BUTTON */
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    transition: background 0.28s ease, color 0.28s ease, transform 0.28s ease, box-shadow 0.28s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.rdip-cta-btn:hover {
+    background: #ffffff;
+    color: #0f172a;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+}
+
+/* ━━━ RESPONSIVE ━━━ */
+@media (max-width: 768px) {
+    .rdip-wrapper {
+        width: 94%;
+        padding: 4rem 0 5rem;
+    }
+
+    .rdip-hero-island {
+        padding: 2rem 1.5rem 2.5rem;
+    }
+
+    .rdip-hero-body {
+        padding-top: 2.5rem;
+    }
+
+    .rdip-island {
+        padding: 2rem 1.5rem;
+    }
+
+    .rdip-island-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .rdip-island-intro {
+        padding-top: 0;
+    }
+
+    .rdip-cta-island {
+        padding: 1.75rem 1.5rem;
+    }
+
+    .rdip-cta-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FOOTER — WHITE MODE (only when About RDIP page is active)
+   The footer element itself carries both .landing-footer and
+   .footer-rdip-mode, so use compound (no-space) selectors.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Main footer background → white */
+.landing-footer.footer-rdip-mode {
+    background-color: #ffffff !important;
+    color: #0f172a;
+    border-top: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+/* Divider line → dark */
+.landing-footer.footer-rdip-mode .footer-container {
+    border-bottom-color: rgba(15, 23, 42, 0.1);
+}
+
+/* RPTS wordmark → dark */
+.landing-footer.footer-rdip-mode .footer-brand-name {
+    color: #0f172a;
+}
+
+/* Tagline → dark */
+.landing-footer.footer-rdip-mode .footer-tagline {
+    color: #475569;
+    opacity: 1;
+}
+
+/* DepDev logo — restore original colour (remove white filter) */
+.landing-footer.footer-rdip-mode .footer-logo {
+    filter: none !important;
+    opacity: 1;
+}
+
+/* Column headings → dark */
+.landing-footer.footer-rdip-mode .footer-column h5 {
+    color: rgba(15, 23, 42, 0.5);
+}
+
+/* Column links & text → dark */
+.landing-footer.footer-rdip-mode .footer-column ul li a,
+.landing-footer.footer-rdip-mode .footer-column ul li p {
+    color: #334155;
+    opacity: 1;
+}
+
+.landing-footer.footer-rdip-mode .footer-column ul li a:hover {
+    color: #0f172a;
+    opacity: 1;
+}
+
+/* Inline label overrides inside footer.html (hardcoded white rgba) */
+.landing-footer.footer-rdip-mode .footer-column p[style] {
+    color: rgba(15, 23, 42, 0.5) !important;
+}
+
+/* CTA right-side text */
+.landing-footer.footer-rdip-mode .footer-cta p {
+    color: rgba(15, 23, 42, 0.5);
+    opacity: 1;
+}
+
+.landing-footer.footer-rdip-mode .phone-number {
+    color: #0f172a;
+    border-bottom-color: rgba(15, 23, 42, 0.2);
+}
+
+.landing-footer.footer-rdip-mode .phone-number:hover {
+    border-bottom-color: #0f172a;
+}
+
+/* Footer bottom copyright strip */
+.landing-footer.footer-rdip-mode .footer-bottom {
+    background-color: #f8fafc;
+    color: rgba(15, 23, 42, 0.45);
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+/* ━━━ RDIP SUMMARY TABLE REFINEMENT ━━━ */
+.rdip-table-wrapper {
+    margin: 0 -2.5rem; /* Pull back the padding for edge-to-edge look */
+    overflow-x: auto;
+    border-top: 1px solid #f1f5f9;
+}
+
+.rdip-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem; /* RESTORE READABLE FONT */
+    font-family: 'Inter', sans-serif;
+    color: #334155;
+}
+
+.rdip-summary-table thead tr:first-child {
+    background: #f8fafc;
+}
+
+.rdip-summary-table thead tr:last-child {
+    background: #ffffff;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.rdip-summary-table th {
+    padding: 0.75rem 0.5rem; /* COMPACT HEADERS */
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    font-size: 0.68rem;
+    border: 1px solid #f1f5f9;
+}
+
+.rdip-summary-table th:first-child,
+.rdip-summary-table td:first-child {
+    padding-left: 2.5rem; /* ALIGN WITH CARD HEADER */
+}
+
+.rdip-summary-table th:last-child,
+.rdip-summary-table td:last-child {
+    padding-right: 2.5rem; /* ALIGN WITH CARD RIGHT EDGE */
+}
+
+.rdip-summary-table td {
+    padding: 0.85rem 1rem; /* BALANCED PADDING */
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.rdip-summary-table tbody tr:hover {
+    background: #fdfdfd;
+}
+
+.rdip-summary-table .chapter-num {
+    font-weight: 800;
+    color: #154A9A;
+    text-align: center;
+}
+
+.rdip-summary-table .amount {
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.rdip-summary-table .total-row {
+    background: #f8fafc;
+    font-weight: 800;
+}
+
+.rdip-summary-table .total-row td {
+    border-top: 2px solid #e2e8f0;
+    color: #0f172a;
+}
+
+.sector-group-row {
+    background: #0f172a !important;
+    color: #ffffff;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.72rem;
+}
+
+.sector-group-row td {
+    padding: 0.6rem 2.5rem !important;
+    border: none !important;
+}
+
+.subtotal-row {
+    background: #f1f5f9 !important;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.subtotal-row td {
+    border-top: 1px solid #cbd5e1;
+    border-bottom: 2px solid #cbd5e1;
+}
+
+/* ━━━ FLIPBOOK STYLES (DearFlip) ━━━ */
+.flipbook-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    width: 100%;
+    margin-top: 1rem;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08); /* slight shadow to frame the workspace */
+}
+
+#rdp-flipbook {
+    width: 100%;
+    min-height: 500px;
+    background-color: #f8fafc;
+}
+
+@media (max-width: 900px) {
+    #rdp-flipbook {
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 600px) {
+    #rdp-flipbook {
+        min-height: 300px;
+    }
+}
+
+

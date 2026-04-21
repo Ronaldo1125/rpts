@@ -23,13 +23,37 @@ use App\Http\Controllers\EndorseYearController;
 use App\Http\Controllers\CipgSubmissionController;
 use App\Http\Controllers\FundingCategoryController;
 use App\Http\Controllers\ProjectDashBoardController;
+use App\Http\Controllers\FAQController;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('welcome_v2');
+})->name('landing');
 
-Route::get('/projectDashboard', [ProjectDashBoardController::class, 'index'])->name('projectDashboard.index');
-Route::get('/about', [AboutController::class, 'index'])->name('about.index');
+// Portal routes used by the new landing page JS (landing.js role-based redirects)
+Route::get('/admin/portal', function () {
+    return view('portals.admin');
+})->name('admin.portal');
+
+Route::get('/agency/portal', function () {
+    return view('portals.agency');
+})->name('agency.portal');
+
+Route::get('/division-head/portal', function () {
+    return view('portals.division-head');
+})->name('division-head.portal');
+
+Route::get('/staff/pdipbd-portal', function () {
+    return view('portals.pdipbd-staff');
+})->name('pdipbd-staff.portal');
+
+Route::get('/staff/portal', function () {
+    return view('portals.staff');
+})->name('staff.portal');
+
+
+Route::get('/project-dashboard', [ProjectDashBoardController::class, 'index_v2'])->name('projectDashboard.index');
+Route::get('/about', [AboutController::class, 'index_v2'])->name('about.index');
+Route::get('/faq', [FAQController::class, 'index'])->name('faq.index');
 Route::get('/cipgSubmission', [CipgSubmissionController::class, 'index'])->name('cipg_submissions.index');
 
 Auth::routes();

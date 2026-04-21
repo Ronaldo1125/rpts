@@ -1,0 +1,183 @@
+/* Admin Dash Design Sync */
+.letter-spacing-05 { letter-spacing: 0.05em; }
+.letter-spacing-03 { letter-spacing: 0.03em; }
+.p-2\.5 { padding: 0.625rem !important; }
+
+/* Workflow Horizontal Bar - Sleek Arrows */
+.process-container {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    background: #f8fafc;
+    border-radius: 8px;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.process-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+.process-step {
+    flex: 1;
+    min-width: 140px;
+    padding: 16px 12px 16px 20px;
+    background: #f1f5f9;
+    border: none;
+    position: relative;
+    clip-path: polygon(0% 0%, 92% 0%, 100% 50%, 92% 100%, 0% 100%, 8% 50%);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+    color: #64748b;
+}
+.process-step:first-child { 
+    clip-path: polygon(0% 0%, 92% 0%, 100% 50%, 92% 100%, 0% 100%); 
+    padding-left: 15px;
+}
+.process-step:last-child {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 8% 50%);
+}
+
+.process-step:hover {
+    background: #e2e8f0;
+    z-index: 2;
+}
+
+.process-step.active {
+    background: #154A9A !important;
+    color: white !important;
+}
+.process-step.completed {
+    background: #cbd5e1;
+    color: #475569;
+}
+.process-step.current {
+    background: #f97316 !important;
+    color: white !important;
+    border: none;
+    z-index: 5;
+}
+
+.step-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.step-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+}
+.step-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.9;
+}
+.step-count {
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+
+/* Static Analytics Panel Style */
+.workflow-details-panel {
+    background: #f8fafc;
+    border-radius: 1.25rem;
+    margin-top: 1.5rem;
+    border: 1px solid #e2e8f0;
+    padding: 0 1.5rem; /* Remove vertical padding when closed */
+    min-height: 0;
+    position: relative;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    display: block;
+}
+
+.workflow-details-panel.show {
+    opacity: 1;
+    max-height: 2000px; /* Allow content to grow */
+    visibility: visible;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-popup {
+    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.workflow-details-inner {
+    padding: 0;
+}
+
+/* Blue Variation Scale — blue-300 (light) → blue-950 (darkest) */
+.step-1 { background: #93c5fd !important; color: #1e3a8a !important; }
+.step-2 { background: #60a5fa !important; color: #1e3a8a !important; }
+.step-3 { background: #3b82f6 !important; color: white !important; }
+.step-4 { background: #2563eb !important; color: white !important; }
+.step-5 { background: #1d4ed8 !important; color: white !important; }
+.step-6 { background: #1e40af !important; color: white !important; }
+.step-7 { background: #1e3a8a !important; color: white !important; }
+.step-8 { background: #172554 !important; color: white !important; }
+
+.process-step.active {
+    background: #154A9A !important;
+    color: white !important;
+    transform: scale(1.02);
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(21, 74, 154, 0.2);
+}
+
+.process-step:not(.active) {
+    opacity: 0.85;
+}
+
+.process-step:hover:not(.active) {
+    opacity: 1;
+    background: #e2e8f0;
+    z-index: 2;
+    color: #1e3a8a !important;
+}
+
+.transition { transition: all 0.3s ease; }
+.hover-shadow:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); transform: translateY(-2px); }
+
+@media (max-width: 992px) {
+    .process-container { flex-wrap: wrap; gap: 8px; }
+    .process-step { border-radius: 8px !important; clip-path: none !important; padding: 12px !important; flex: 1 1 140px; }
+}
+
+/* Custom UI Utilities for Dashboards */
+.badge-admin-portal { font-size:0.7rem; letter-spacing:0.05em; background:#e0f2fe; color:#075985; }
+.text-logged-in-label { font-size:0.65rem; letter-spacing:0.05em; }
+.card-accent-primary { height: 4px; background-color: #154A9A; }
+.card-accent-info { height: 4px; background-color: #0ea5e9; }
+.card-accent-success { height: 4px; background-color: #10b981; }
+.card-accent-danger { height: 4px; background-color: #ef4444; }
+.card-accent-warning { height: 4px; background-color: #f59e0b; }
+.accent-pip-primary { width:4px; height:20px; background:#154A9A; border-radius:2px; }
+.section-title-workflow { font-size:0.95rem; letter-spacing:0.02em; }
+.badge-stage-label { font-size:0.7rem; }
+.chart-container-pie { width:180px; height:180px; position:relative; }
+.pie-legend-dot-social { width:10px; height:10px; border-radius:2px; background:#1e3a8a; }
+.pie-legend-dot-economic { width:10px; height:10px; border-radius:2px; background:#2563eb; }
+.pie-legend-dot-infra { width:10px; height:10px; border-radius:2px; background:#60a5fa; }
+.pie-legend-dot-insti { width:10px; height:10px; border-radius:2px; background:#bfdbfe; }
+.chart-container-line { height:160px; width:100%; margin-bottom:1rem; }
+.nav-pill-sector { font-size:0.75rem; font-weight:600; }
+.rounded-20 { border-radius: 1.25rem !important; }
+
+/* Staff / Division Head Dashboard Utilities */
+.x-small { font-size: 0.7rem !important; }
+.uppercase { text-transform: uppercase !important; }
+.card.rounded-20:hover { transform: translateY(-2px); transition: transform 0.2s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.08) !important; }

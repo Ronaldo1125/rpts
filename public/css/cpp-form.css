@@ -1,0 +1,371 @@
+/* Comprehensive Project Profile (CPP) Form Styles */
+
+#cpp-form .cpp-badge {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    background: #e8f0fe;
+    color: #154A9A;
+    padding: 0.3em 0.9em;
+    border-radius: 50px;
+    font-weight: 700;
+}
+
+#cpp-form .cpp-stepper {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    width: 100%;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#cpp-form .cpp-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+
+#cpp-form .cpp-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: #e2e8f0;
+    z-index: 0;
+    transition: background 0.4s;
+}
+
+#cpp-form .cpp-step.completed:not(:last-child)::after {
+    background: #154A9A;
+}
+
+#cpp-form .step-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    z-index: 2;
+    position: relative;
+}
+
+#cpp-form .cpp-step.active .step-circle {
+    border-color: #154A9A;
+    background: #154A9A;
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(21, 74, 154, 0.15);
+}
+
+#cpp-form .cpp-step.completed .step-circle {
+    border-color: #154A9A;
+    background: #154A9A;
+    color: #fff;
+}
+
+#cpp-form .step-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-top: 0.5rem;
+    text-align: center;
+    letter-spacing: 0.04em;
+    max-width: 120px;
+}
+
+#cpp-form .cpp-step.active .step-label,
+#cpp-form .cpp-step.completed .step-label {
+    color: #154A9A;
+}
+
+#cpp-form .form-step {
+    display: none;
+}
+
+#cpp-form .form-step.active {
+    display: block;
+    animation: cppFadeIn 0.3s ease;
+}
+
+@keyframes cppFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#cpp-form .section-heading {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #154A9A;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e8f0fe;
+}
+
+#cpp-form .section-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #154A9A;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+#cpp-form .form-control.is-invalid,
+#cpp-form .form-select.is-invalid {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+}
+
+#cpp-form .invalid-feedback {
+    display: none;
+    font-size: 0.72rem;
+    color: #ef4444;
+    margin-top: 0.3rem;
+}
+
+#cpp-form .form-control.is-invalid~.invalid-feedback,
+#cpp-form .form-select.is-invalid~.invalid-feedback {
+    display: block;
+}
+
+#cpp-form .cpp-alert {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-left: 4px solid #ef4444;
+    border-radius: 8px;
+    padding: 0.85rem 1.1rem;
+    font-size: 0.82rem;
+    color: #b91c1c;
+    display: none;
+    margin-bottom: 1.5rem;
+}
+
+#cpp-form .cpp-alert.show {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+#cpp-form .prep-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+}
+
+#cpp-form .drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 2.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#cpp-form .drop-zone:hover,
+#cpp-form .drop-zone.dragover {
+    border-color: #154A9A;
+    background: #f0f5ff;
+}
+
+#cpp-form .cpp-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+#cpp-form .btn-cpp-next,
+#cpp-form .btn-cpp-submit {
+    background: #154A9A;
+    border-color: #154A9A;
+    color: #fff;
+    padding: 0.65rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+#cpp-form .btn-cpp-next:hover,
+#cpp-form .btn-cpp-submit:hover {
+    background: #0f3a7a;
+    border-color: #0f3a7a;
+}
+
+#cpp-form .btn-cpp-prev {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 0.65rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+#cpp-form .btn-cpp-prev:hover {
+    background: #f8fafc;
+}
+
+#cpp-form .cpp-float-actions {
+    position: fixed;
+    right: 32px;
+    bottom: 32px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#cpp-form .btn-cpp-draft {
+    background: #fff;
+    border: 2px solid #154A9A;
+    color: #154A9A;
+    padding: 0.9rem 1.5rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    box-shadow: 0 6px 20px rgba(21, 74, 154, 0.12);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#cpp-form #viewAttachmentsBtn {
+    background: #154A9A;
+    color: #fff;
+    border: none;
+    box-shadow: 0 6px 20px rgba(21, 74, 154, 0.3);
+}
+
+#cpp-form #viewHistoryBtn {
+    background: #475569;
+    color: #fff;
+    border: none;
+    box-shadow: 0 6px 20px rgba(71, 85, 105, 0.3);
+}
+
+#cpp-form .btn-cpp-draft:hover,
+#cpp-form #viewAttachmentsBtn:hover,
+#cpp-form #viewHistoryBtn:hover {
+    filter: brightness(1.1);
+    transform: translateY(-3px);
+}
+
+#cpp-form .btn-cpp-review {
+    background: #fff;
+    border: 2px solid #b45309;
+    color: #b45309;
+    padding: 0.9rem 1.5rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    box-shadow: 0 6px 20px rgba(180, 83, 9, 0.12);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#cpp-form .btn-cpp-review:hover {
+    background: #b45309;
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(180, 83, 9, 0.22);
+}
+
+#cpp-form .btn-cpp-approved {
+    background: #fff;
+    border: 2px solid #15803d;
+    color: #15803d;
+    padding: 0.9rem 1.5rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    box-shadow: 0 6px 20px rgba(21, 128, 61, 0.12);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#cpp-form .btn-cpp-approved:hover {
+    background: #15803d;
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(21, 128, 61, 0.22);
+}
+
+#cpp-form .form-control::placeholder,
+#cpp-form textarea::placeholder {
+    font-style: italic;
+    color: #94a3b8;
+}
+
+#cpp-form .form-check-input {
+    width: 1.15em;
+    height: 1.15em;
+    margin-top: 0.1em;
+    border: 2px solid #94a3b8;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#cpp-form .form-check-input:hover {
+    border-color: #154A9A;
+}
+
+#cpp-form .form-check-input:checked {
+    background-color: #154A9A;
+    border-color: #154A9A;
+    box-shadow: 0 0 0 3px rgba(21, 74, 154, 0.15);
+}
+
+#cpp-form .form-check-input:focus {
+    border-color: #154A9A;
+    box-shadow: 0 0 0 3px rgba(21, 74, 154, 0.2);
+}
+
+#cpp-form .form-check-label {
+    cursor: pointer;
+    padding-left: 0.25rem;
+}
+
+/* Specific Utilities */
+.cpp-header-accent {
+    height: 4px;
+    background: linear-gradient(90deg, #154A9A, #0248D4);
+}

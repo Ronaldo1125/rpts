@@ -30,4 +30,9 @@ class ProjectDashBoardController extends Controller
            //dd($projectCountFundingCategories);
         return view('projectDashboard.index', compact('projectCountStatus', 'projectCountFunding', 'projects', 'componentProjects'));
     }
+
+    public function index_v2()
+    {
+        return view('projectDashboard.index_v2');
+    }
 }

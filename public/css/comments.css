@@ -1,0 +1,119 @@
+/* Comments & Recommendations Specific Styles */
+
+#comments-recommendations .table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#comments-recommendations .table thead th {
+    background-color: #f8fafc;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: #64748b;
+    padding: 0.75rem 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+#comments-recommendations .table tbody td {
+    padding: 0.85rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+#comments-recommendations .cell-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+}
+
+#comments-recommendations .batch-name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+#comments-recommendations .status-badge {
+    padding: 0.3em 0.65em;
+    font-size: 0.68rem;
+    font-weight: 600;
+    border-radius: 6px;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+#comments-recommendations .status-pending { background: #fef3c7; color: #92400e; }
+#comments-recommendations .status-responded { background: #dcfce7; color: #16a34a; }
+
+#comments-recommendations .action-btn {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+    color: #64748b;
+    background: #f1f5f9;
+    border: none;
+}
+
+#comments-recommendations .action-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.cr-action-btn:hover {
+    background: #0d3a7a !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(21, 74, 154, 0.2);
+}
+
+.cr-action-btn:active {
+    transform: translateY(0);
+}
+
+/* Form Specific */
+#comments-recommendations-form .btn-submit-action {
+    background: #154A9A;
+    border-color: #154A9A;
+    color: #fff;
+    padding: 0.65rem 2.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+#comments-recommendations-form .btn-back-list {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+    padding: 0.55rem 1.0rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+#comments-recommendations-form .btn-back-list:hover {
+    background: #f8fafc;
+}
+
+#comments-recommendations-form .custom-checkbox .form-check-input {
+    width: 1.25em;
+    height: 1.25em;
+    margin-top: 0.15em;
+}
+
+#comments-recommendations-form .custom-checkbox .form-check-label {
+    padding-top: 0.15em;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #334155;
+}

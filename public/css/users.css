@@ -1,0 +1,17 @@
+/* Users Page Specific Styles */
+.users-card-body {
+    min-height: 300px;
+    padding: 1.5rem 1.25rem 0.5rem 1.25rem;
+}
+
+.entries-select {
+    width: 70px;
+}
+
+.search-input-group {
+    width: 250px;
+}
+
+.table-overflow-visible {
+    overflow: visible !important;
+}

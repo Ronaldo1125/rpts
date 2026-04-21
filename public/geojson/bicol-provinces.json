@@ -1,0 +1,65 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Albay", "id": "albay", "projects": 16, "cost": 150.0 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [123.6,13.75],[124.0,13.75],[124.2,13.5],[124.1,13.2],[123.9,13.0],[123.6,13.1],[123.5,13.35],[123.55,13.6],[123.6,13.75]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Camarines Norte", "id": "camarines-norte", "projects": 6, "cost": 98.5 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [122.5,14.0],[122.8,14.25],[123.1,14.3],[123.3,14.1],[123.2,13.85],[122.9,13.7],[122.6,13.8],[122.5,14.0]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Camarines Sur", "id": "camarines-sur", "projects": 13, "cost": 409.77 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [122.8,14.0],[123.1,14.25],[123.4,14.2],[123.6,13.95],[123.7,13.65],[123.55,13.3],[123.3,13.1],[123.0,13.2],[122.75,13.5],[122.7,13.75],[122.8,14.0]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Catanduanes", "id": "catanduanes", "projects": 3, "cost": 45.0 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [124.1,13.9],[124.4,14.0],[124.5,13.75],[124.4,13.5],[124.15,13.55],[124.0,13.7],[124.1,13.9]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Masbate", "id": "masbate", "projects": 7, "cost": 180.0 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [123.0,12.35],[123.3,12.5],[123.6,12.45],[123.7,12.2],[123.5,11.9],[123.2,11.85],[122.95,12.0],[122.9,12.2],[123.0,12.35]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Sorsogon", "id": "sorsogon", "projects": 6, "cost": 409.77 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [123.5,13.0],[123.8,13.05],[124.0,12.85],[123.9,12.6],[123.65,12.5],[123.4,12.6],[123.3,12.85],[123.5,13.0]
+        ]]
+      }
+    }
+  ]
+}

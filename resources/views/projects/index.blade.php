@@ -59,7 +59,7 @@
 
                         <td class="text-center">
                           @foreach ($medias as $media)
-                              <a href="{{ $media->getUrl() }}" data-toggle="tooltip" data-placement="bottom" title="{{ $media->name }}"><p class="mb-2 small"><i class="menu-icon tf-icons bx bx-paperclip"></i></p></a>
+                              <a href="{{ $media->getUrl() }}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="{{ $media->name }}"><p class="mb-2 small"><i class="menu-icon tf-icons bx bx-paperclip"></i></p></a>
                           @endforeach
                         </td>
                         

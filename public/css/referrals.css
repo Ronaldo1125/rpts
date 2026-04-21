@@ -1,0 +1,20 @@
+/* Referrals Page Specific Styles */
+#referrals .btn-group .active {
+    background-color: #154A9A !important;
+    border-color: #154A9A !important;
+    color: #fff !important;
+}
+
+.spinner-border-rpts {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+}
+
+.table-title-col {
+    width: 250px;
+}
+
+.table-actions-col {
+    width: 100px;
+}
