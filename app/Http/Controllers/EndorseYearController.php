@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EndorseYear;
 use App\Http\Requests\StoreEndorseYearRequest;
 use App\Http\Requests\UpdateEndorseYearRequest;
+use Illuminate\Http\Request;
 
 class EndorseYearController extends Controller
 {
@@ -25,6 +26,15 @@ class EndorseYearController extends Controller
         confirmDelete($title, $text);
 
         return view('endorse_years.index', compact('endorse_years'));
+    }
+
+    public function index_v2(Request $request)
+    {
+        $perPage = $request->input('per_page', 10);
+        $endorse_years = EndorseYear::latest()->paginate($perPage)->onEachSide(1);
+        $endorse_years->appends(['per_page' => $perPage]);
+        
+        return view('endorse_years.index_v2', compact('endorse_years'));
     }
 
     /**

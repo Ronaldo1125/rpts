@@ -145,7 +145,7 @@
     min-height: 100vh;
     font-family: 'Inter', sans-serif;
     color: #1e293b;
-    padding-bottom: 0; 
+    padding-bottom: 10rem; 
 }
 
 /* ━━━ HIDE BUILDING BACKGROUND FROM PARENT ━━━ */

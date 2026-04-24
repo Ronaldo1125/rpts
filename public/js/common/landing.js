@@ -149,8 +149,7 @@ function initializeEvents() {
     };
 
     const showLoginForm = () => {
-        showView(loginWrapper);
-        if (window.lucide) window.lucide.createIcons();
+        window.location.href = '/login';
     };
 
     const showForgotPasswordForm = () => {
@@ -294,9 +293,7 @@ function initializeEvents() {
 
     // btnCitizen and btnAgency listeners removed or modified
     if (btnAgency) btnAgency.addEventListener('click', () => {
-        sessionStorage.setItem('portalType', 'agency');
-        sessionStorage.setItem('loginTarget', 'cipg');
-        showLoginForm();
+        window.location.href = '/login';
     });
 
     // Sidebar navigation and Explore Button
@@ -494,118 +491,17 @@ function initializeEvents() {
     });
 
     if (btnHeaderLogin) btnHeaderLogin.addEventListener('click', () => {
-        sessionStorage.setItem('loginTarget', 'dashboard');
-        showLoginForm();
+        window.location.href = '/login';
     });
 
+
+    // Handle Login Form Toggle Interactivity (Lucide re-init)
     const loginForm = document.getElementById('login-form-element');
     if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value.trim();
-
-            if (!email || !password) {
-                alert('Please fill in both your email address and password to continue.');
-                return;
-            }
-
-            const target = sessionStorage.getItem('loginTarget');
-            sessionStorage.removeItem('loginTarget');
-
-            // 1. Check localforage system_users first (Dynamic Auth)
-            localforage.getItem('system_users').then(async users => {
-                users = users || [];
-
-                // Versioned seed — same version key as users-loader.js.
-                // If version is outdated, re-seed to overwrite stale data (e.g. wrong division).
-                const SEED_VERSION = 'v2';
-                const storedVersion = await localforage.getItem('system_users_version');
-                if (users.length === 0 || storedVersion !== SEED_VERSION) {
-                    const seedUsers = [
-                        { id: 'USER-1', name: 'Emmanuel Llaguno', email: 'emmanuel.llaguno@depdev.gov.ph', role: 'staff', division: 'PDIPBD', agency: 'DEPDev 5', joined: '2024-01-15T10:00:00Z' },
-                        { id: 'USER-2', name: 'Technical Staff 1', email: 'staff1@depdev.gov.ph', role: 'staff', division: 'PMED', agency: 'DEPDev 5', joined: '2024-02-10T14:30:00Z' },
-                        { id: 'USER-3', name: 'Chief PMED', email: 'pmed.chief@depdev.gov.ph', role: 'division-head', division: 'PMED', agency: 'DEPDev 5', joined: '2023-12-05T08:00:00Z' },
-                        { id: 'USER-4', name: 'System Admin', email: 'admin@depdev.gov.ph', role: 'admin', agency: 'DEPDev 5', joined: '2023-01-01T08:00:00Z' },
-                        { id: 'USER-5', name: 'Agency Representative', email: 'rep@dpwh.gov.ph', role: 'agency', agency: 'DPWH Region V', joined: '2024-03-15T09:00:00Z' }
-                    ];
-                    const preserved = (storedVersion !== SEED_VERSION && users.length > 0)
-                        ? users.filter(u => !['USER-1','USER-2','USER-3','USER-4','USER-5'].includes(u.id))
-                        : [];
-                    users = [...seedUsers, ...preserved];
-                    await localforage.setItem('system_users', users);
-                    await localforage.setItem('system_users_version', SEED_VERSION);
-                }
-
-                const found = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-                
-                if (found) {
-                    localStorage.setItem('currentUser', JSON.stringify({
-                        email: found.email,
-                        name: found.name,
-                        agency: found.agency,
-                        role: found.role,
-                        division: found.division || ''
-                    }));
-
-                    if (found.role === 'admin') {
-                        window.location.href = '/admin/portal';
-                    } else if (found.role === 'division-head') {
-                        window.location.href = '/division-head/portal';
-                    } else if (found.role === 'staff' && (found.division || '').toUpperCase() === 'PDIPBD') {
-                        window.location.href = '/staff/pdipbd-portal';
-                    } else if (found.role === 'staff') {
-                        window.location.href = '/staff/portal';
-                    } else {
-                        window.location.href = '/agency/portal';
-                    }
-                    return;
-                }
-
-                // 2. Fallback to hardcoded patterns if user not in localforage (Legacy support)
-                const isStaff = email.toLowerCase().includes('staff') || email.toLowerCase().includes('llaguno') || email.toLowerCase().includes('posada');
-                const isDivHead = email.toLowerCase().includes('divisionhead') || email.toLowerCase().includes('chief');
-                const isAdmin = email.toLowerCase().includes('admin');
-                const agency = (isStaff || isDivHead || isAdmin) ? 'NEDA 5' : (email.toLowerCase().includes('dict') ? 'DICT - Bicol' : 'DPWH Region V');
-                
-                let role = 'agency';
-                let division = '';
-                
-                if (isAdmin) role = 'admin';
-                else if (isDivHead) {
-                    role = 'division-head';
-                    division = email.toLowerCase().includes('pdipbd') ? 'PDIPBD' : 'PMED';
-                }
-                else if (isStaff) {
-                    role = 'staff';
-                    division = email.toLowerCase().includes('pdipbd') ? 'PDIPBD' : 'PMED';
-                }
-                
-                const finalUser = {
-                    email: email,
-                    name: email.split('@')[0],
-                    agency: agency,
-                    role: role,
-                    division: division
-                };
-
-                localStorage.setItem('currentUser', JSON.stringify(finalUser));
-
-                // Always prioritize role-based redirection
-                    if (role === 'admin') {
-                        window.location.href = '/admin/portal';
-                    } else if (role === 'division-head') {
-                        window.location.href = '/division-head/portal';
-                    } else if (role === 'staff' && division.toUpperCase() === 'PDIPBD') {
-                        window.location.href = '/staff/pdipbd-portal';
-                    } else if (role === 'staff') {
-                        window.location.href = '/staff/portal';
-                    } else {
-                        window.location.href = '/agency/portal';
-                    }
-            });
-        });
+        // We let the form submit naturally to Laravel's auth route
+        // This block is just for any UI-only logic if needed
     }
+
 
     // Forgot Password Flow Handlers
     document.addEventListener('click', (e) => {

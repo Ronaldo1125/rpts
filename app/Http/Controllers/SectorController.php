@@ -26,6 +26,15 @@ class SectorController extends Controller
         return view('sectors.index', compact('sectors'));
     }
 
+    public function index_v2(Request $request)
+    {
+        $perPage = $request->input('per_page', 10);
+        $sectors = Sector::latest()->paginate($perPage)->onEachSide(1);
+        $sectors->appends(['per_page' => $perPage]);
+
+        return view('sectors.index_v2', compact('sectors'));
+    }
+
     /**
      * Show the form for creating a new resource.
      */

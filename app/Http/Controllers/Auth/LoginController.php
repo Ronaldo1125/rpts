@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -21,11 +22,55 @@ class LoginController extends Controller
     use AuthenticatesUsers;
 
     /**
-     * Where to redirect users after login.
+     * Show the application's login form.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function showLoginForm()
+    {
+        return view('auth.login_v2');
+    }
+
+    /**
+     * Where to redirect users after login (fallback).
      *
      * @var string
      */
     protected $redirectTo = '/home';
+
+    /**
+     * Handle post-authentication redirect based on user role.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  mixed  $user
+     * @return \Illuminate\Http\RedirectResponse
+     */
+
+
+    protected function authenticated($request, $user)
+{
+    if ($user->hasRole('administrator')) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    if ($user->hasRole('staff')) {
+        return redirect()->route('staff.dashboard');
+    }
+
+    if ($user->hasRole('implementing_agency') || $user->hasRole('agency')) {
+        return redirect()->route('agency.dashboard');
+    }
+
+    if ($user->hasRole('division_head') || $user->hasRole('chief')) {
+        return redirect()->route('chief.dashboard');
+    }
+
+    if ($user->hasRole('pdipbd_staff')) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    return redirect('/home'); // fallback
+}
 
     /**
      * Create a new controller instance.

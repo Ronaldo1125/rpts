@@ -12,7 +12,7 @@
         </p>
         
 <!-- Hoverable Table rows -->
-    <div class="row">
+    <div class="row"> 
   <!-- FormValidation -->
   <div class="col-12">
     <div class="card">

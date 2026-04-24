@@ -13,5 +13,5 @@
 <div class="top-center">
 </div>
 <div class="top-right">
-    <button id="btn-header-login" class="btn-pill" style="cursor: pointer;">Login</button>
+    <a href="{{ route('login') }}" class="btn-pill" style="cursor: pointer; text-decoration: none;">Login</a>
 </div>

@@ -577,4 +577,30 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const landingFooter = document.getElementById('footer-container-wrapper');
+        if (landingFooter) {
+            landingFooter.classList.add('footer-rdip-mode');
+        }
+        
+        // Initialize about page specific logic (tabs)
+        const tabBtns = document.querySelectorAll('.rdip-tab-btn');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-rdip-tab');
+                
+                // Toggle active class on buttons
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Toggle active class on panels
+                document.querySelectorAll('.rdip-tab-panel').forEach(p => p.classList.remove('active'));
+                const panel = document.getElementById('rdip-panel-' + target);
+                if (panel) panel.classList.add('active');
+            });
+        });
+    });
+</script>
 @endsection

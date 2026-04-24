@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateAgencyRequest extends FormRequest
@@ -16,14 +17,21 @@ class UpdateAgencyRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        $agencyId = $this->route('agency'); // Get ID from URL
+
         return [
-            'agency_name' => ['required', 'min:8', Rule::unique('agencies', 'agency_name')->ignore($this->agency()->id)],
-            'agency_acronym' => ['required', Rule::unique('agencies', 'agency_acronym')->ignore($this->agency()->id)],
+            'agency_name' => [
+                'required', 
+                'min:8', 
+                Rule::unique('agencies', 'agency_name')->ignore($agencyId)
+            ],
+            'agency_acronym' => [
+                'required', 
+                Rule::unique('agencies', 'agency_acronym')->ignore($agencyId)
+            ],
         ];
     }
 }

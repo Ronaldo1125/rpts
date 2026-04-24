@@ -58,4 +58,51 @@ class HomeController extends Controller
         return view('home', compact('totalProjectCost', 'statusGroupNameCounts'));
         //return view('home');
     }
+
+    public function index_v2()
+    {
+        $user = auth()->user();
+
+    if ($user->hasRole('administrator')) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    if ($user->hasRole('staff')) {
+        return redirect()->route('staff.dashboard');
+    }
+
+    if ($user->hasRole('implementing_agency') || $user->hasRole('agency')) {
+        return redirect()->route('agency.dashboard');
+    }
+
+    if ($user->hasRole('division_head') || $user->hasRole('chief')) {
+        return redirect()->route('chief.dashboard');
+    }
+
+    if ($user->hasRole('pdipbd_staff')) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    return redirect('/');
+    }
+
+    public function admin()
+    {
+        return view('home.dashboards');
+    }
+
+    public function agency()
+    {
+        return view('home.agency-dashboard');
+    }
+
+    public function staff()
+    {
+        return view('home.staff-dashboard');
+    }
+
+    public function chief()
+    {
+        return view('home.division-head-dashboard');
+    }
 }

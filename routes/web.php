@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ProjectController_v2;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CipgController;
 use App\Http\Controllers\RoleController;
@@ -54,21 +56,31 @@ Route::get('/staff/portal', function () {
 Route::get('/project-dashboard', [ProjectDashBoardController::class, 'index_v2'])->name('projectDashboard.index');
 Route::get('/about', [AboutController::class, 'index_v2'])->name('about.index');
 Route::get('/faq', [FAQController::class, 'index'])->name('faq.index');
-Route::get('/cipgSubmission', [CipgSubmissionController::class, 'index'])->name('cipg_submissions.index');
+
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index_v2'])->name('home');
+Route::get('/admin/home', [App\Http\Controllers\HomeController::class, 'admin'])->name('admin.dashboard');
+Route::get('/agency/home', [App\Http\Controllers\HomeController::class, 'agency'])->name('agency.dashboard');
+Route::get('/staff/home', [App\Http\Controllers\HomeController::class, 'staff'])->name('staff.dashboard');
+Route::get('/chief/home', [App\Http\Controllers\HomeController::class, 'chief'])->name('chief.dashboard');
 
 Route::group(['middleware' => ['auth']], function() {
 
+    // CIPG Submission — requires login + explicit permission
+    Route::get('/cipgSubmission', [CipgSubmissionController::class, 'index'])
+        ->name('cipg_submissions.index')
+        ->middleware('can:cipg_submission-view');
+
     //Route of Users
     Route::resource('/users', UserController::class);
+    Route::get('v2/users', [UserController::class, 'index_v2'])->name('users.index_v2');
 
     //Route of Projects
     //Route::resource('/projects', ProjectController::class);
 
-    Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
+    Route::get('projects', [ProjectController_v2::class, 'index'])->name('projects.index');
     Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
     Route::get('projects/edit/{id}', [ProjectController::class, 'edit'])->name('projects.edit');
     Route::post('projects/update/{id}', [ProjectController::class, 'update'])->name('projects.update');
@@ -88,25 +100,31 @@ Route::group(['middleware' => ['auth']], function() {
 
     //Route of Sectors
     Route::resource('/sectors', SectorController::class);
+    Route::get('v2/sectors', [SectorController::class, 'index_v2'])->name('sectors.index_v2');
 
     //Route of Sectors
     Route::resource('/sub_sectors', SubSectorController::class);
+    Route::get('v2/sub_sectors', [SubSectorController::class, 'index_v2'])->name('sub_sectors.index_v2');
 
     //Route of Agencies
     Route::resource('/agencies', AgencyController::class);
+    Route::get('v2/agencies', [AgencyController::class, 'index_v2'])->name('agencies.index_v2');
+    Route::post('v2/agencies', [AgencyController::class, 'store_v2'])->name('agencies.store_v2');
+    Route::put('v2/agencies/{agency}', [AgencyController::class, 'update_v2'])->name('agencies.update_v2');
+    Route::delete('v2/agencies/{agency}', [AgencyController::class, 'destroy_v2'])->name('agencies.destroy_v2');
+    Route::post('v2/agencies/validate', [AgencyController::class, 'validate_v2'])->name('agencies.validate_v2');
 
     //Route of RDP Chapters
     Route::resource('/chapters', ChapterController::class);
-
-   
+    Route::get('v2/chapters', [ChapterController::class, 'index_v2'])->name('chapters.index_v2');
 
     //Route of Indicators
     Route::resource('/indicators', IndicatorController::class);
-
+    Route::get('v2/indicators', [IndicatorController::class, 'index_v2'])->name('indicators.index_v2');
 
      //Route of Endorse Years
     Route::resource('/endorse_years', EndorseYearController::class);
-
+    Route::get('v2/endorse_years', [EndorseYearController::class, 'index_v2'])->name('endorse_years.index_v2');
 
     //Route of Report Generation
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -116,22 +134,26 @@ Route::group(['middleware' => ['auth']], function() {
 
     //Route of Role
     Route::resource('/roles', RoleController::class);
+    Route::get('v2/roles', [RoleController::class, 'index_v2'])->name('roles.index_v2');
 
     //Route of Permission
     Route::resource('/permissions', PermissionController::class);
+    Route::get('v2/permissions', [PermissionController::class, 'index_v2'])->name('permissions.index_v2');
 
     //Route of CIPG Submission
-    Route::post('cipgs/media', [CipgController::class, 'storeMedia'])->name('cipgs.storeMedia');
-    Route::resource('/cipgs', CipgController::class);
+    Route::post('cipgs/media', [CipgController::class, 'storeMedia'])->name('cipgs.storeMedia')->middleware('can:cipg_submission-view');
+    Route::resource('/cipgs', CipgController::class)->middleware('can:cipg_submission-view');
 
     //Route of Activity Logs
     Route::get('/activity_logs', [ActivityLogController::class, 'index'])->name('activity_logs.index');
+    Route::get('v2/activity_logs', [ActivityLogController::class, 'index_v2'])->name('activity_logs.index_v2');
     
     
     // Route of Profiles
 
     //Route::resource('/profiles', ProfileController::class);
     Route::get('/profiles', [ProfileController::class, 'index'])->name('profiles.index');
+    Route::get('v2/profiles', [ProfileController::class, 'index_v2'])->name('profiles.index_v2');
     Route::post('/profiles/update', [ProfileController::class, 'update'])->name('profiles.update');
     //Route::post('/profiles/store', [ProfileController::class, 'store'])->name('profiles.store');
     Route::post('/profiles/update-pic', [ProfileController::class, 'updatePic'])->name('profiles.updatePic');

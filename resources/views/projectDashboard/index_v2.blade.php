@@ -454,11 +454,16 @@
     <script src="{{ asset('js/map/drilldown.js') }}"></script>
     <script src="{{ asset('js/map/map-sync.js') }}"></script>
     <script src="{{ asset('js/map/map.js') }}"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) {
                 window.lucide.createIcons();
+            }
+
+            // Enable white footer mode for Project Dashboard
+            const landingFooter = document.getElementById('footer-container-wrapper');
+            if (landingFooter) {
+                landingFooter.classList.add('footer-rdip-mode');
             }
             
             if (window.map) window.map.invalidateSize();

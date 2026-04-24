@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Indicator;
 use App\Http\Requests\StoreIndicatorRequest;
 use App\Http\Requests\UpdateIndicatorRequest;
+use Illuminate\Http\Request;
 
 class IndicatorController extends Controller
 {
@@ -26,6 +27,15 @@ class IndicatorController extends Controller
         confirmDelete($title, $text);
 
         return view('indicators.index', compact('indicators'));
+    }
+
+    public function index_v2(Request $request)
+    {
+        $perPage = $request->input('per_page', 10);
+        $indicators = Indicator::latest()->paginate($perPage)->onEachSide(1);
+        $indicators->appends(['per_page' => $perPage]);
+        
+        return view('indicators.index_v2', compact('indicators'));
     }
 
     /**

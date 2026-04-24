@@ -6,6 +6,7 @@
         @include('partials.landing.portal')
     </div>
 
+
     <section id="hero-container-wrapper" class="hero-container">
         @include('partials.landing.hero')
     </section>
