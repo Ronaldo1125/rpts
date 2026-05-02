@@ -29,14 +29,7 @@ class AgencyController extends Controller
         return view('agencies.index', compact('agencies'));
     }
 
-    public function index_v2(Request $request)
-    {
-        $perPage = $request->input('per_page', 10);
-        $agencies = Agency::latest()->paginate($perPage)->onEachSide(1);
-        $agencies->appends(['per_page' => $perPage]);
-        
-        return view('agencies.index_v2', compact('agencies'));
-    }
+
 
     /**
      * Show the form for creating a new resource.
@@ -58,17 +51,7 @@ class AgencyController extends Controller
          return redirect()->route('agencies.index');
     }
 
-    public function store_v2(StoreAgencyRequest $request)
-    {
-        Agency::create($request->validated());
 
-        toast('Agency data added successfully!', 'success');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Agency data added successfully!'
-        ]);
-    }
 
     /**
      * Display the specified resource.
@@ -101,17 +84,7 @@ class AgencyController extends Controller
 
     }
 
-    public function update_v2(UpdateAgencyRequest $request, Agency $agency)
-    {
-        $agency->update($request->validated());
 
-        toast('Agency data updated successfully!', 'success');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Agency data updated successfully!'
-        ]);
-    }
 
     /**
      * Remove the specified resource from storage.
@@ -122,37 +95,10 @@ class AgencyController extends Controller
 
         toast('Agency data deleted successfully!', 'success');
 
-        return redirect()->route('agencies.index_v2');
+        return redirect()->route('agencies.index');
     }
 
-    public function destroy_v2(Agency $agency)
-    {
-        $agency->delete();
 
-        toast('Agency data deleted successfully!', 'success');
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Agency data deleted successfully!'
-        ]);
-    }
 
-    public function validate_v2(Request $request)
-    {
-        $field = $request->field;
-        $value = $request->value;
-        $ignoreId = $request->ignore_id;
-
-        $query = Agency::where($field, $value);
-        if ($ignoreId) {
-            $query->where('id', '!=', $ignoreId);
-        }
-
-        $exists = $query->exists();
-
-        return response()->json([
-            'exists' => $exists,
-            'message' => $exists ? 'This ' . str_replace('_', ' ', $field) . ' is already taken.' : ''
-        ]);
-    }
 }

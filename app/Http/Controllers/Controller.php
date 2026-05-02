@@ -20,6 +20,7 @@ class Controller extends BaseController
             'component_project_id' => $component_project_id,
             'agency_id' => $request->agency_id,
             'status' => $request->status,
+            'funding_requirement' => str_replace(',', '', $request->funding_requirement),
             'funding_category' => $request->funding_category,
             'fund_source' => $request->fund_source,
             'other_fund_source' => $request->other_fund_source,
@@ -57,9 +58,17 @@ class Controller extends BaseController
         }
 
         //Save Project Indicators Data
-        $project->project_indicator()->create([
-            'indicator_id' => $request->indicator_id,
-        ]);
+        if(!empty($request->indicators)) {
+            foreach($request->indicators as $indicator_id) {
+                $project->project_indicator()->create([
+                    'indicator_id' => $indicator_id,
+                ]);
+            }
+        } elseif ($request->indicator_id) {
+            $project->project_indicator()->create([
+                'indicator_id' => $request->indicator_id,
+            ]);
+        }
 
         //Save Project Sector Data
         $project->project_sector()->create([
@@ -114,17 +123,19 @@ class Controller extends BaseController
                 $project->addMedia(storage_path('app/media/' . $file))->toMediaCollection('document');
             }
         }
+        return $project;
     }
 
     public function updateProject($request, $id)
     {
-        $project = Project::find($id);
+        $project = $id instanceof Project ? $id : Project::find($id);
 
         $project->update([
             'project_title' => $request->project_title,
             'description' => $request->description,
              'agency_id' => $request->agency_id,
             'status' => $request->status,
+            'funding_requirement' => str_replace(',', '', $request->funding_requirement),
             'funding_category' => $request->funding_category,
              'fund_source' => $request->fund_source,
             'other_fund_source' => $request->other_fund_source,
@@ -136,7 +147,7 @@ class Controller extends BaseController
         ]);
 
             $project->project_location()->delete();
-            
+
             if($request->location == 'locationspecific') {
                 //$project->project_location_specific()->delete();
                 $project->project_location_specific()->create([
@@ -166,21 +177,32 @@ class Controller extends BaseController
         
 
         //Save Project Indicators Data
-        $project->project_indicator()->update([
-            'indicator_id' => $request->indicator_id,
-        ]);
+        $project->project_indicator()->delete();
+        if(!empty($request->indicators)) {
+            foreach($request->indicators as $indicator_id) {
+                $project->project_indicator()->create([
+                    'indicator_id' => $indicator_id,
+                ]);
+            }
+        }
 
         //Save Project Sector Data
-        $project->project_sector()->update([
-            'sector_id' => $request->sector_id,
-            'sub_sector_id' => $request->sub_sector_id,
-        ]);
+        $project->project_sector()->updateOrCreate(
+            ['project_id' => $project->id],
+            [
+                'sector_id' => $request->sector_id,
+                'sub_sector_id' => $request->sub_sector_id,
+            ]
+        );
 
         //Save Project Endorsement Data
-        $project->project_endorsement()->update([
-            'endorse_year_id' => $request->endorse_year_id,
-            'rdc_endorsement_number' => $request->rdc_endorsement_number,
-        ]);
+        $project->project_endorsement()->updateOrCreate(
+            ['project_id' => $project->id],
+            [
+                'endorse_year_id' => $request->endorse_year_id,
+                'rdc_endorsement_number' => $request->rdc_endorsement_number,
+            ]
+        );
 
         // Save project_cost_target data to the database
 
@@ -201,7 +223,7 @@ class Controller extends BaseController
         $tc['cost_year_2028'] = (empty($request->cost_year_2028)) ? 0 : $request->cost_year_2028;
         $tc['cost_succeeding_years'] = (empty($request->cost_succeeding_years)) ? 0 : $request->cost_succeeding_years;
 
-        if(empty($project->project_cost_target->project->id)) {
+        if(empty($project->project_cost_target)) {
            $project->project_cost_target()->create($tc);
         } else {
            $project->project_cost_target()->update($tc);
@@ -224,21 +246,28 @@ class Controller extends BaseController
             }
         }
 
-        if($request->document) {     
-            if (count($project->getMedia('document')) > 0) {
-                // With error on this
-                foreach ($project->getMedia('document') as $media) {
-                    if (!in_array($media->file_name, $request->input('document', []))) {
-                        $media->delete();
-                    }
+        // Manage attachments: Delete removed ones, add new ones
+        $inputDocuments = $request->input('document', []);
+        
+        if (count($project->getMedia('document')) > 0 || !empty($inputDocuments)) {
+            // Delete media that is no longer in the request
+            foreach ($project->getMedia('document') as $media) {
+                if (!in_array($media->file_name, $inputDocuments)) {
+                    $media->delete();
                 }
             }
 
-            $media = $project->getMedia('document')->pluck('file_name')->toArray();
+            // Add new media
+            $existingMedia = $project->getMedia('document')->pluck('file_name')->toArray();
 
-            foreach ($request->input('document', []) as $file) {
-                if (count($media) === 0 || !in_array($file, $media)) {
-                    $project->addMedia(storage_path('app/media/' . $file))->toMediaCollection('document');
+            foreach ($inputDocuments as $file) {
+                if (!in_array($file, $existingMedia)) {
+                    // Try to attach the new file, ignore if it fails (e.g., file already moved/deleted)
+                    try {
+                        $project->addMedia(storage_path('app/media/' . $file))->toMediaCollection('document');
+                    } catch (\Exception $e) {
+                        // Handle exception if needed
+                    }
                 }
             }
         }

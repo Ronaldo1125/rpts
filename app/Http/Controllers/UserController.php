@@ -35,17 +35,7 @@ class UserController extends Controller
         return view('users.index', compact('users', 'agencies', 'roles'));
     }
 
-    public function index_v2(Request $request)
-    {
-        $perPage = $request->input('per_page', 10);
-        $users = User::latest()->paginate($perPage)->onEachSide(1);
-        $users->appends(['per_page' => $perPage]);
 
-        $agencies = Agency::pluck('agency_name', 'id')->all();
-        $roles = Role::pluck('name')->all();
-
-        return view('users.index_v2', compact('users', 'agencies', 'roles'));
-    }
 
     /**
      * Show the form for creating a new resource.
@@ -159,4 +149,6 @@ class UserController extends Controller
 
         return redirect()->route('users.index');
     }
+
+
 }

@@ -39,6 +39,17 @@ window.MapDrilldown = (function () {
             })
             .then(geojson => {
                 _hideSpinner();
+                // Extract municipality names for scale recalibration
+                const names = geojson.features.map(f => {
+                    const raw = f.properties.adm3_en || f.properties.name || '';
+                    return raw.toUpperCase().trim()
+                        .replace(/^CITY\sOF\s/g, '')
+                        .replace(/^MUNICIPALITY\sOF\s/g, '')
+                        .replace(/\sCITY$/g, '')
+                        .replace(/\sMUNICIPALITY$/g, '');
+                });
+                BicolMap.recalculateScales(names);
+
                 // Switch the map layer to municipality view
                 BicolMap.switchLayer(geojson, true);
                 // Zoom into the province area
@@ -68,6 +79,8 @@ window.MapDrilldown = (function () {
                 .then(r => r.json())
                 .then(raw => {
                     _hideSpinner();
+                    // Reset legend to global region scale
+                    BicolMap.recalculateScales();
                     // IMPORTANT: We must re-process the raw region features to restore IDs
                     const processed = BicolMap.processRegionFeatures(raw);
                     BicolMap.switchLayer(processed, false);

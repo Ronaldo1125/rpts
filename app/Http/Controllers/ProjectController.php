@@ -39,7 +39,11 @@ class ProjectController extends Controller
 
     public function __construct()
     {
-        //$this->authorizeResource(Project::class);
+        $this->middleware('can:project-view')->only('index');
+        $this->middleware('can:project-create')->only(['create', 'store', 'storeMedia']);
+        $this->middleware('can:project-edit')->only(['edit', 'update']);
+        $this->middleware('can:project-delete')->only('destroy');
+
         $this->statuses = ProjectStatus::cases();
         $this->indicators = Indicator::orderBy('indicator_name')->pluck('indicator_name', 'id')->all();
         $this->agencies = Agency::pluck('agency_acronym', 'id')->all();

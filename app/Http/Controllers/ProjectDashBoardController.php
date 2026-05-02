@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 
 class ProjectDashBoardController extends Controller
 {
+    /**public function __construct()
+    {
+        $this->middleware('can:project-view');
+    }*/
+
     public function index()
     {
     
@@ -29,10 +34,5 @@ class ProjectDashBoardController extends Controller
            //dd($projectCountStatus);
            //dd($projectCountFundingCategories);
         return view('projectDashboard.index', compact('projectCountStatus', 'projectCountFunding', 'projects', 'componentProjects'));
-    }
-
-    public function index_v2()
-    {
-        return view('projectDashboard.index_v2');
     }
 }

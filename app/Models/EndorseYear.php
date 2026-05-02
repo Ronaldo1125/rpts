@@ -6,9 +6,13 @@ use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+use App\Traits\Searchable;
+
 class EndorseYear extends Model
 {
-    use LogsActivity;
+    use LogsActivity, Searchable;
+
+    protected $searchable = ['year'];
     
     protected $fillable = [
         'year',

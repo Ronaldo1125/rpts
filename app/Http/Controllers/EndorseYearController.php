@@ -28,14 +28,7 @@ class EndorseYearController extends Controller
         return view('endorse_years.index', compact('endorse_years'));
     }
 
-    public function index_v2(Request $request)
-    {
-        $perPage = $request->input('per_page', 10);
-        $endorse_years = EndorseYear::latest()->paginate($perPage)->onEachSide(1);
-        $endorse_years->appends(['per_page' => $perPage]);
-        
-        return view('endorse_years.index_v2', compact('endorse_years'));
-    }
+
 
     /**
      * Show the form for creating a new resource.
@@ -96,4 +89,6 @@ class EndorseYearController extends Controller
 
         return redirect()->route('endorse_years.index');
     }
+
+
 }

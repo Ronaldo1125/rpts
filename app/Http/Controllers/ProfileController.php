@@ -28,10 +28,7 @@ class ProfileController extends Controller
         return view('profiles.index', compact('userInfo' , 'userProfile'));
     }
 
-    public function index_v2()
-    {
-        return view('profiles.index_v2');
-    }
+
 
     /**
      * Show the form for creating a new resource.

@@ -22,7 +22,7 @@
                         <!-- Avatar with Pencil Icon -->
                         <div class="position-relative d-inline-block mb-3">
                             <div class="rounded-pill overflow-hidden shadow-sm square-156 border border-4 border-white outline-light">
-                                <img src="https://api.dicebear.com/7.x/initials/svg?seed=EC" 
+                                <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ Auth::user()->name }}"
                                      class="w-100 h-100 object-fit-cover" alt="User Profile Picture">
                             </div>
                             <div class="position-absolute bottom-0 end-0 mb-1 me-1">
@@ -33,8 +33,8 @@
                             </div>
                         </div>
 
-                        <h4 class="fw-bold mb-1">Emmanuel Chivic O. Llaguno</h4>
-                        <p class="text-muted mb-4 small">eollaguno@depdev.gov.ph</p>
+                        <h4 class="fw-bold mb-1">{{ Auth::user()->name }}</h4>
+                        <p class="text-muted mb-4 small">{{ Auth::user()->email }}</p>
 
                         <button class="btn btn-primary px-4 py-2 fw-semibold shadow-sm bg-primary-rpts-v2 border-primary-rpts-v2 rounded-8"
                                 data-bs-toggle="modal" data-bs-target="#updateProfileInfoModal">

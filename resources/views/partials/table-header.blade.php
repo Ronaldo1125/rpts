@@ -12,8 +12,13 @@
     </div>
     <div class="d-flex align-items-center gap-2">
         <span class="text-secondary small fw-bold">Search:</span>
-        <div class="input-group input-group-sm" style="width: 250px;">
-            <input type="text" class="form-control rounded-pill bg-light border-0 px-3" placeholder="Search...">
-        </div>
+        <form method="GET" action="{{ url()->current() }}" class="m-0 p-0">
+            @foreach(request()->except('search', 'page') as $key => $value)
+                <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+            @endforeach
+            <div class="input-group input-group-sm" style="width: 250px;">
+                <input type="text" name="search" id="globalSearchInput" value="{{ request('search') }}" class="form-control rounded-pill bg-light border-0 px-3" placeholder="Search...">
+            </div>
+        </form>
     </div>
 </div>

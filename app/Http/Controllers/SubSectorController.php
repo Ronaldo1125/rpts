@@ -31,15 +31,7 @@ class SubSectorController extends Controller
         return view('sub_sectors.index', compact('sub_sectors', 'sectors'));
     }
 
-    public function index_v2(Request $request)
-    {
-        $perPage = $request->input('per_page', 10);
-        $sub_sectors = SubSector::latest()->paginate($perPage)->onEachSide(1);
-        $sub_sectors->appends(['per_page' => $perPage]);
 
-        $sectors = Sector::pluck('sector_name', 'id')->all();
-        return view('sub_sectors.index_v2', compact('sub_sectors', 'sectors'));
-    }
 
     /**
      * Show the form for creating a new resource.
@@ -100,4 +92,6 @@ class SubSectorController extends Controller
 
         return redirect()->route('sub_sectors.index');
     }
+
+
 }

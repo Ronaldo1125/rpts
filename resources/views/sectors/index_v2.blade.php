@@ -19,36 +19,33 @@
         <!-- Add Sector Modal -->
         <div class="modal fade" id="addSectorModal" tabindex="-1" aria-labelledby="addSectorModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 1rem;">
-                    <!-- Header Accent -->
-                    <div style="height: 4px; background-color: #154A9A;"></div>
-
+                <div class="modal-content border-0 shadow-lg rounded-20 overflow-hidden">
+                    <div class="modal-accent-primary"></div>
                     <div class="modal-header border-0 pt-4 px-4 pb-1">
                         <h5 class="modal-title fw-bold" id="addSectorModalLabel">Add Sector</h5>
-                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body px-4">
+                    <div class="modal-body px-4 text-start">
                         <form id="addSectorForm">
+                            @csrf
                             <div class="mb-4">
-                                <label for="sectorName" class="form-label small fw-semibold text-secondary mb-1">Sector
-                                    Name</label>
-                                <input type="text" class="form-control" id="sectorName" placeholder="Enter Sector Name"
-                                    style="border-radius: 0.75rem;" required>
+                                <label for="sectorName" class="form-label small fw-semibold text-secondary mb-1">Sector Name</label>
+                                <input type="text" name="sector_name" class="form-control rounded-12" id="sectorName" placeholder="Enter Sector Name" required>
+                                <span class="text-danger mt-1 d-none" id="error-sector_name" style="font-size: 0.75rem;"></span>
                             </div>
                             <div class="mb-0">
-                                <label for="sectorAcronym" class="form-label small fw-semibold text-secondary mb-1">Sector
-                                    Acronym</label>
-                                <input type="text" class="form-control" id="sectorAcronym"
-                                    placeholder="Enter Sector Acronym" style="border-radius: 0.75rem;" required>
+                                <label for="sectorAcronym" class="form-label small fw-semibold text-secondary mb-1">Sector Acronym</label>
+                                <input type="text" name="sector_acronym" class="form-control rounded-12" id="sectorAcronym" placeholder="Enter Sector Acronym" required>
+                                <span class="text-danger mt-1 d-none" id="error-sector_acronym" style="font-size: 0.75rem;"></span>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer border-0 px-4 pb-4">
-                        <button type="button" class="btn btn-link text-secondary text-decoration-none small fw-medium px-3"
-                            data-bs-dismiss="modal">Close</button>
-                        <button type="submit" form="addSectorForm" class="btn btn-primary px-4 py-2 fw-semibold shadow-sm"
-                            style="background-color: #0248D4; border-color: #0248D4; border-radius: 0.75rem !important;">Save</button>
+                        <button type="button" class="btn btn-link text-secondary text-decoration-none small fw-medium px-3" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" id="saveSectorBtn" form="addSectorForm" class="btn btn-primary px-4 py-2 fw-semibold rounded-12 shadow-sm" style="background-color: #154A9A; border-color: #154A9A;">
+                            <span class="btn-text">Save Sector</span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -63,6 +60,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th class="small text-secondary">Sector Name</th>
+                                <th class="small text-secondary">Sector Acronym</th>
                                 <th class="small text-secondary">Created At</th>
                                 <th class="small text-secondary" data-sort-skip="true">Actions</th>
                             </tr>
@@ -70,12 +68,13 @@
                         <tbody>
                             @forelse($sectors as $sector)
                                 <tr>
-                                    <td>{{ $sector->sector_name }}</td>
+                                    <td style="color: inherit !important;">{{ $sector->sector_name }}</td>
+                                    <td>{{ $sector->sector_acronym }}</td>
                                     <td><span class="badge rounded-pill fw-medium small px-3 py-2"
                                             style="background-color: #e8f0fe; color: #0032A6;">{{ $sector->created_at->diffForHumans() }}</span>
                                     </td>
                                     <td>
-                                        <div class="dropdown position-static">
+                                        <div class="dropdown">
                                             <button class="btn btn-sm btn-link text-dark p-0" data-bs-toggle="dropdown"
                                                 data-bs-boundary="viewport" aria-expanded="false">
                                                 <i data-lucide="more-vertical" width="20"></i>
@@ -86,15 +85,48 @@
                                                         data-bs-target="#editSectorModal{{ $sector->id }}"><i
                                                             data-lucide="edit-2" class="me-2 text-primary"
                                                             width="16"></i>Edit</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="javascript:void(0);"><i
+                                                <li><a class="dropdown-item py-2 text-danger delete-sector-btn" href="javascript:void(0);" data-id="{{ $sector->id }}" data-name="{{ $sector->sector_name }}"><i
                                                             data-lucide="trash-2" class="me-2" width="16"></i>Delete</a></li>
                                             </ul>
+                                        </div>
+
+                                        <!-- Edit Modal -->
+                                        <div class="modal fade" id="editSectorModal{{ $sector->id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content border-0 shadow-lg rounded-20 overflow-hidden">
+                                                    <div class="modal-accent-primary"></div>
+                                                    <div class="modal-header border-0 pt-4 px-4 pb-1">
+                                                        <h5 class="modal-title fw-bold">Edit Sector</h5>
+                                                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body px-4 text-start">
+                                                        <form id="editSectorForm{{ $sector->id }}" class="edit-sector-form" data-id="{{ $sector->id }}">
+                                                            @csrf
+                                                            @method('PUT')
+                                                            <div class="mb-4">
+                                                                <label class="form-label small fw-semibold text-secondary d-block mb-1">Sector Name</label>
+                                                                <input type="text" name="sector_name" class="form-control rounded-12" value="{{ $sector->sector_name }}" required>
+                                                                <span class="text-danger mt-1 d-none error-sector_name" style="font-size: 0.75rem;"></span>
+                                                            </div>
+                                                            <div class="mb-0">
+                                                                <label class="form-label small fw-semibold text-secondary d-block mb-1">Sector Acronym</label>
+                                                                <input type="text" name="sector_acronym" class="form-control rounded-12" value="{{ $sector->sector_acronym }}" required>
+                                                                <span class="text-danger mt-1 d-none error-sector_acronym" style="font-size: 0.75rem;"></span>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                    <div class="modal-footer border-0 px-4 pb-4">
+                                                        <button type="button" class="btn btn-link text-secondary text-decoration-none small fw-medium px-3" data-bs-dismiss="modal">Close</button>
+                                                        <button type="submit" form="editSectorForm{{ $sector->id }}" class="btn btn-primary px-4 py-2 fw-semibold rounded-12 shadow-sm" style="background-color: #154A9A; border-color: #154A9A;">Update Sector</button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="text-center py-4 text-muted">
+                                    <td colspan="4" class="text-center py-4 text-muted">
                                         <i data-lucide="inbox" class="mb-2" width="32"></i>
                                         <p class="mb-0 small">No sectors found. Add a new one to get started.</p>
                                     </td>
@@ -107,4 +139,129 @@
             </div>
         </div>
     </section>
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const validateUrl = "{{ route('v2.sectors.validate') }}";
+        
+        RPTS.validation.attach(validateUrl, document.getElementById('sectorName'), 'sector_name', document.getElementById('error-sector_name'));
+        RPTS.validation.attach(validateUrl, document.getElementById('sectorAcronym'), 'sector_acronym', document.getElementById('error-sector_acronym'));
+
+        document.querySelectorAll('.edit-sector-form').forEach(form => {
+            const id = form.getAttribute('data-id');
+            const nameInput = form.querySelector('input[name="sector_name"]');
+            const acronymInput = form.querySelector('input[name="sector_acronym"]');
+            
+            RPTS.validation.attach(validateUrl, nameInput, 'sector_name', form.querySelector('.error-sector_name'), id);
+            RPTS.validation.attach(validateUrl, acronymInput, 'sector_acronym', form.querySelector('.error-sector_acronym'), id);
+        });
+
+        // Add Sector AJAX
+        document.getElementById('addSectorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const saveBtn = document.getElementById('saveSectorBtn');
+            saveBtn.disabled = true;
+            saveBtn.querySelector('.btn-text').classList.add('d-none');
+            saveBtn.querySelector('.spinner-border').classList.remove('d-none');
+
+            try {
+                const response = await fetch("{{ route('v2.sectors.store') }}", {
+                    method: 'POST',
+                    body: new FormData(this),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (response.status === 422) {
+                    const data = await response.json();
+                    for (const [key, messages] of Object.entries(data.errors)) {
+                        const errorEl = document.getElementById(`error-${key}`);
+                        if (errorEl) { errorEl.textContent = messages[0]; errorEl.classList.remove('d-none'); }
+                    }
+                    return;
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('addSectorModal')).hide();
+                    RPTS.toast.show('Sector created successfully.', 'success');
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            } catch (error) {
+                RPTS.toast.show('Error saving sector.', 'warning');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.querySelector('.btn-text').classList.remove('d-none');
+                saveBtn.querySelector('.spinner-border').classList.add('d-none');
+            }
+        });
+
+        // Edit Sector AJAX
+        document.querySelectorAll('.edit-sector-form').forEach(form => {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const id = this.getAttribute('data-id');
+                const submitBtn = this.closest('.modal-content').querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+
+                try {
+                    const response = await fetch(`/v2/sectors/${id}`, {
+                        method: 'POST',
+                        body: new FormData(this),
+                        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-HTTP-Method-Override': 'PUT' }
+                    });
+
+                    if (response.status === 422) {
+                        const data = await response.json();
+                        for (const [key, messages] of Object.entries(data.errors)) {
+                            const errorEl = this.querySelector(`.error-${key}`);
+                            if (errorEl) { errorEl.textContent = messages[0]; errorEl.classList.remove('d-none'); }
+                        }
+                        return;
+                    }
+
+                    const data = await response.json();
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(document.getElementById(`editSectorModal${id}`)).hide();
+                        RPTS.toast.show('Sector updated successfully.', 'info');
+                        setTimeout(() => window.location.reload(), 2000);
+                    }
+                } catch (error) {
+                    RPTS.toast.show('Error updating sector.', 'warning');
+                } finally {
+                    submitBtn.disabled = false;
+                }
+            });
+        });
+
+        // Delete Sector Logic
+        RPTS.delete.init(async (id) => {
+            try {
+                const response = await fetch(`/v2/sectors/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                        'X-HTTP-Method-Override': 'DELETE'
+                    }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    RPTS.delete.hide();
+                    RPTS.toast.show('Sector deleted successfully.', 'danger');
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            } catch (error) {
+                alert('Could not delete sector.');
+            }
+        });
+
+        document.querySelectorAll('.delete-sector-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                RPTS.delete.confirm(this.getAttribute('data-id'), this.getAttribute('data-name'));
+            });
+        });
+    });
+</script>
 @endsection

@@ -41,7 +41,7 @@
                 <select id="indicator_id" name="indicator_id" class="form-select js-indicator-single">
                       <option value="">-- Select Indicator --</option>
                     @foreach($indicators as $key => $indicator)
-                      <option value="{{ $key }}" {{ ($project->project_indicator->indicator_id == $key) ? "selected='selected'" : "" }}>{{ $indicator }}</option>
+                      <option value="{{ $key }}" {{ ($project->project_indicator->pluck('indicator_id')->contains($key)) ? "selected='selected'" : "" }}>{{ $indicator }}</option>
                     @endforeach
                 </select>  
             </div>
@@ -63,7 +63,7 @@
                 <select id="sector_id" name="sector_id" class="form-select">
                       <option value="">-- Select Sector --</option>
                     @foreach($sectors as $key => $sector_name)
-                      <option value="{{ $key }}" {{ ($project->project_sector->sector_id == $key) ? "selected='selected'" : "" }}>{{ $sector_name }}</option>
+                      <option value="{{ $key }}" {{ (($project->project_sector->sector_id ?? null) == $key) ? "selected='selected'" : "" }}>{{ $sector_name }}</option>
                     @endforeach
                 </select>  
             </div>
@@ -81,7 +81,7 @@
             <select id="status" name="status" class="form-select">
                   <option value="">-- Select Status --</option>
                 @foreach($statuses as $status)
-                  <option value="{{ $status->value }}" {{($status->value == $project->status) ? "selected='selected'" : "" }}>{{ $status->label() }}</option>
+                  <option value="{{ $status->value }}" {{($status->value == $project->getRawOriginal('status')) ? "selected='selected'" : "" }}>{{ $status->label() }}</option>
                 @endforeach
             </select>  
           </div>
@@ -91,7 +91,7 @@
             <select id="funding_category" name="funding_category" class="form-select">
               <option value="">-- Select Funding Category --</option>
               @foreach($funding_categories as $funding_category)
-              <option value="{{ $funding_category->value }}" {{ ($funding_category->value == $project->funding_category) ? "selected='selected'" : "" }}>{{ $funding_category->label() }}</option>
+              <option value="{{ $funding_category->value }}" {{ ($funding_category->value == $project->getRawOriginal('funding_category')) ? "selected='selected'" : "" }}>{{ $funding_category->label() }}</option>
               @endforeach
             </select>  
           </div>
@@ -101,7 +101,7 @@
             <select id="fund_source" name="fund_source" class="form-select">
               <option value="">-- Select Fund Source --</option>
               @foreach($fund_sources as $fund_source)
-              <option value="{{ $fund_source->value }}" {{($fund_source->value == $project->fund_source) ? "selected='selected'" : '' }}>{{ $fund_source->label() }}</option>
+              <option value="{{ $fund_source->value }}" {{($fund_source->value == $project->getRawOriginal('fund_source')) ? "selected='selected'" : '' }}>{{ $fund_source->label() }}</option>
               @endforeach
             </select>  
           </div>
@@ -119,15 +119,15 @@
                 <select id="endorse_year_id" name="endorse_year_id" class="form-select">
                       <option value="">-- Select Year of Endorsement --</option>
                     @foreach($endorse_years as $key => $endorse_year)
-                      <option value="{{ $key }}" {{ ($project->project_endorsement->endorse_year_id == $key) ? "selected='selected'" : "" }}>{{ $endorse_year }}</option>
+                      <option value="{{ $key }}" {{ (($project->project_endorsement->endorse_year_id ?? null) == $key) ? "selected='selected'" : "" }}>{{ $endorse_year }}</option>
                     @endforeach
                 </select>  
             </div>
 
             <div class="col-md-4 form-control-validation">
-               <label class="form-label" for="rdc_endorsement_number">RDC Endorsement Number</label>
-                 <input type="text" class="form-control" name="rdc_endorsement_number" id="rdc_endorsement_number" value="{{ $project->project_endorsement->rdc_endorsement_number }}" /> 
-            </div>
+                <label class="form-label" for="rdc_endorsement_number">RDC Endorsement Number</label>
+                  <input type="text" class="form-control" name="rdc_endorsement_number" id="rdc_endorsement_number" value="{{ $project->project_endorsement->rdc_endorsement_number ?? '' }}" /> 
+             </div>
 
           </div>
 
@@ -152,7 +152,7 @@
                             type="radio"
                             name="location"
                             id="inlineRadio1"
-                            value="{{ $project_location_type->value }}" {{ ($project_location_type->value == $project->location) ? 'checked="checked"' : '' }} />
+                            value="{{ $project_location_type->value }}" {{ ($project_location_type->value == $project->getRawOriginal('location')) ? 'checked="checked"' : '' }} />
                           <label class="form-check-label" for="inlineRadio1">{{ $project_location_type->label() }}</label>
                         </div>
                         @endforeach
@@ -355,8 +355,8 @@
         <input type="hidden" name="sprovince_id" id="sprovince_id" value="{{ ($locationSpecific == null) ? "" : $locationSpecific->province_id }}" />
         <input type="hidden" name="sdistrict_id" id="sdistrict_id" value="{{ ($locationSpecific == null) ? "" : $locationSpecific->district_id }}" />
         <input type="hidden" name="smunicipality_id" id="smunicipality_id" value="{{ ($locationSpecific == null) ? "" : $locationSpecific->municipality_id }}" />
-        <input type="hidden" name="ssector_id" id="ssector_id" value="{{ $project->project_sector->sector_id }}" />
-        <input type="hidden" name="ssub_sector_id" id="ssub_sector_id" value="{{ $project->project_sector->sub_sector_id }}" />
+        <input type="hidden" name="ssector_id" id="ssector_id" value="{{ $project->project_sector->sector_id ?? '' }}" />
+        <input type="hidden" name="ssub_sector_id" id="ssub_sector_id" value="{{ $project->project_sector->sub_sector_id ?? '' }}" />
         <input type="hidden" name="slocation" id="slocation" value="{{ $project->location }}" />
         <input type="hidden" name="sfund_source" id="sfund_source" value="{{ $project->fund_source }}" />
       </div>

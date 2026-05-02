@@ -37,6 +37,11 @@ class ComponentController extends Controller
 
     public function __construct()
     {
+        $this->middleware('can:project-view')->only(['index']);
+        $this->middleware('can:project-create')->only(['create', 'store']);
+        $this->middleware('can:project-edit')->only(['edit', 'editSubProject', 'updateSubProject']);
+        $this->middleware('can:project-delete')->only(['destroy', 'subProjectDestroy']);
+
         $this->statuses = ProjectStatus::cases();
         $this->agencies = Agency::pluck('agency_acronym', 'id')->all();
         $this->funding_categories = ProjectFundingCategory::cases();

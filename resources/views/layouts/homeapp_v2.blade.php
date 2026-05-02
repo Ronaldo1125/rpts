@@ -86,15 +86,17 @@
 
     <!-- Choropleth Map Modules (load order matters) -->
     <script src="{{ asset('js/common/config.js') }}"></script>
-    <script src="{{ asset('js/map/choropleth.js') }}"></script>
+    <script src="{{ asset('js/map/choropleth.js?v=2.2') }}"></script>
     <script src="{{ asset('js/map/legend.js') }}"></script>
     <script src="{{ asset('js/common/toggle.js') }}"></script>
     <script src="{{ asset('js/map/drilldown.js') }}"></script>
-    <script src="{{ asset('js/map/map-sync.js') }}"></script>
-    <script src="{{ asset('js/map/map.js') }}"></script>
+    <script src="{{ asset('js/map/map-sync.js?v=2.2') }}"></script>
+    <script src="{{ asset('js/map/map.js?v=2.2') }}"></script>
 
     <!-- Core Landing Logic -->
-    <script src="{{ asset('js/common/landing.js?v=2.0') }}"></script>
+    <script src="{{ asset('js/common/landing.js?v=2.9') }}"></script>
+
+    @yield('script')
 </body>
 
 </html>

@@ -35,35 +35,12 @@
                 auth()->user()->can('cipg_submission-delete')
             )
             <div class="nav-item mb-1">
-                <a href="#guide-progress-container"
+                <a href="{{ route('cipg_guide.index') }}"
                     class="nav-link d-flex align-items-center gap-2 rounded-xl px-2 py-2 text-secondary hover-primary collapsed"
-                    data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="guide-progress-container"
                     data-page="cipg-guide">
                     <i data-lucide="book-open" width="18"></i>
                     <span class="fw-semibold">CIPG Guide</span>
-                    <i data-lucide="chevron-right" class="ms-auto arrow-icon" width="14"></i>
                 </a>
-                
-                <!-- Guide Progress Indicator -->
-                <div class="collapse" id="guide-progress-container" data-bs-parent=".nav-menu">
-                    <div class="submenu-list ms-2">
-                        <div class="submenu-link small py-1 opacity-75 guide-progress-item" style="cursor:pointer;" data-section="cipg-intro">
-                            Overview
-                        </div>
-                        <div class="submenu-link small py-1 opacity-75 guide-progress-item" style="cursor:pointer;" data-section="cipg-framework">
-                            Framework
-                        </div>
-                        <div class="submenu-link small py-1 opacity-75 guide-progress-item" style="cursor:pointer;" data-section="cipg-process">
-                            Process
-                        </div>
-                        <div class="submenu-link small py-1 opacity-75 guide-progress-item" style="cursor:pointer;" data-section="cipg-resources">
-                            Resources
-                        </div>
-                        <div class="submenu-link small py-1 opacity-75 guide-progress-item" style="cursor:pointer;" data-section="cipg-faq">
-                            FAQs
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <a href="#" class="nav-link d-flex align-items-center gap-2 mb-2 rounded-xl px-2 py-2 text-secondary hover-primary"
@@ -83,25 +60,26 @@
                 @endif
             @endcan
 
-            <div class="nav-item mb-1">
-                <a class="nav-link d-flex align-items-center gap-2 rounded-xl px-2 py-2 {{ Request::is('projects*') || Request::is('components*') ? '' : 'collapsed' }} text-secondary hover-primary"
-                    href="#projects-submenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ Request::is('projects*') || Request::is('components*') ? 'true' : 'false' }}"
+                @php
+                    $isProjectsActive = Request::is('projects*') || Request::is('v2/projects*') || Request::is('components*') || Request::is('v2/components*');
+                @endphp
+                <a class="nav-link d-flex align-items-center gap-2 rounded-xl px-2 py-2 {{ $isProjectsActive ? '' : 'collapsed' }} text-secondary hover-primary"
+                    href="#projects-submenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ $isProjectsActive ? 'true' : 'false' }}"
                     aria-controls="projects-submenu">
                     <i data-lucide="layers" width="18"></i>
                     <span class="fw-semibold">Projects</span>
                     <i data-lucide="chevron-right" class="ms-auto arrow-icon" width="14"></i>
                 </a>
-                <div class="collapse {{ Request::is('projects*') || Request::is('components*') ? 'show' : '' }}" id="projects-submenu" data-bs-parent=".nav-menu">
+                <div class="collapse {{ $isProjectsActive ? 'show' : '' }}" id="projects-submenu" data-bs-parent=".nav-menu">
                     <ul class="nav flex-column submenu-list ps-3">
                         <li class="nav-item">
-                            <a href="{{ route('projects.index') }}" class="nav-link submenu-link {{ Request::is('projects*') ? 'active' : '' }}" data-page="projects">Single Project</a>
+                            <a href="{{ route('v2.projects.index') }}" class="nav-link submenu-link {{ Request::is('projects*') || Request::is('v2/projects*') ? 'active' : '' }}" data-page="projects">Single Project</a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('components.index') }}" class="nav-link submenu-link {{ Request::is('components*') ? 'active' : '' }}" data-page="component-project">Component Project</a>
+                            <a href="{{ route('v2.components.index') }}" class="nav-link submenu-link {{ Request::is('components*') || Request::is('v2/components*') ? 'active' : '' }}" data-page="component-project">Component Project</a>
                         </li>
                     </ul>
                 </div>
-            </div>
 
             <div class="nav-item mb-1">
                 <a class="nav-link d-flex align-items-center gap-2 rounded-xl px-2 py-2 text-secondary hover-primary collapsed"
@@ -136,59 +114,67 @@
                 </a>
                 <div class="collapse {{ $isAdminMgmtActive ? 'show' : '' }}" id="admin-management-submenu" data-bs-parent=".nav-menu">
                     <ul class="nav flex-column submenu-list ps-3">
-                        <li><a href="{{ route('agencies.index_v2') }}" class="nav-link submenu-link {{ Request::is('v2/agencies*') ? 'active' : '' }}" data-page="agency">Agencies</a></li>
-                        <li><a href="{{ route('chapters.index_v2') }}" class="nav-link submenu-link {{ Request::is('v2/chapters*') ? 'active' : '' }}" data-page="rdp-chapter">RDP Chapters</a></li>
-                        <li><a href="{{ route('sectors.index_v2') }}" class="nav-link submenu-link {{ Request::is('v2/sectors*') ? 'active' : '' }}" data-page="sector">Sectors</a></li>
-                        <li><a href="{{ route('sub_sectors.index_v2') }}" class="nav-link submenu-link {{ Request::is('v2/sub_sectors*') ? 'active' : '' }}" data-page="sub-sector">Sub-Sectors</a></li>
-                        <li><a href="{{ route('endorse_years.index_v2') }}" class="nav-link submenu-link {{ Request::is('v2/endorse_years*') ? 'active' : '' }}" data-page="endorse-year">Endorse Years</a></li>
-                        <li><a href="{{ route('indicators.index_v2') }}" class="nav-link submenu-link {{ Request::is('v2/indicators*') ? 'active' : '' }}" data-page="indicator">Indicators</a></li>
-                        <li><a href="{{ route('activity_logs.index_v2') }}" class="nav-link submenu-link {{ Request::is('v2/activity_logs*') ? 'active' : '' }}" data-page="activity-logs">Activity Logs</a></li>
+                        <li><a href="{{ route('v2.agencies.index') }}" class="nav-link submenu-link {{ Request::is('v2/agencies*') ? 'active' : '' }}" data-page="agency">Agencies</a></li>
+                        <li><a href="{{ route('v2.chapters.index') }}" class="nav-link submenu-link {{ Request::is('v2/chapters*') ? 'active' : '' }}" data-page="rdp-chapter">RDP Chapters</a></li>
+                        <li><a href="{{ route('v2.sectors.index') }}" class="nav-link submenu-link {{ Request::is('v2/sectors*') ? 'active' : '' }}" data-page="sector">Sectors</a></li>
+                        <li><a href="{{ route('v2.sub_sectors.index') }}" class="nav-link submenu-link {{ Request::is('v2/sub_sectors*') ? 'active' : '' }}" data-page="sub-sector">Sub-Sectors</a></li>
+                        <li><a href="{{ route('v2.endorse_years.index') }}" class="nav-link submenu-link {{ Request::is('v2/endorse_years*') ? 'active' : '' }}" data-page="endorse-year">Endorse Years</a></li>
+                        <li><a href="{{ route('v2.indicators.index') }}" class="nav-link submenu-link {{ Request::is('v2/indicators*') ? 'active' : '' }}" data-page="indicator">Indicators</a></li>
+                        <li><a href="{{ route('v2.activity_logs.index') }}" class="nav-link submenu-link {{ Request::is('v2/activity_logs*') ? 'active' : '' }}" data-page="activity-logs">Activity Logs</a></li>
                     </ul>
                 </div>
             @endcan
 
             @can('user-view')
-            <a class="nav-link d-flex align-items-center gap-2 mb-2 rounded-xl px-2 py-2"
-                href="{{ route('users.index_v2') }}" role="button">
+            <a class="nav-link {{ Request::is('users*') || Request::is('v2/users*') ? 'active' : '' }} d-flex align-items-center gap-2 mb-2 rounded-xl px-2 py-2"
+                href="{{ route('v2.users.index') }}" role="button">
                 <i data-lucide="users" width="18"></i>
                 <span class="fw-semibold">User Management</span>
             </a>
             @endcan
 
             @can('role-view')
+            @php
+                $isRoleMgmtActive = Request::is('roles*') || Request::is('v2/roles*') || Request::is('permissions*') || Request::is('v2/permissions*');
+            @endphp
             <div class="nav-item mb-1">
-                <a class="nav-link d-flex align-items-center gap-2 rounded-xl px-2 py-2 text-secondary hover-primary collapsed"
-                    href="#role-mgmt-submenu" data-bs-toggle="collapse" role="button" aria-expanded="false"
+                <a class="nav-link d-flex align-items-center gap-2 rounded-xl px-2 py-2 {{ $isRoleMgmtActive ? '' : 'collapsed' }} text-secondary hover-primary"
+                    href="#role-mgmt-submenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ $isRoleMgmtActive ? 'true' : 'false' }}"
                     aria-controls="role-mgmt-submenu">
                     <i data-lucide="shield" width="18"></i>
                     <span class="fw-semibold">Role Management</span>
                     <i data-lucide="chevron-right" class="ms-auto arrow-icon" width="14"></i>
                 </a>
-                <div class="collapse" id="role-mgmt-submenu" data-bs-parent=".nav-menu">
+                <div class="collapse {{ $isRoleMgmtActive ? 'show' : '' }}" id="role-mgmt-submenu" data-bs-parent=".nav-menu">
                     <ul class="nav flex-column submenu-list ps-3">
-                        <li><a href="{{ route('roles.index_v2') }}" class="nav-link submenu-link" data-page="roles">Roles</a></li>
-                        <li><a href="{{ route('permissions.index_v2') }}" class="nav-link submenu-link" data-page="permissions">Permissions</a></li>
+                        <li><a href="{{ route('v2.roles.index') }}" class="nav-link submenu-link {{ Request::is('roles*') || Request::is('v2/roles*') ? 'active' : '' }}" data-page="roles">Roles</a></li>
+                        <li><a href="{{ route('v2.permissions.index') }}" class="nav-link submenu-link {{ Request::is('permissions*') || Request::is('v2/permissions*') ? 'active' : '' }}" data-page="permissions">Permissions</a></li>
                     </ul>
                 </div>
             </div>
             @endcan
 
+            @can('report-view')
+            @php
+                $isReportsActive = Request::is('reports*') || Request::is('v2/reports*');
+            @endphp
             <div class="nav-item mb-1">
-                <a class="nav-link d-flex align-items-center gap-2 rounded-xl px-2 py-2 text-secondary hover-primary collapsed"
-                    href="#reports-submenu" data-bs-toggle="collapse" role="button" aria-expanded="false"
+                <a class="nav-link d-flex align-items-center gap-2 rounded-xl px-2 py-2 {{ $isReportsActive ? '' : 'collapsed' }} text-secondary hover-primary"
+                    href="#reports-submenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ $isReportsActive ? 'true' : 'false' }}"
                     aria-controls="reports-submenu">
                     <i data-lucide="pie-chart" width="18"></i>
                     <span class="fw-semibold">Reports</span>
                     <i data-lucide="chevron-right" class="ms-auto arrow-icon" width="14"></i>
                 </a>
-                <div class="collapse" id="reports-submenu" data-bs-parent=".nav-menu">
+                <div class="collapse {{ $isReportsActive ? 'show' : '' }}" id="reports-submenu" data-bs-parent=".nav-menu">
                     <ul class="nav flex-column submenu-list ps-3">
                         <li class="nav-item">
-                            <a href="#" class="nav-link submenu-link" data-page="reports">Project Reports</a>
+                            <a href="{{ route('v2.reports.index') }}" class="nav-link submenu-link {{ Request::is('reports*') || Request::is('v2/reports*') ? 'active' : '' }}" data-page="reports">Project Reports</a>
                         </li>
                     </ul>
                 </div>
             </div>
+            @endcan
 
         </nav>
         

@@ -63,12 +63,11 @@
             </div>
 
             <div class="dropdown">
-                <div class="d-flex align-items-center cursor-pointer" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="position-relative d-flex align-items-center justify-content-center rounded-circle bg-primary text-white shadow-sm"
-                        style="width: 38px; height: 38px;">
-                        <i data-lucide="user" width="18"></i>
-                        <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle"
-                            style="width: 10px; height: 10px;"></span>
+                <div class="d-flex align-items-center pointer" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="position-relative d-flex align-items-center justify-content-center rounded-circle shadow-sm border overflow-hidden"
+                        style="width: 38px; height: 38px; background-color: #f8fafc;">
+                        <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ Auth::user()->name }}" 
+                             alt="Profile" width="100%" height="100%">
                     </div>
                 </div>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius: 12px;">
@@ -78,7 +77,7 @@
                             <div class="text-muted topnav-user-role" style="font-size: 0.75rem;">{{ Auth::user()->roles->first()->name }}</div>
                         </div>
                     </li>
-                    <li><a href="{{ route('profiles.index_v2') }}" class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" data-page="profile">
+                    <li><a href="{{ route('v2.profiles.index') }}" class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" data-page="profile">
                             <i data-lucide="user" width="16"></i> Profile
                         </a></li>
                     <li>

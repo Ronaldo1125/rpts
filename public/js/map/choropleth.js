@@ -20,18 +20,28 @@ window.MapChoropleth = (function () {
     }
 
     /**
-     * Generates a consistent pseudo-random color for municipalities based on name hash
+     * Colors municipalities based on real data
      */
-    function _getMuniColor(name, mode) {
-        if (!name) return '#cbd5e1';
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) {
-            hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        }
+    function _getMuniColor(rawName, mode) {
+        if (!rawName) return '#cbd5e1';
+        
+        // Normalize for matching: Uppercase and remove "City of", "Municipality of", "City", etc.
+        const name = rawName.toUpperCase().trim()
+            .replace(/^CITY\sOF\s/g, '')
+            .replace(/^MUNICIPALITY\sOF\s/g, '')
+            .replace(/\sCITY$/g, '')
+            .replace(/\sMUNICIPALITY$/g, '');
+
+        const stats = (window.dashboardStats && window.dashboardStats.municipality) ? window.dashboardStats.municipality : {};
+        const d = stats[name] || { count: 0, cost: 0 };
+        const value = mode === 'projects' ? d.count : d.cost;
         
         const thresholds = MapConfig.colorScale[mode];
-        const index = Math.abs(hash) % thresholds.length;
-        return thresholds[index].color;
+
+        for (let i = thresholds.length - 1; i >= 0; i--) {
+            if (value >= thresholds[i].min) return thresholds[i].color;
+        }
+        return '#f1f5f9'; // Very light gray for zero data
     }
 
     function styleFeature(feature) {

@@ -795,16 +795,25 @@ function initializeCharts(isCost = false) {
     const agencyCtx = document.getElementById('agencyChart');
     const fundingPieCtx = document.getElementById('fundingSourcePieChart');
     const statusDistCtx = document.getElementById('statusDistributionChart');
+    const stats = window.dashboardStats || { status: {}, funding_category: {}, fund_source: {}, agency: {}, sector: {}, province: {}, spatial: {}, trends: {}, chapters: {} };
+
+    // Helper to get labels and data
+    const getChartData = (statObj, mode = 'count') => {
+        const labels = Object.keys(statObj);
+        const data = labels.map(l => mode === 'cost' ? (statObj[l].cost / 1) : statObj[l].count);
+        return { labels, data };
+    };
 
     if (fundSourceCtx) {
         if (fundSourceChart) fundSourceChart.destroy();
+        const d = getChartData(stats.fund_source, isCost ? 'cost' : 'count');
         fundSourceChart = new Chart(fundSourceCtx, {
             type: 'bar',
             data: {
-                labels: ['GAA', 'ODA', 'PPP', 'COB'],
+                labels: d.labels,
                 datasets: [{
-                    data: isCost ? [11.77, 0, 0, 0] : [51, 0, 0, 0],
-                    backgroundColor: ['#1E3A8A', '#3B82F6', '#10B981', '#F59E0B'],
+                    data: d.data,
+                    backgroundColor: ['#1E3A8A', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#F97316'],
                     borderRadius: 6
                 }]
             },
@@ -815,14 +824,26 @@ function initializeCharts(isCost = false) {
                 plugins: {
                     legend: { display: false },
                     datalabels: {
-                        anchor: 'end', align: 'start', offset: 4, color: '#ffffff',
-                        font: { weight: 'bold', size: 12 },
-                        formatter: (value) => value > 0 ? value : ''
+                        anchor: 'end', 
+                        align: 'end', 
+                        offset: 4, 
+                        color: '#1e293b',
+                        font: { weight: 'bold', size: 10 },
+                        formatter: (value) => {
+                            const num = Number(value);
+                            return num > 0 ? (isCost ? num.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : num.toLocaleString()) : '';
+                        }
                     }
                 },
+                layout: { padding: { right: 120 } },
                 scales: {
-                    x: { beginAtZero: true, grid: { display: false }, ticks: { color: '#475569' } },
-                    y: { grid: { display: false }, ticks: { color: '#475569' } }
+                    x: { 
+                        beginAtZero: true, 
+                        grace: '40%',
+                        grid: { display: false }, 
+                        ticks: { color: '#475569', font: { size: 10 } } 
+                    },
+                    y: { grid: { display: false }, ticks: { color: '#475569', font: { size: 10 } } }
                 }
             },
             plugins: [ChartDataLabels]
@@ -831,13 +852,21 @@ function initializeCharts(isCost = false) {
 
     if (agencyCtx) {
         if (agencyChart) agencyChart.destroy();
+        // Sort by value and take top 8
+        const agencyLabels = Object.keys(stats.agency).sort((a, b) => {
+            const valA = isCost ? stats.agency[a].cost : stats.agency[a].count;
+            const valB = isCost ? stats.agency[b].cost : stats.agency[b].count;
+            return valB - valA;
+        }).slice(0, 8);
+        const agencyValues = agencyLabels.map(l => isCost ? (stats.agency[l].cost / 1) : stats.agency[l].count);
+
         agencyChart = new Chart(agencyCtx, {
             type: 'bar',
             data: {
-                labels: ['BJMP', 'PNP', 'BFP', 'DILG', 'DEPDev'],
+                labels: agencyLabels,
                 datasets: [{
-                    data: isCost ? [4.5, 3.2, 2.1, 1.2, 0.77] : [16, 15, 13, 6, 3],
-                    backgroundColor: ['#EF4444', '#3B82F6', '#F97316', '#06B6D4', '#84CC16'],
+                    data: agencyValues,
+                    backgroundColor: '#1E3A8A',
                     borderRadius: 6
                 }]
             },
@@ -848,28 +877,42 @@ function initializeCharts(isCost = false) {
                 plugins: {
                     legend: { display: false },
                     datalabels: {
-                        anchor: 'end', align: 'start', offset: 4, color: '#ffffff',
-                        font: { weight: 'bold', size: 12 },
-                        formatter: (value) => value > 0 ? value : ''
+                        anchor: 'end', 
+                        align: 'end', 
+                        offset: 4, 
+                        color: '#1e293b',
+                        font: { weight: 'bold', size: 10 },
+                        formatter: (value) => {
+                            const num = Number(value);
+                            return num > 0 ? (isCost ? num.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : num.toLocaleString()) : '';
+                        }
                     }
                 },
+                layout: { padding: { right: 60 } },
                 scales: {
-                    x: { beginAtZero: true, grid: { display: false }, ticks: { color: '#475569' } },
-                    y: { grid: { display: false }, ticks: { color: '#475569' } }
+                    x: { 
+                        beginAtZero: true, 
+                        grace: '30%',
+                        grid: { display: false }, 
+                        ticks: { color: '#475569', font: { size: 10 } } 
+                    },
+                    y: { grid: { display: false }, ticks: { color: '#475569', font: { size: 10 } } }
                 }
             },
             plugins: [ChartDataLabels]
         });
     }
 
-    if (fundingPieCtx && !fundingSourcePieChart) {
+    if (fundingPieCtx) {
+        if (fundingSourcePieChart) fundingSourcePieChart.destroy();
+        const d = getChartData(stats.funding_category, 'count'); // Always count for pie
         fundingSourcePieChart = new Chart(fundingPieCtx, {
             type: 'pie',
             data: {
-                labels: ['Tier 1', 'Tier 2', 'Multi-Year Allocation'],
+                labels: d.labels,
                 datasets: [{
-                    data: [12.5, 25, 62.5],
-                    backgroundColor: ['#1E4E79', '#2E86C1', '#70E1E1'],
+                    data: d.data,
+                    backgroundColor: ['#1E4E79', '#2E86C1', '#70E1E1', '#F59E0B', '#10B981'],
                     borderWidth: 2,
                     borderColor: '#ffffff'
                 }]
@@ -880,15 +923,31 @@ function initializeCharts(isCost = false) {
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: { padding: 20, font: { size: 12, family: "'Inter', sans-serif", weight: 'bold' }, color: '#1a1a1a', usePointStyle: true, pointStyle: 'circle' }
+                        labels: { padding: 10, font: { size: 10, family: "'Inter', sans-serif", weight: 'bold' }, color: '#1a1a1a', usePointStyle: true, pointStyle: 'circle' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) label += ': ';
+                                const val = context.raw;
+                                label += isCost ? val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : val.toLocaleString();
+                                return label;
+                            }
+                        }
                     },
                     datalabels: {
-                        color: (context) => {
-                            const label = context.chart.data.labels[context.dataIndex];
-                            return (label === 'Tier 1' || label === 'Tier 2') ? '#fff' : '#000';
-                        },
+                        color: '#fff',
                         font: { weight: 'bold', size: 12 },
-                        formatter: (value) => value + '%'
+                        textShadowBlur: 4,
+                        textShadowColor: 'rgba(0,0,0,0.5)',
+                        formatter: (value, ctx) => {
+                            let sum = 0;
+                            let dataArr = ctx.chart.data.datasets[0].data;
+                            dataArr.map(data => { sum += data; });
+                            let percentage = (value*100 / sum);
+                            return percentage > 10 ? percentage.toFixed(0)+"%" : ""; // Only show if > 10% for pie
+                        }
                     }
                 }
             },
@@ -896,13 +955,15 @@ function initializeCharts(isCost = false) {
         });
     }
 
-    if (statusDistCtx && !statusDistChart) {
+    if (statusDistCtx) {
+        if (statusDistChart) statusDistChart.destroy();
+        const d = getChartData(stats.status, 'count');
         statusDistChart = new Chart(statusDistCtx, {
             type: 'bar',
             data: {
-                labels: ['Ongoing', 'Proposed', 'Terminated', 'Suspended', 'Dropped', 'Completed'],
+                labels: d.labels,
                 datasets: [{
-                    data: [37.80, 3.83, 21.05, 14.83, 19.14, 3.35],
+                    data: d.data,
                     backgroundColor: ['#1e4a7a', '#e67e22', '#fa9d62', '#337ab7', '#fbc79a', '#c9ad3c'],
                     borderRadius: 6
                 }]
@@ -913,14 +974,26 @@ function initializeCharts(isCost = false) {
                 plugins: {
                     legend: { display: false },
                     datalabels: {
-                        anchor: 'end', align: 'top', color: '#1a1a1a',
-                        font: { weight: 'bold', size: 10 },
-                        formatter: (value) => value + '%'
+                        anchor: 'end', 
+                        align: 'top', 
+                        color: '#1e293b',
+                        offset: 4,
+                        font: { weight: 'bold', size: 11 },
+                        formatter: (value) => {
+                            const num = Number(value);
+                            return num > 0 ? (isCost ? num.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : num.toLocaleString()) : '';
+                        }
                     }
                 },
+                layout: { padding: { top: 50 } },
                 scales: {
                     x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 }, callback: (value) => value + '%' } }
+                    y: { 
+                        beginAtZero: true, 
+                        grace: '40%',
+                        grid: { color: 'rgba(0,0,0,0.05)' }, 
+                        ticks: { font: { size: 10 } } 
+                    }
                 }
             },
             plugins: [ChartDataLabels]
@@ -935,12 +1008,13 @@ function initializeCharts(isCost = false) {
 
     if (sectorCtx) {
         if (sectorChart) sectorChart.destroy();
+        const d = getChartData(stats.sector, isCost ? 'cost' : 'count');
         sectorChart = new Chart(sectorCtx, {
             type: 'bar',
             data: {
-                labels: ['Infrastructure', 'Social', 'Economic', 'Dev\'t Ad'],
+                labels: d.labels,
                 datasets: [{
-                    data: isCost ? [8.55, 1.25, 0.45, 1.52] : [25, 12, 10, 4],
+                    data: d.data,
                     backgroundColor: ['#1E3A8A', '#3B82F6', '#10B981', '#F59E0B'],
                     borderRadius: 6
                 }]
@@ -950,9 +1024,27 @@ function initializeCharts(isCost = false) {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    datalabels: { anchor: 'end', align: 'top', color: '#1e293b', font: { weight: 'bold' }, formatter: (value) => value }
+                    datalabels: { 
+                        anchor: 'end', 
+                        align: 'top', 
+                        color: '#1e293b', 
+                        font: { weight: 'bold', size: 10 }, 
+                        formatter: (value) => {
+                            const num = Number(value);
+                            return num > 0 ? (isCost ? num.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : num.toLocaleString()) : '';
+                        }
+                    }
                 },
-                scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+                layout: { padding: { top: 50 } },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        grace: '40%',
+                        grid: { display: false }, 
+                        ticks: { font: { size: 10 } } 
+                    }, 
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } } 
+                }
             },
             plugins: [ChartDataLabels]
         });
@@ -960,13 +1052,13 @@ function initializeCharts(isCost = false) {
 
     if (provinceCtx) {
         if (provinceChart) provinceChart.destroy();
-        const provinceLabels = ['Albay', 'Cam Sur', 'Sorsogon', 'Masbate', 'Cam Norte', 'Catanduanes'];
-        const provinceDataValues = provinceLabels.map(label => isCost ? MapConfig.provinceData[label].cost : MapConfig.provinceData[label].projects);
+        const provinceLabels = Object.keys(stats.province);
+        const provinceDataValues = provinceLabels.map(l => isCost ? stats.province[l].cost : stats.province[l].count);
 
         provinceChart = new Chart(provinceCtx, {
             type: 'bar',
             data: {
-                labels: provinceLabels,
+                labels: provinceLabels.map(l => l.replace('Camarines', 'Cam')),
                 datasets: [{ data: provinceDataValues, backgroundColor: '#1E3A8A', borderRadius: 6 }]
             },
             options: {
@@ -974,9 +1066,27 @@ function initializeCharts(isCost = false) {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    datalabels: { anchor: 'end', align: 'top', color: '#1e293b', font: { weight: 'bold' }, formatter: (value) => value }
+                    datalabels: { 
+                        anchor: 'end', 
+                        align: 'top', 
+                        color: '#1e293b', 
+                        font: { weight: 'bold', size: 10 }, 
+                        formatter: (value) => {
+                            const num = Number(value);
+                            return num > 0 ? (isCost ? num.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : num.toLocaleString()) : '';
+                        }
+                    }
                 },
-                scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+                layout: { padding: { top: 50 } },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        grace: '40%',
+                        grid: { display: false }, 
+                        ticks: { font: { size: 10 } } 
+                    }, 
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } } 
+                }
             },
             plugins: [ChartDataLabels]
         });
@@ -984,12 +1094,13 @@ function initializeCharts(isCost = false) {
 
     if (spatialCtx) {
         if (spatialCoverageChart) spatialCoverageChart.destroy();
+        const d = getChartData(stats.spatial, isCost ? 'cost' : 'count');
         spatialCoverageChart = new Chart(spatialCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Nationwide', 'Inter-Regional', 'Regionwide', 'Inter-Province', 'Location-Specific'],
+                labels: d.labels,
                 datasets: [{
-                    data: isCost ? [3.2, 2.1, 8.5, 4.2, 12.27] : [10, 8, 35, 15, 29],
+                    data: d.data,
                     backgroundColor: ['#1E3A8A', '#3B82F6', '#6366F1', '#8B5CF6', '#10B981']
                 }]
             },
@@ -997,8 +1108,33 @@ function initializeCharts(isCost = false) {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { padding: 15, font: { size: 10, weight: 'bold' }, color: '#1e293b', usePointStyle: true, pointStyle: 'rect' } },
-                    datalabels: { color: '#fff', font: { weight: 'bold', size: 11 }, formatter: (value) => value }
+                    legend: { position: 'bottom', labels: { padding: 10, font: { size: 9, weight: 'bold' }, color: '#1e293b', usePointStyle: true, pointStyle: 'rect' } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) label += ': ';
+                                const val = context.raw;
+                                label += isCost ? val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : val.toLocaleString();
+                                return label;
+                            }
+                        }
+                    },
+                    datalabels: { 
+                        color: '#fff', 
+                        font: { weight: 'bold', size: 11 }, 
+                        textShadowBlur: 4,
+                        textShadowColor: 'rgba(0,0,0,0.5)',
+                        formatter: (value, ctx) => {
+                            const num = Number(value);
+                            let sum = 0;
+                            let dataArr = ctx.chart.data.datasets[0].data;
+                            dataArr.map(data => { sum += data; });
+                            let percentage = (num*100 / sum);
+                            if (percentage < 10) return ''; // Only show if > 10% for doughnut
+                            return percentage.toFixed(0) + '%';
+                        }
+                    }
                 }
             },
             plugins: [ChartDataLabels]
@@ -1007,12 +1143,14 @@ function initializeCharts(isCost = false) {
 
     if (yearCtx) {
         if (yearChart) yearChart.destroy();
+        const years = ['2022', '2023', '2024', '2025', '2026', '2027', '2028', '2029'];
+        const yearData = years.map(yr => isCost ? stats.trends[yr].cost : stats.trends[yr].count);
         yearChart = new Chart(yearCtx, {
             type: 'line',
             data: {
-                labels: ['2023', '2024', '2025', '2026', '2027', '2028'],
+                labels: years,
                 datasets: [{
-                    data: isCost ? [10.2, 12.5, 14.8, 11.2, 9.5, 6.9] : [5, 12, 18, 14, 7, 4],
+                    data: yearData,
                     borderColor: '#3B82F6',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     fill: true,
@@ -1024,9 +1162,27 @@ function initializeCharts(isCost = false) {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    datalabels: { anchor: 'end', align: 'top', color: '#1e293b', font: { weight: 'bold' }, formatter: (value) => value }
+                    datalabels: { 
+                        anchor: 'end', 
+                        align: 'top', 
+                        color: '#1e293b', 
+                        font: { weight: 'bold', size: 10 }, 
+                        formatter: (value) => {
+                            const num = Number(value);
+                            return num > 0 ? (isCost ? num.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : num.toLocaleString()) : '';
+                        }
+                    }
                 },
-                scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+                layout: { padding: { top: 50 } },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        grace: '40%',
+                        grid: { display: false }, 
+                        ticks: { font: { size: 10 } } 
+                    }, 
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } } 
+                }
             },
             plugins: [ChartDataLabels]
         });
@@ -1034,12 +1190,21 @@ function initializeCharts(isCost = false) {
 
     if (rdpCtx) {
         if (rdpChapterChart) rdpChapterChart.destroy();
+        
+        // Sort chapters numerically
+        const chapterLabels = Object.keys(stats.chapters).sort((a, b) => {
+            const numA = parseInt(a.replace(/\D/g, '')) || 0;
+            const numB = parseInt(b.replace(/\D/g, '')) || 0;
+            return numA - numB;
+        });
+        const chapterData = chapterLabels.map(l => stats.chapters[l].count);
+
         rdpChapterChart = new Chart(rdpCtx, {
             type: 'bar',
             data: {
-                labels: ['Chapter 1', 'Chapter 2', 'Chapter 3', 'Chapter 4', 'Chapter 5', 'Chapter 6', 'Chapter 7', 'Chapter 8', 'Chapter 9', 'Chapter 10', 'Chapter 11', 'Chapter 12'],
+                labels: chapterLabels,
                 datasets: [{
-                    data: isCost ? [0.1, 0.45, 1.2, 0.8, 1.5, 0.7, 2.1, 1.4, 1.2, 0.9, 0.8, 0.52] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                    data: chapterData,
                     backgroundColor: '#3B82F6',
                     borderRadius: 6
                 }]
@@ -1049,9 +1214,27 @@ function initializeCharts(isCost = false) {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    datalabels: { anchor: 'end', align: 'top', color: '#1e293b', font: { weight: 'bold' }, formatter: (value) => value }
+                    datalabels: { 
+                        anchor: 'end', 
+                        align: 'top', 
+                        color: '#1e293b', 
+                        font: { weight: 'bold', size: 10 }, 
+                        formatter: (value) => {
+                            const num = Number(value);
+                            return num > 0 ? num.toLocaleString() : '';
+                        }
+                    }
                 },
-                scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+                layout: { padding: { top: 30 } },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        grace: '30%',
+                        grid: { display: false }, 
+                        ticks: { font: { size: 10 } } 
+                    }, 
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } } 
+                }
             },
             plugins: [ChartDataLabels]
         });
@@ -1071,7 +1254,7 @@ function setupDashboardFilters() {
         'inter-regional': [],
         'regionwide': [],
         'inter-province': [],
-        'specific': ['group-province', 'group-district', 'group-city']
+        'locationspecific': ['group-province', 'group-district', 'group-city']
     };
 
     if (locationSelect) {
@@ -1087,22 +1270,199 @@ function setupDashboardFilters() {
     }
 
     if (searchInput) {
+        let searchTimeout;
+        let currentPage = 1;
+        let isLoading = false;
+        let hasMore = true;
+        const listContainer = document.getElementById('dashboard-project-list');
+        const scrollContainer = document.querySelector('.project-table tbody');
+
+        async function loadProjects(page = 1, append = false) {
+            if (isLoading) return;
+            isLoading = true;
+            
+            const loader = document.getElementById('registry-loader');
+            if (loader) loader.style.display = 'flex';
+
+            // Gather all filter values
+            const query = searchInput.value;
+            const status = document.getElementById('filter-status')?.value || 'all';
+            const fundingCategory = document.getElementById('filter-funding-category')?.value || 'all';
+            const agency = document.getElementById('filter-agency')?.value || 'all';
+            const location = document.getElementById('filter-location')?.value || 'all';
+            const provinceId = document.getElementById('filter-province')?.value || '';
+            const districtId = document.getElementById('filter-district')?.value || '';
+            const municipalityId = document.getElementById('filter-city')?.value || '';
+            const sector = document.getElementById('filter-sectors')?.value || 'all';
+
+            try {
+                const url = `/project-dashboard/fetch?page=${page}&search=${query}&status=${status}&funding_category=${fundingCategory}&agency=${agency}&location=${location}&province_id=${provinceId}&district_id=${districtId}&municipality_id=${municipalityId}&sector=${sector}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (!append) listContainer.innerHTML = '';
+                
+                if (data.projects.length === 0 && !append) {
+                    listContainer.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: #64748b;">No projects found matching the filters.</td></tr>';
+                }
+
+                data.projects.forEach(p => {
+                    const tr = document.createElement('tr');
+                    tr.style.cursor = 'pointer';
+                    tr.addEventListener('click', () => openProjectModal(p));
+                    
+                    let titleHtml = `<div style="font-weight: 700; color: #0f172a; font-size: 0.85rem; line-height: 1.3;">${p.title}</div>`;
+                    if (p.component_title) {
+                        titleHtml += `<div style="font-size: 0.7rem; color: #64748b; font-weight: 600; margin-top: 0.15rem; text-transform: uppercase;">${p.component_title}</div>`;
+                    }
+
+                    tr.innerHTML = `
+                        <td>${titleHtml}</td>
+                        <td style="font-weight: 600; text-align: right;">${p.cost}</td>
+                        <td>${p.location}</td>
+                        <td style="text-align: center;"><span style="background: #f1f5f9; padding: 0.25rem 0.6rem; border-radius: 4px; font-weight: 700; font-size: 0.7rem;">${p.agency}</span></td>
+                        <td style="text-align: center;"><span class="status-badge-v3" data-status="${p.status_lower}">${p.status}</span></td>
+                    `;
+                    listContainer.appendChild(tr);
+                });
+
+                hasMore = data.hasMore;
+                currentPage = data.current_page;
+                
+                if (!append) {
+                    const resultsCount = document.getElementById('results-count');
+                    if (resultsCount) resultsCount.textContent = data.total || listContainer.children.length;
+
+                    if (data.stats) {
+                        // Update global stats
+                        window.dashboardStats = data.stats;
+                        
+                        // Update Header Metrics
+                        const boxCount = document.getElementById('metric-box-count');
+                        const boxCost = document.getElementById('metric-box-cost');
+                        if (boxCount) boxCount.querySelector('.m-val').textContent = data.stats.total_count.toLocaleString();
+                        if (boxCost) boxCost.querySelector('.m-val').textContent = (data.stats.total_cost / 1000).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        
+                        // Re-render Charts
+                        const isCost = document.getElementById('dashboard-metric-toggle')?.checked || false;
+                        if (typeof initializeCharts === 'function') {
+                            initializeCharts(isCost);
+                        }
+                        
+                        // Re-render Map
+                        if (window.BicolMap && typeof window.BicolMap.updateStats === 'function') {
+                            window.BicolMap.updateStats();
+                        }
+                    }
+                }
+
+            } catch (err) {
+                console.error('Fetch error:', err);
+            } finally {
+                isLoading = false;
+                if (loader) loader.style.display = 'none';
+            }
+        }
+
+        // Global Modal Helpers
+        window.openProjectModal = (project) => {
+            const modal = document.getElementById('project-details-modal');
+            if (!modal) return;
+
+            document.getElementById('modal-title').textContent = project.title;
+            document.getElementById('modal-description').textContent = project.description;
+            document.getElementById('modal-agency-full').textContent = project.agency_full;
+            document.getElementById('modal-cost').textContent = project.cost;
+            document.getElementById('modal-location').textContent = project.location;
+            document.getElementById('modal-agency').textContent = project.agency;
+            document.getElementById('modal-status').textContent = project.status;
+            document.getElementById('modal-funding-category').textContent = project.funding_category;
+            document.getElementById('modal-fund-source').textContent = project.fund_source;
+            
+            const compGroup = document.getElementById('modal-component-group');
+            if (project.component_title) {
+                document.getElementById('modal-component-title').textContent = project.component_title;
+                compGroup.style.display = 'block';
+            } else {
+                compGroup.style.display = 'none';
+            }
+            
+            const statusTag = document.getElementById('modal-status-tag');
+            statusTag.textContent = project.status;
+            statusTag.setAttribute('data-status', project.status_lower);
+            // Apply standard status-badge colors
+            const colors = {
+                ongoing: { bg: '#e0f2fe', text: '#0369a1' },
+                proposed: { bg: '#fef3c7', text: '#b45309' },
+                completed: { bg: '#dcfce7', text: '#15803d' },
+                terminated: { bg: '#fee2e2', text: '#b91c1c' },
+                suspended: { bg: '#ffedd5', text: '#c2410c' }
+            };
+            const theme = colors[project.status_lower] || { bg: '#f1f5f9', text: '#475569' };
+            statusTag.style.background = theme.bg;
+            statusTag.style.color = theme.text;
+
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            if (window.lucide) window.lucide.createIcons();
+        };
+
+        window.closeProjectModal = () => {
+            const modal = document.getElementById('project-details-modal');
+            if (modal) modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        };
+
+        // Close on backdrop click
+        document.getElementById('project-details-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'project-details-modal') closeProjectModal();
+        });
+
+        // Initial Load
+        loadProjects(1);
+
+        // Search with Debounce
         searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('.v3-table tbody tr');
-            let count = 0;
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                if (text.includes(query)) {
-                    row.style.display = '';
-                    count++;
-                } else {
-                    row.style.display = 'none';
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentPage = 1;
+                hasMore = true;
+                loadProjects(1);
+            }, 400);
+        });
+
+        // Apply Filters Button
+        const btnApply = document.getElementById('btn-apply-filters');
+        if (btnApply) {
+            btnApply.addEventListener('click', () => {
+                currentPage = 1;
+                hasMore = true;
+                loadProjects(1);
+            });
+        }
+
+        // Reset Button
+        const btnReset = document.getElementById('btn-reset-filters');
+        if (btnReset) {
+            btnReset.addEventListener('click', () => {
+                setTimeout(() => {
+                    currentPage = 1;
+                    hasMore = true;
+                    loadProjects(1);
+                }, 50);
+            });
+        }
+
+        // Infinite Scroll
+        if (scrollContainer) {
+            scrollContainer.addEventListener('scroll', () => {
+                if (!hasMore || isLoading) return;
+                const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+                if (scrollTop + clientHeight >= scrollHeight - 50) {
+                    loadProjects(currentPage + 1, true);
                 }
             });
-            const resultsCount = document.getElementById('results-count');
-            if (resultsCount) resultsCount.textContent = count;
-        });
+        }
     }
 }
 

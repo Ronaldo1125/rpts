@@ -28,14 +28,7 @@ class ChapterController extends Controller
         return view('chapters.index', compact('chapters'));
     }
 
-    public function index_v2(Request $request)
-    {
-        $perPage = $request->input('per_page', 10);
-        $chapters = Chapter::latest()->paginate($perPage)->onEachSide(1);
-        $chapters->appends(['per_page' => $perPage]);
-        
-        return view('chapters.index_v2', compact('chapters'));
-    }
+
 
     /**
      * Show the form for creating a new resource.
@@ -97,4 +90,6 @@ class ChapterController extends Controller
 
         return redirect()->route('chapters.index');
     }
+
+
 }

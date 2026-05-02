@@ -18,11 +18,37 @@
     let _geoLayer = null;
     let _initialized = false;
 
-    window.BicolMap = { init, invalidate, switchLayer, processRegionFeatures: _processRegionFeatures };
+    window.BicolMap = { 
+        init, 
+        invalidate, 
+        switchLayer, 
+        processRegionFeatures: _processRegionFeatures,
+        recalculateScales: _recalculateScales,
+        updateStats
+    };
 
     // ── Init ─────────────────────────────────────────────────────
+    function updateStats() {
+        if (window.dashboardStats && window.dashboardStats.province) {
+            Object.keys(window.dashboardStats.province).forEach(key => {
+                if (MapConfig.provinceData[key]) {
+                    MapConfig.provinceData[key].projects = window.dashboardStats.province[key].count;
+                    MapConfig.provinceData[key].cost = window.dashboardStats.province[key].cost;
+                }
+            });
+            _recalculateScales();
+            if (window.MapChoropleth && _geoLayer) {
+                MapChoropleth.refreshLayer(_geoLayer);
+                if (window.MapLegend) window.MapLegend.update(MapChoropleth.getMode());
+            }
+        }
+    }
+
     function init() {
         if (_initialized) { invalidate(); return; }
+
+        // Sync Province data with real stats from backend
+        updateStats();
         
         const container = document.getElementById('bicol-map');
         if (!container) return;
@@ -97,6 +123,54 @@
         return { type: 'FeatureCollection', features };
     }
 
+    /**
+     * Dynamically adjust MapConfig thresholds based on real data.
+     * If names are provided, it scales specifically for those features (Drilldown context).
+     */
+    function _recalculateScales(names = null) {
+        const stats = window.dashboardStats;
+        if (!stats) return;
+
+        let maxP, maxC;
+
+        if (names && names.length > 0) {
+            // Context: DRILLDOWN (Scale based on these specific municipalities)
+            const mData = names.map(n => stats.municipality[n] || { count: 0, cost: 0 });
+            maxP = Math.max(...mData.map(m => m.count), 5);
+            maxC = Math.max(...mData.map(m => m.cost), 1);
+        } else {
+            // Context: REGION (Scale based on provinces)
+            const pCounts = Object.values(stats.province || {}).map(p => p.count);
+            maxP = Math.max(...pCounts, 10);
+            const pCosts = Object.values(stats.province || {}).map(p => p.cost);
+            maxC = Math.max(...pCosts, 5);
+        }
+
+        // 1. Project Count Ranges
+        const stepP = Math.ceil(maxP / 5);
+        MapConfig.colorScale.projects = [
+            { min: 0,             max: stepP,         color: '#dbeafe' },
+            { min: stepP + 1,      max: stepP * 2,     color: '#93c5fd' },
+            { min: stepP * 2 + 1,  max: stepP * 3,     color: '#3b82f6' },
+            { min: stepP * 3 + 1,  max: stepP * 4,     color: '#1d4ed8' },
+            { min: stepP * 4 + 1,  max: Infinity,      color: '#1e3a6e' }
+        ];
+
+        // 2. Cost Ranges
+        const stepC = (maxC / 5).toFixed(2);
+        const fStepC = parseFloat(stepC) || 1;
+        MapConfig.colorScale.cost = [
+            { min: 0,             max: fStepC,         color: '#dbeafe' },
+            { min: fStepC + 0.01,  max: fStepC * 2,     color: '#93c5fd' },
+            { min: fStepC * 2 + 0.01, max: fStepC * 3,  color: '#3b82f6' },
+            { min: fStepC * 3 + 0.01, max: fStepC * 4,  color: '#1d4ed8' },
+            { min: fStepC * 4 + 0.01, max: Infinity,   color: '#1e3a6e' }
+        ];
+
+        // Refresh legend UI if it exists
+        if (window.MapLegend) window.MapLegend.update(MapChoropleth.getMode());
+    }
+
     // ── Build Leaflet layer ───────────────────────────────────────
     function _buildLayer(geojson, isMunicipality = false) {
         if (_geoLayer) _map.removeLayer(_geoLayer);
@@ -148,59 +222,60 @@
             return;
         }
 
+        // Only handle internal map visual state
         MapSync.highlightProvince(id);
-        MapSync.onMapProvinceClick(id);
         MapDrilldown.drillInto(feature, e.target);
     }
 
     function _onEachMuniFeature(feature, layer) {
-        const name = feature.properties.adm3_en || feature.properties.name || 'Unknown';
-        const data = _getMuniData(name);
+        const rawName = feature.properties.adm3_en || feature.properties.name || 'Unknown';
+        // Aggressive Normalization:
+        const nameKey = rawName.toUpperCase().trim()
+            .replace(/^CITY\sOF\s/g, '')      // "CITY OF LEGAZPI" -> "LEGAZPI"
+            .replace(/^MUNICIPALITY\sOF\s/g, '')
+            .replace(/\sCITY$/g, '')          // "LEGAZPI CITY" -> "LEGAZPI"
+            .replace(/\sMUNICIPALITY$/g, '');
+
+        const data = _getMuniData(nameKey);
 
         // POPUP (Click) restored so details "load" on the map as requested
         const popupContent = `
             <div class="map-province-tooltip" style="border:none; box-shadow:none; padding: 0.2rem;">
-                <strong>${name}</strong>
+                <strong>${rawName}</strong>
                 <div style="color:#64748b; font-size:0.65rem; text-transform:uppercase; margin-bottom:0.4rem; letter-spacing:0.04em; font-weight:700;">Statistics</div>
                 <div style="color:#1e293b; font-size:0.75rem; display:grid; grid-template-columns: 1fr auto; gap:0.5rem; border-bottom:1px solid #f1f5f9; padding-bottom:0.4rem; margin-bottom:0.4rem;">
-                    <span>Projects:</span> <b style="color:#1e3a6e">${data.projects}</b>
-                    <span>Total Cost:</span> <b style="color:#1e3a6e">₱${data.cost.toFixed(2)}M</b>
+                    <span>Projects:</span> <b style="color:#1e3a6e">${data.projects.toLocaleString()}</b>
+                    <span>Total Cost:</span> <b style="color:#1e3a6e">₱${data.cost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}M</b>
                 </div>
             </div>
         `;
         layer.bindPopup(popupContent, { maxWidth: 220 });
 
-        // Tooltips (Black squares on hover) removed as per previous instruction
-        // layer.bindTooltip(tooltipContent, { sticky: true });
-
         layer.on({
             mouseover: (e) => { e.target.setStyle(MapConfig.hoverStyle); e.target.bringToFront(); },
             mouseout:  (e) => { 
-                const color = MapChoropleth.getColor(name, MapChoropleth.getMode(), true);
+                const color = MapChoropleth.getColor(nameKey, MapChoropleth.getMode(), true);
                 e.target.setStyle({ ...MapConfig.defaultStyle, fillColor: color }); 
             },
             click: (e) => {
                 L.DomEvent.stopPropagation(e);
                 if (window.MapSync && window.MapSync.onMapMuniClick) {
-                    window.MapSync.onMapMuniClick(name, data);
+                    window.MapSync.onMapMuniClick(nameKey, data);
                 }
             }
         });
     }
 
     /**
-     * Internal helper to generate consistent mock data for municipalities
+     * Fetches real data for municipalities from the global stats object
      */
-    function _getMuniData(name) {
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        hash = Math.abs(hash);
+    function _getMuniData(nameKey) {
+        const stats = (window.dashboardStats && window.dashboardStats.municipality) ? window.dashboardStats.municipality : {};
+        const d = stats[nameKey] || { count: 0, cost: 0 };
         
-        // Return 0 projects occasionally for realism
-        const hasProjects = (hash % 10) > 1; 
         return {
-            projects: hasProjects ? (hash % 6) + 1 : 0,
-            cost: hasProjects ? ((hash % 30) + 10) / 10 : 0
+            projects: d.count,
+            cost: d.cost
         };
     }
 

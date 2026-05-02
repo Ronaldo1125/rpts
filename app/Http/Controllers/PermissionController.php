@@ -26,14 +26,7 @@ class PermissionController extends Controller
         return view('permissions.index', compact('permissions'));
     }
 
-    public function index_v2(Request $request)
-    {
-        $perPage = $request->input('per_page', 10);
-        $permissions = Permission::latest()->paginate($perPage)->onEachSide(1);
-        $permissions->appends(['per_page' => $perPage]);
 
-        return view('permissions.index_v2', compact('permissions'));
-    }
 
     /**
      * Show the form for creating a new resource.
@@ -99,4 +92,6 @@ class PermissionController extends Controller
 
         return redirect()->route('permissions.index');
     }
+
+
 }

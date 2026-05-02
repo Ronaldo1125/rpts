@@ -8,7 +8,7 @@
         <h2 class="fw-bold mb-0">Manage Projects</h2>
       </div>
       <div class="d-flex gap-2">
-        <a href="{{ route('projects.create')}}"
+        <a href="{{ route('v2.projects.create')}}"
           class="btn btn-primary create-project-btn text-white px-4 py-2 fw-medium rounded-pill"
           style="background-color: #154A9A; border-color: #154A9A;">
           <i data-lucide="plus" class="me-1" width="18"></i> Create Project
@@ -34,7 +34,7 @@
               </tr>
             </thead>
             <tbody>
-              @foreach($projects as $project)
+              @forelse($projects as $project)
                 <tr class="project-row">
                   <td class="project-info-col" style="width: 35%;">
                     <div class="project-title">{{ $project->project_title }}</div>
@@ -74,10 +74,10 @@
                         <i data-lucide="more-vertical" style="width: 20px; height: 20px;"></i>
                       </button>
                       <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item small" href="{{ route('projects.edit', $project->id) }}"><i
+                        <li><a class="dropdown-item small" href="{{ route('v2.projects.show', $project->id) }}"><i
                               data-lucide="eye" class="me-2" style="width: 14px; height: 14px;"></i> View</a></li>
-                        @can('project-update')
-                          <li><a class="dropdown-item small" href="{{ route('projects.edit', $project->id) }}"><i
+                        @can('project-edit')
+                          <li><a class="dropdown-item small" href="{{ route('v2.projects.edit', $project->id) }}"><i
                                 data-lucide="edit-2" class="me-2" style="width: 14px; height: 14px;"></i> Edit</a></li>
                         @endcan
                         @can('project-delete')
@@ -85,7 +85,7 @@
                             <hr class="dropdown-divider">
                           </li>
                           <li>
-                            <form action="{{ route('projects.destroy', $project->id) }}" method="POST"
+                            <form action="{{ route('v2.projects.destroy', $project->id) }}" method="POST"
                               onsubmit="return confirm('Are you sure?');">
                               @csrf
                               @method('DELETE')
@@ -99,7 +99,15 @@
                     </div>
                   </td>
                 </tr>
-              @endforeach
+              @empty
+                <tr>
+                  <td colspan="7" class="text-center py-4 text-muted">
+                    <i data-lucide="inbox" class="mb-2" width="32"></i>
+                    <p class="mb-0 small">No projects found. Add a new one to get started.</p>
+                  </td>
+                </tr>
+              @endforelse
+
             </tbody>
           </table>
         </div>

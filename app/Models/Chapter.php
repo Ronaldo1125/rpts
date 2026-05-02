@@ -5,10 +5,13 @@ namespace App\Models;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
+use App\Traits\Searchable;
 
 class Chapter extends Model
 {
-    use LogsActivity;
+    use LogsActivity, Searchable;
+
+    protected $searchable = ['chapter_name'];
     
     protected $fillable = [
         'chapter_name'

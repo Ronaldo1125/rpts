@@ -28,12 +28,12 @@
                         <div class="mb-4">
                             <label for="agencyName" class="form-label small fw-semibold text-secondary mb-1">Agency Name</label>
                             <input type="text" name="agency_name" class="form-control rounded-12" id="agencyName" placeholder="Enter Agency Name" required>
-                            <span class="text-danger extra-small mt-1 d-none" id="error-agency_name"></span>
+                            <span class="text-danger mt-1 d-none" id="error-agency_name" style="font-size: 0.75rem;"></span>
                         </div>
                         <div class="mb-0">
                             <label for="agencyAcronym" class="form-label small fw-semibold text-secondary mb-1">Agency Acronym</label>
                             <input type="text" name="agency_acronym" class="form-control rounded-12" id="agencyAcronym" placeholder="Enter Agency Acronym" required>
-                            <span class="text-danger extra-small mt-1 d-none" id="error-agency_acronym"></span>
+                            <span class="text-danger mt-1 d-none" id="error-agency_acronym" style="font-size: 0.75rem;"></span>
                         </div>
                     </form>
                 </div>
@@ -103,12 +103,12 @@
                                                   <div class="mb-4">
                                                       <label class="form-label small fw-semibold text-secondary d-block mb-1">Agency Name</label>
                                                       <input type="text" name="agency_name" class="form-control rounded-12" value="{{ $agency->agency_name }}" required>
-                                                      <span class="text-danger extra-small mt-1 d-none error-agency_name"></span>
+                                                      <span class="text-danger mt-1 d-none error-agency_name" style="font-size: 0.75rem;"></span>
                                                   </div>
                                                   <div class="mb-0">
                                                       <label class="form-label small fw-semibold text-secondary d-block mb-1">Agency Acronym</label>
                                                       <input type="text" name="agency_acronym" class="form-control rounded-12" value="{{ $agency->agency_acronym }}" required>
-                                                      <span class="text-danger extra-small mt-1 d-none error-agency_acronym"></span>
+                                                      <span class="text-danger mt-1 d-none error-agency_acronym" style="font-size: 0.75rem;"></span>
                                                   </div>
                                               </form>
                                           </div>
@@ -136,20 +136,18 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         // Validation Listeners
-        const addNameInput = document.getElementById('agencyName');
-        const addAcronymInput = document.getElementById('agencyAcronym');
-        const validateUrl = "{{ route('agencies.validate_v2') }}";
+        const validateUrl = "{{ route('v2.agencies.validate') }}";
         
-        addNameInput.addEventListener('blur', () => RPTS.validation.validateField(validateUrl, addNameInput, 'agency_name', document.getElementById('error-agency_name')));
-        addAcronymInput.addEventListener('blur', () => RPTS.validation.validateField(validateUrl, addAcronymInput, 'agency_acronym', document.getElementById('error-agency_acronym')));
+        RPTS.validation.attach(validateUrl, document.getElementById('agencyName'), 'agency_name', document.getElementById('error-agency_name'));
+        RPTS.validation.attach(validateUrl, document.getElementById('agencyAcronym'), 'agency_acronym', document.getElementById('error-agency_acronym'));
 
         document.querySelectorAll('.edit-agency-form').forEach(form => {
             const id = form.getAttribute('data-id');
             const nameInput = form.querySelector('input[name="agency_name"]');
             const acronymInput = form.querySelector('input[name="agency_acronym"]');
             
-            nameInput.addEventListener('blur', () => RPTS.validation.validateField(validateUrl, nameInput, 'agency_name', form.querySelector('.error-agency_name'), id));
-            acronymInput.addEventListener('blur', () => RPTS.validation.validateField(validateUrl, acronymInput, 'agency_acronym', form.querySelector('.error-agency_acronym'), id));
+            RPTS.validation.attach(validateUrl, nameInput, 'agency_name', form.querySelector('.error-agency_name'), id);
+            RPTS.validation.attach(validateUrl, acronymInput, 'agency_acronym', form.querySelector('.error-agency_acronym'), id);
         });
 
         // Add Agency AJAX
@@ -161,7 +159,7 @@
             saveBtn.querySelector('.spinner-border').classList.remove('d-none');
 
             try {
-                const response = await fetch("{{ route('agencies.store_v2') }}", {
+                const response = await fetch("{{ route('v2.agencies.store') }}", {
                     method: 'POST',
                     body: new FormData(this),
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }

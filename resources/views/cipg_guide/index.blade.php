@@ -1,4 +1,4 @@
-@extends('layouts.app-v2')
+@extends('layouts.app_v2')
 @section('content')
 
 <section id="cipg-guide" class="page-content active container-fluid py-4">

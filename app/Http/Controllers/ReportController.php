@@ -12,6 +12,11 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:report-view');
+    }
+
     public function index()
     {
         $selectedFundingCategory = "";

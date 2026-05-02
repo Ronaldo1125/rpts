@@ -46,7 +46,13 @@ const RPTS = {
     validation: {
         async validateField(url, input, field, errorEl, ignoreId = null) {
             const value = input.value.trim();
-            if (!value) return;
+            
+            // If empty, clear errors and return
+            if (!value) {
+                errorEl.classList.add('d-none');
+                input.classList.remove('is-invalid');
+                return;
+            }
 
             try {
                 const response = await fetch(url, {
@@ -71,6 +77,25 @@ const RPTS = {
             } catch (error) {
                 console.error('Validation error:', error);
             }
+        },
+
+        /**
+         * Helper to attach validation to an input
+         */
+        attach(url, input, field, errorEl, ignoreId = null) {
+            if (!input || !errorEl) return;
+
+            // Validate when leaving the input (blur)
+            input.addEventListener('blur', () => {
+                this.validateField(url, input, field, errorEl, ignoreId);
+            });
+
+            // If it's already invalid, re-validate as the user types to clear the error faster
+            input.addEventListener('input', () => {
+                if (input.classList.contains('is-invalid')) {
+                    this.validateField(url, input, field, errorEl, ignoreId);
+                }
+            });
         }
     },
 

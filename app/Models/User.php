@@ -11,11 +11,14 @@ use Illuminate\Notifications\Notifiable;
 //use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Traits\Searchable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, Searchable;
+
+    protected $searchable = ['name', 'email'];
 
     /**
      * The attributes that are mass assignable.

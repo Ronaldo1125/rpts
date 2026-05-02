@@ -7,10 +7,14 @@ use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+use App\Traits\Searchable;
+
 class Agency extends Model
 {
-    use LogsActivity;
+    use LogsActivity, Searchable;
     
+    protected $searchable = ['agency_name', 'agency_acronym'];
+
     protected $fillable = [
         'agency_name',
         'agency_acronym',

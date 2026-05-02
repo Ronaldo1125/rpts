@@ -25,16 +25,7 @@ class RoleController extends Controller
         return view('roles.index', compact('roles','permissions'));
     }
 
-    public function index_v2(Request $request)
-    {
-        $perPage = $request->input('per_page', 10);
-        $roles = Role::latest()->paginate($perPage)->onEachSide(1);
-        $roles->appends(['per_page' => $perPage]);
 
-        $permissions = Permission::pluck('name')->all();
-
-        return view('roles.index_v2', compact('roles', 'permissions'));
-    }
 
     /**
      * Show the form for creating a new resource.
@@ -103,4 +94,6 @@ class RoleController extends Controller
 
         return redirect()->route('roles.index');
     }
+
+
 }

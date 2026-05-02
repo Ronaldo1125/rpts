@@ -17,14 +17,13 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class ProjectDataExport implements FromView, ShouldAutoSize, WithStyles, WithColumnWidths, WithEvents
 {
-    private $selectedFundingCategoryId;
-    private $selectedStatusId;
+    public $selectedFundingCategory;
+    public $selectedStatus;
 
     public function __construct($selectedFundingCategory, $selectedStatus)
     {
         $this->selectedFundingCategory = $selectedFundingCategory;
         $this->selectedStatus = $selectedStatus;
-
     }
    
     public function view(): View

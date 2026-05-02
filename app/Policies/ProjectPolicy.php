@@ -5,7 +5,6 @@ namespace App\Policies;
 use App\Models\User;
 use App\Models\Project;
 use Illuminate\Auth\Access\Response;
-use Illuminate\Support\Facades\Auth;
 
 class ProjectPolicy
 {
@@ -34,11 +33,11 @@ class ProjectPolicy
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determine whether the user can update the model (edit gate).
      */
-    public function edit($id): bool
+    public function edit(User $user, Project $project): bool
     {
-        return Auth::user()->can('project-edit', $id);
+        return $user->can('project-edit');
     }
 
     /**
@@ -46,7 +45,7 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return $user->can('project-edit', $project);
+        return $user->can('project-edit');
     }
 
     /**
@@ -54,7 +53,7 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): bool
     {
-        return false;
+        return $user->can('project-delete');
     }
 
     /**

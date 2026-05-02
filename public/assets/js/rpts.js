@@ -15,18 +15,18 @@ var subsector      = $("#sub_sector_id");
 	
 	$(province).change( function(){
 			if(this.value == ''){
-					$(district).html("<option value=''>-- Select District --</option>").attr({disabled:"disabled"});
-					$(municipality).html("<option value=''>-- Select City/Municipality --</option>").attr({disabled:"disabled"});
+					$(district).html("<option value='' disabled selected>-- Select --</option>").attr({disabled:"disabled"});
+					$(municipality).html("<option value='' disabled selected>-- Select --</option>").attr({disabled:"disabled"});
 			}else{		 	
 					getDistricts(district,this.value,false); 
 					$(district).removeAttr("disabled"); 	
-					$(municipality).html("<option value=''>-- Select City/Municipality --</option>").attr({disabled:"disabled"});
+					$(municipality).html("<option value='' disabled selected>-- Select --</option>").attr({disabled:"disabled"});
 			}
 	});
 
 	$(district).change( function(){
 			if(this.value == ''){					
-					$(municipality).html("<option value=''>-- Select City/Municipality --</option>").attr({disabled:"disabled"});
+					$(municipality).html("<option value='' disabled selected>-- Select --</option>").attr({disabled:"disabled"});
 			}else{				  	
 					getMunicipalities(municipality,$(province).val(),this.value, false);
 					$(municipality).removeAttr("disabled"); 
@@ -35,7 +35,7 @@ var subsector      = $("#sub_sector_id");
 
   $(sector).change( function(){
     if(this.value == ''){
-        $(subsector).html("<option value=''>-- Select Sub-Sector --</option>").attr({disabled:"disabled"});
+        $(subsector).html("<option value='' disabled selected>-- Select --</option>").attr({disabled:"disabled"});
     } else {
         getSubSectors(subsector, this.value, false);
         $(subsector).removeAttr("disabled");
@@ -56,7 +56,7 @@ var subsector      = $("#sub_sector_id");
         },
         success: function (data) {
 
-          $(el).html('<option value="">-- Select District --</option>');
+          $(el).html('<option value="" disabled selected>-- Select --</option>');
          
           $.each(data, function (id, value){
             $(el).append('<option value="' + value.id + '">' + value.district_name + '</option>')
@@ -78,7 +78,7 @@ var subsector      = $("#sub_sector_id");
       success: function(data) {
 
         // console.log(data);
-        $(el).html("<option value=''>-- Select City/Municipality --</option>");
+        $(el).html("<option value='' disabled selected>-- Select --</option>");
 
         $.each(data, function(id, value) {
           $(el).append('<option value="' + value.id + '">' + value.municipality_name + '</option>');
@@ -100,7 +100,7 @@ var subsector      = $("#sub_sector_id");
         },
         success: function (data) {
 
-          $(el).html('<option value="">-- Select Sub-Sector --</option>');
+          $(el).html('<option value="" disabled selected>-- Select --</option>');
          
           $.each(data, function (id, value){
             $(el).append('<option value="' + value.id + '">' + value.subsector_name + '</option>')
