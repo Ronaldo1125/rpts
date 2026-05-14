@@ -24,6 +24,8 @@
             };
         }
     </script>
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/favicon.ico') }}">
+    
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>

@@ -28,6 +28,7 @@
             };
         }
     </script>
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/favicon.ico') }}">
     
     <link rel="stylesheet" href="{{ asset('css/app-shell.css') }}">
     <link rel="stylesheet" href="{{ asset('css/cpp-form.css') }}">
@@ -85,6 +86,21 @@
     <script src="{{ asset('js/rpts-utils.js') }}"></script>
 
     @yield('scripts')
+
+    @if(auth()->check())
+    <script>
+        // Provide global user context for frontend scripts
+        window.__CURRENT_USER__ = {
+            id: "{{ auth()->user()->id }}",
+            name: "{!! addslashes(auth()->user()->name) !!}",
+            email: "{{ auth()->user()->email }}",
+            role: "{{ auth()->user()->roles->first()->name ?? 'staff' }}",
+            division: "{!! addslashes(optional(auth()->user()->division)->name ?? '') !!}",
+            division_id: "{{ optional(auth()->user()->division)->id ?? '' }}",
+            agency: "{!! addslashes(optional(auth()->user()->agency)->agency_name ?? '') !!}"
+        };
+    </script>
+    @endif
 
     <script>
     (function () {

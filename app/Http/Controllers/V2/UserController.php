@@ -32,8 +32,9 @@ class UserController extends Controller
 
         $agencies = Agency::pluck('agency_name', 'id')->all();
         $roles = Role::pluck('name')->all();
+        $divisions = \App\Models\Division::pluck('name', 'id')->all();
 
-        return view('users.index_v2', compact('users', 'agencies', 'roles'));
+        return view('users.index_v2', compact('users', 'agencies', 'roles', 'divisions'));
     }
 
     public function store(StoreUserRequest $request)
@@ -45,6 +46,7 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'agency_id' => $request->agency_id,
+            'division_id' => $request->division_id,
         ]);
 
         activity('user')
@@ -77,6 +79,7 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'agency_id' => $request->agency_id,
+            'division_id' => $request->division_id,
         ]);
 
         activity('user')

@@ -28,6 +28,7 @@ class StoreUserRequest extends FormRequest
             'password' => ['required', 'min:8','max:30','same:confirm-password'],
             'role' => ['required'],
             'agency_id' => ['required'],
+            'division_id' => ['nullable', 'integer', 'exists:divisions,id'],
         ];
     }
 }

@@ -245,9 +245,26 @@
                             </tr>
                         </thead>
                         <tbody id="dh-dash-referrals-tbody">
-                            <tr>
-                                <td colspan="4" class="text-center py-4 text-muted small">Loading pending referrals...</td>
-                            </tr>
+                            @forelse($divisionReferrals as $referral)
+                                <tr>
+                                    <td class="fw-medium text-dark py-3" style="max-width:240px;">
+                                        <div class="text-truncate" title="{{ $referral->submission?->project_title }}">{{ $referral->submission?->project_title }}</div>
+                                    </td>
+                                    <td class="text-muted small py-3">{{ $referral->submission?->user?->agency?->agency_name ?? '—' }}</td>
+                                    <td class="text-muted small py-3">{{ $referral->referred_at->format('M d, Y') }}</td>
+                                    <td class="py-3 text-center">
+                                        <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold dash-assign-btn" 
+                                            data-id="{{ $referral->id }}" 
+                                            style="font-size:0.7rem; background:#154A9A; border:none;">
+                                            Assign Staff
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted small">No active referrals for your division</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -278,9 +295,34 @@
                             </tr>
                         </thead>
                         <tbody id="dh-dash-assessed-tbody">
-                            <tr>
-                                <td colspan="5" class="text-center py-4 text-muted small">Loading reports...</td>
-                            </tr>
+                            @forelse($assessedReports as $report)
+                                <tr>
+                                    <td class="fw-medium text-dark py-3 ps-4" style="max-width:300px;">
+                                        <div class="text-truncate" title="{{ $report->submission?->project_title }}">
+                                            {{ $report->submission?->project_title }}
+                                        </div>
+                                    </td>
+                                    <td class="text-muted small py-3">{{ $report->submission?->user?->agency?->agency_name ?? '—' }}</td>
+                                    <td class="py-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary fw-bold" style="width:28px;height:28px;font-size:0.65rem;">
+                                                {{ substr($report->assessor->name, 0, 1) }}
+                                            </div>
+                                            <span class="small fw-medium">{{ $report->assessor->name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-muted small py-3">{{ $report->created_at->format('M d, Y') }}</td>
+                                    <td class="py-3 text-center">
+                                        <a href="{{ route('project-assessment-reports.edit', $report->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" style="font-size:0.7rem;">
+                                            Review PAR
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted small">No reports awaiting evaluation</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -290,4 +332,15 @@
 
 </section>
 
+@endsection
+@section('scripts')
+<script>
+    window.__ADMIN_DASHBOARD_SUBMISSIONS__ = @json($dashboardSubmissions ?? []);
+</script>
+<script type="module">
+    import { initDivisionHeadDashboard } from '/js/division-head/division-head-loader.js';
+    document.addEventListener('DOMContentLoaded', () => {
+        initDivisionHeadDashboard();
+    });
+</script>
 @endsection

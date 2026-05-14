@@ -28,4 +28,11 @@ class LocationController extends Controller
 
         return response()->json($municipalities);
     }
+
+    public function getBarangays(Request $request) {
+        $municipality_id = $request->municipality_id;
+        $barangays = \App\Models\Barangay::where('municipality_id', $municipality_id)->get();
+        
+        return response()->json($barangays);
+    }
 }

@@ -407,7 +407,9 @@
                         <i data-lucide="presentation" width="20" height="20"></i>
                         <span>SecCom Presentation</span>
                     </button>
-                    <button type="button" class="btn-status-save btn-final" id="btnSaveFinal" style="background:#059669; display:none;">
+                    <button type="button" class="btn-status-save btn-final" id="btnSaveFinal" 
+                        data-bs-toggle="modal" data-bs-target="#uploadFinalParModal"
+                        style="background:#059669; display:none;">
                         <i data-lucide="check-square" width="20" height="20"></i>
                         <span>Save as Final</span>
                     </button>
@@ -485,11 +487,15 @@
                     <i data-lucide="x" width="16" style="cursor: pointer;" id="btnRemoveFinalParFile"></i>
                 </div>
 
-                <div class="mt-4 form-check form-switch ps-0 d-flex align-items-center gap-3">
-                    <input class="form-check-input ms-0" type="checkbox" role="switch" id="finalParSectoralCheckbox" style="cursor: pointer;">
-                    <label class="form-check-label small fw-bold text-dark pt-1" for="finalParSectoralCheckbox" style="cursor: pointer;">
-                        For Sectoral Presentation
-                    </label>
+                <div class="mt-4 p-3 rounded-4 d-flex align-items-center justify-content-between" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                    <div>
+                        <label class="small fw-bold text-dark mb-0 d-block" for="finalParSectoralCheckbox" style="cursor: pointer;">For Sectoral Presentation</label>
+                        <p class="mb-0 text-muted" style="font-size: 0.7rem;">Flag this report for the next SecCom meeting</p>
+                    </div>
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" role="switch" id="finalParSectoralCheckbox" name="is_sectoral"
+                            style="width: 38px; height: 20px; cursor: pointer; margin-left: 0;">
+                    </div>
                 </div>
 
                 <div class="mt-3">

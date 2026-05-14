@@ -52,25 +52,37 @@
                                     placeholder="Confirm Password" required>
                                 <span class="text-danger mt-1 d-none" id="error-confirm-password" style="font-size: 0.75rem;"></span>
                             </div>
+                            
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold text-secondary mb-1">Role</label>
                                 <select name="role" class="form-select rounded-12" required>
+                                    <option value="" disabled selected>Select Role</option>
                                     @foreach($roles as $role)
                                         <option value="{{ $role }}">{{ $role }}</option>
                                     @endforeach
                                 </select>
                                 <span class="text-danger mt-1 d-none" id="error-role" style="font-size: 0.75rem;"></span>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold text-secondary mb-1">Agency</label>
-                                <select name="agency_id" class="form-select rounded-12" required>
-                                    <option value="" disabled selected>Select Agency</option>
-                                    @foreach($agencies as $id => $name)
-                                        <option value="{{ $id }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                                <span class="text-danger mt-1 d-none" id="error-agency_id" style="font-size: 0.75rem;"></span>
-                            </div>
+                        <!-- Conditional Staff Fields -->
+                        <div id="divisionField" class="mb-3 d-none">
+                            <label for="userDivision" class="form-label small fw-semibold text-secondary mb-1">Division</label>
+                            <select class="form-select rounded-12" id="userDivision" name="division_id">
+                                <option value="" selected disabled>Select Division</option>
+                                @foreach($divisions as $id => $name)
+                                    <option value="{{ $id }}">{{ $name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div id="agencyField" class="mb-3 d-none">
+                            <label class="form-label small fw-semibold text-secondary mb-1">Agency</label>
+                            <select name="agency_id" id="userAgency" class="form-select rounded-12">
+                                <option value="" disabled selected>Select Agency</option>
+                                @foreach($agencies as $id => $name)
+                                    <option value="{{ $id }}">{{ $name }}</option>
+                                @endforeach
+                            </select>
+                            <span class="text-danger mt-1 d-none" id="error-agency_id" style="font-size: 0.75rem;"></span>
+                        </div>
                             <div class="modal-footer border-0 px-0 pb-0">
                                 <button type="button" class="btn btn-link text-secondary text-decoration-none small"
                                     data-bs-dismiss="modal">Close</button>
@@ -177,7 +189,16 @@
                                                                 </select>
                                                                 <span class="text-danger mt-1 d-none error-role" style="font-size: 0.75rem;"></span>
                                                             </div>
-                                                            <div class="mb-3">
+                                                            <div class="mb-3 edit-division-field d-none">
+                                                                <label class="form-label small fw-semibold text-secondary d-block mb-1">Division</label>
+                                                                <select class="form-select rounded-12" name="division_id">
+                                                                    <option value="" selected disabled>Select Division</option>
+                                                                    @foreach($divisions as $id => $name)
+                                                                        <option value="{{ $id }}" {{ $user->division_id == $id ? 'selected' : '' }}>{{ $name }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3 edit-agency-field d-none">
                                                                 <label class="form-label small fw-semibold text-secondary d-block mb-1">Agency</label>
                                                                 <select name="agency_id" class="form-select rounded-12" required>
                                                                     <option value="" disabled>Select Agency</option>
@@ -217,6 +238,64 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const validateUrl = "{{ route('v2.users.validate') }}";
+        const defaultAgencyId = "{{ auth()->user()->agency_id ?? '' }}";
+
+        const normalizeRole = (role) => String(role || '').toLowerCase().replace(/[\s-]+/g, '_');
+        const isInternalRole = (role) => {
+            const normalized = normalizeRole(role);
+            return ['staff', 'admin', 'division_head', 'division_chief'].includes(normalized);
+        };
+        const isAgencyRole = (role) => {
+            const normalized = normalizeRole(role);
+            return normalized === 'agency' || normalized === 'implementing_agency';
+        };
+
+        function syncUserRoleFields(form) {
+            if (!form) return;
+
+            const roleSelect = form.querySelector('select[name="role"]');
+            const agencyField = form.querySelector('.edit-agency-field, #agencyField');
+            const divisionField = form.querySelector('.edit-division-field, #divisionField');
+            const agencySelect = form.querySelector('select[name="agency_id"]');
+            const divisionSelect = form.querySelector('select[name="division_id"]');
+            const role = roleSelect ? roleSelect.value : '';
+
+            const showDivision = isInternalRole(role);
+            const showAgency = isAgencyRole(role);
+
+            if (divisionField) divisionField.classList.toggle('d-none', !showDivision);
+            if (agencyField) agencyField.classList.toggle('d-none', !showAgency);
+
+            if (divisionSelect) {
+                divisionSelect.required = showDivision;
+                if (!showDivision) divisionSelect.value = '';
+            }
+
+            if (agencySelect) {
+                agencySelect.required = showAgency;
+                if (showDivision && defaultAgencyId && form.id === 'addUserForm') {
+                    agencySelect.value = defaultAgencyId;
+                }
+                if (!showAgency) {
+                    if (form.id === 'addUserForm' && showDivision && defaultAgencyId) {
+                        agencySelect.value = defaultAgencyId;
+                    }
+                }
+            }
+        }
+
+        const addUserForm = document.getElementById('addUserForm');
+        if (addUserForm) {
+            const roleSelect = addUserForm.querySelector('select[name="role"]');
+            roleSelect?.addEventListener('change', () => syncUserRoleFields(addUserForm));
+            syncUserRoleFields(addUserForm);
+        }
+
+        document.querySelectorAll('.edit-user-form').forEach(form => {
+            const roleSelect = form.querySelector('select[name="role"]');
+            roleSelect?.addEventListener('change', () => syncUserRoleFields(form));
+            syncUserRoleFields(form);
+        });
         
         RPTS.validation.attach(validateUrl, document.getElementById('userEmail'), 'email', document.getElementById('error-email'));
 

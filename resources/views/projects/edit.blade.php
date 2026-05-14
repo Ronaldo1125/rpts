@@ -242,13 +242,13 @@
            
             <div class="col-md-4 form-control-validation">
                <label class="form-label" for="latitude">Latitude</label>
-                 <input type="number" class="form-control" name="latitude" id="latitude" value="{{ $project->latitude }}"/> 
+                 <input type="number" step="any" min="-90" max="90" class="form-control" name="latitude" id="latitude" value="{{ $project->latitude }}"/> 
             </div>
 
 
             <div class="col-md-4 form-control-validation">
                <label class="form-label" for="longtitude">Longtitude</label>
-                 <input type="number" class="form-control" name="longtitude" id="longtitude" value="{{ $project->longtitude }}" /> 
+                 <input type="number" step="any" min="-180" max="180" class="form-control" name="longtitude" id="longtitude" value="{{ $project->longtitude }}" /> 
             </div>
 
           </div>

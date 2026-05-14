@@ -233,430 +233,28 @@ const stageDetails = {
                 <button class="nav-link px-3 border-0 rounded-2" onclick="switchSector(event, 'economic')" style="font-size:0.75rem;font-weight:600;padding-top:0.4rem;padding-bottom:0.4rem;">Economic</button>
                 <button class="nav-link px-3 border-0 rounded-2" onclick="switchSector(event, 'infra')" style="font-size:0.75rem;font-weight:600;padding-top:0.4rem;padding-bottom:0.4rem;">Infrastructure</button>
                 <button class="nav-link px-3 border-0 rounded-2" onclick="switchSector(event, 'insti')" style="font-size:0.75rem;font-weight:600;padding-top:0.4rem;padding-bottom:0.4rem;">Devt. Ad</button>
-            </div>`,
-        html: `
-            <div class="row g-4 mb-4">
-                <div class="col-md-5">
-                    <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
-                         <div class="d-flex justify-content-between mb-3 text-uppercase" style="letter-spacing:0.03em;">
-                            <span class="small fw-bold text-muted" id="sector-dist-title">Sectorial Distribution</span>
-                            <i data-lucide="pie-chart" width="14" class="text-primary"></i>
-                         </div>
-                         <div class="d-flex align-items-center justify-content-center py-2">
-                            <div style="width:180px; height:180px; position:relative;">
-                                <canvas id="chart-sector-dist"></canvas>
-                            </div>
-                         </div>
-                         <div class="mt-3 px-1 d-flex flex-wrap justify-content-center column-gap-3 row-gap-2" id="sector-legend-container" style="font-size: 0.7rem;">
-                            <div class="d-flex align-items-center gap-2"><div style="width:8px;height:8px;border-radius:2px;background:#1e3a8a;"></div><span class="text-muted fw-medium">Social</span> <span class="fw-bold text-dark" id="wf-legend-count-social">0</span></div>
-                            <div class="d-flex align-items-center gap-2"><div style="width:8px;height:8px;border-radius:2px;background:#2563eb;"></div><span class="text-muted fw-medium">Economic</span> <span class="fw-bold text-dark" id="wf-legend-count-economic">0</span></div>
-                            <div class="d-flex align-items-center gap-2"><div style="width:8px;height:8px;border-radius:2px;background:#60a5fa;"></div><span class="text-muted fw-medium">Infra</span> <span class="fw-bold text-dark" id="wf-legend-count-infra">0</span></div>
-                            <div class="d-flex align-items-center gap-2"><div style="width:8px;height:8px;border-radius:2px;background:#bfdbfe;"></div><span class="text-muted fw-medium">Devt. Ad</span> <span class="fw-bold text-dark" id="wf-legend-count-insti">0</span></div>
-                         </div>
-                    </div>
-                </div>
-                <div class="col-md-7">
-                    <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
-                        <div class="d-flex justify-content-between mb-4 text-uppercase" style="letter-spacing:0.03em;">
-                            <span class="small fw-bold text-muted">Agency Submissions <span id="active-sector-label" class="text-primary">(All)</span></span>
-                            <span class="badge bg-primary bg-opacity-10 text-primary small" id="chart-total-label">0 Projects</span>
-                        </div>
-                        <div style="height:250px; width:100%; margin-bottom:1rem;">
-                            <canvas id="chart-agency-submissions"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- CPP Submissions List -->
-            <div class="bg-white rounded-4 shadow-sm border overflow-hidden">
-                <div class="d-flex align-items-center justify-content-between px-4 pt-4 pb-3 border-bottom">
-                    <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                        <i data-lucide="list" width="16" class="text-primary"></i>
-                        CPP Submissions
-                        <span id="cipg-list-count" class="badge bg-primary bg-opacity-10 text-primary fw-bold ms-1" style="font-size:0.7rem;">0</span>
-                    </h6>
-                    <div class="input-group input-group-sm" style="max-width:220px;">
-                        <span class="input-group-text bg-light border-0"><i data-lucide="search" width="13" class="text-muted"></i></span>
-                        <input type="text" class="form-control bg-light border-0 rounded-end-pill" id="cipgSearchInput" placeholder="Search...">
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead style="background:#f8fafc;">
-                            <tr>
-                                <th class="small text-secondary fw-semibold ps-4" style="white-space:nowrap;">Project Title</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Agency</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Sub-Sector</th>
-                                <th class="small text-secondary fw-semibold text-center pe-4" data-sort-skip="true">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cipgTableBody">
-                            <!-- Populated by admin-dashboard-loader.js -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            `
+            </div>`
     },
     'referred': {
-        title: 'Referral to Division',
-        html: `
-            <!-- Division KPI cards — populated by initReferredStage() -->
-            <div class="mb-4 d-flex gap-3 overflow-x-auto pb-3 justify-content-center" id="ref-div-kpi-row">
-                <div class="p-3 bg-white rounded-4 shadow-sm border text-center flex-grow-1" style="min-width:140px; border-bottom:4px solid #1e3a8a;">
-                    <span class="text-muted small fw-bold d-block mb-1 text-uppercase letter-spacing-05">PFPD</span>
-                    <h3 class="fw-bold mb-0 text-primary" id="ref-kpi-pfpd">—</h3>
-                    <span class="small text-muted">referred</span>
-                </div>
-                <div class="p-3 bg-white rounded-4 shadow-sm border text-center flex-grow-1" style="min-width:140px; border-bottom:4px solid #2563eb;">
-                    <span class="text-muted small fw-bold d-block mb-1 text-uppercase letter-spacing-05">PMED</span>
-                    <h3 class="fw-bold mb-0 text-primary" id="ref-kpi-pmed">—</h3>
-                    <span class="small text-muted">referred</span>
-                </div>
-                <div class="p-3 bg-white rounded-4 shadow-sm border text-center flex-grow-1" style="min-width:140px; border-bottom:4px solid #93c5fd;">
-                    <span class="text-muted small fw-bold d-block mb-1 text-uppercase letter-spacing-05">DRD</span>
-                    <h3 class="fw-bold mb-0 text-primary" id="ref-kpi-drd">—</h3>
-                    <span class="small text-muted">referred</span>
-                </div>
-                <div class="p-3 bg-white rounded-4 shadow-sm border text-center flex-grow-1" style="min-width:140px; border-bottom:4px solid #6366f1;">
-                    <span class="text-muted small fw-bold d-block mb-1 text-uppercase letter-spacing-05">Pending</span>
-                    <h3 class="fw-bold mb-0 text-indigo" id="ref-kpi-pending" style="color:#6366f1;">—</h3>
-                    <span class="small text-muted">awaiting referral</span>
-                </div>
-            </div>
-
-            <!-- Validated CPPs list — populated by initReferredStage() -->
-            <div class="bg-white rounded-4 shadow-sm border overflow-hidden">
-                <div class="d-flex align-items-center justify-content-between px-4 pt-4 pb-3 border-bottom">
-                    <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                        <i data-lucide="send" width="16" class="text-primary"></i>
-                        Validated CPPs — Awaiting Division Referral
-                        <span id="ref-list-count" class="badge bg-primary bg-opacity-10 text-primary fw-bold ms-1" style="font-size:0.7rem;">0</span>
-                    </h6>
-                    <input type="text" class="form-control form-control-sm bg-light border-0 rounded-pill px-3"
-                        id="refSearchInput" placeholder="Search..." style="max-width:200px;">
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead style="background:#f8fafc;">
-                            <tr>
-                                <th class="small text-secondary fw-semibold ps-4">Project Title</th>
-                                <th class="small text-secondary fw-semibold">Agency</th>
-                                <th class="small text-secondary fw-semibold">Validated By</th>
-                                <th class="small text-secondary fw-semibold">Validated On</th>
-                                <th class="small text-secondary fw-semibold">Status</th>
-                                <th class="small text-secondary fw-semibold text-center pe-4" data-sort-skip="true">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ref-validated-tbody">
-                            <tr><td colspan="6" class="text-center py-4 text-muted small">
-                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading...
-                            </td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>`
+        title: 'Referral to Division'
     },
     'evaluation': {
-        title: 'Project Assessment Report',
-        html: `
-            <div class="row g-4 mb-4">
-                <div class="col-md-7">
-                    <div class="bg-white p-4 rounded-4 shadow-sm border mb-3">
-                        <span class="small fw-bold d-block mb-4">DIVISION ASSESSMENT WORKLOAD</span>
-                        <div class="d-flex flex-column gap-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold" style="width:24px; height:24px; font-size:0.6rem;">PFPD</div>
-                                <div class="flex-grow-1"><div class="progress" style="height:6px;"><div class="progress-bar" style="width:85%; background:#154A9A"></div></div></div>
-                            </div>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-info fw-bold" style="width:24px; height:24px; font-size:0.6rem;">PMED</div>
-                                <div class="flex-grow-1"><div class="progress" style="height:6px;"><div class="progress-bar" style="width:60%; background:#60a5fa"></div></div></div>
-                            </div>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-success fw-bold" style="width:24px; height:24px; font-size:0.6rem;">DRD</div>
-                                <div class="flex-grow-1"><div class="progress" style="height:6px;"><div class="progress-bar" style="width:95%; background:#34d399"></div></div></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-5">
-                     <div class="bg-white p-4 rounded-4 shadow-sm border h-100">
-                        <span class="small fw-bold d-block mb-3">STATUS BREAKDOWN</span>
-                        <div class="d-flex flex-column gap-2">
-                            <div class="p-2 rounded bg-light border-start border-4 border-warning d-flex justify-content-between text-dark"><span>Pending Assessment</span><span class="fw-bold" id="eval-kpi-pending">0</span></div>
-                            <div class="p-2 rounded bg-light border-start border-4 border-success d-flex justify-content-between text-dark"><span>Assessed</span><span class="fw-bold" id="eval-kpi-assessed">0</span></div>
-                            <div class="p-2 rounded bg-light border-start border-4 border-primary d-flex justify-content-between text-dark"><span>Evaluated</span><span class="fw-bold" id="eval-kpi-evaluated">0</span></div>
-                        </div>
-                     </div>
-                </div>
-            </div>
-
-            <!-- PAR Projects List -->
-            <div class="bg-white rounded-4 shadow-sm border overflow-hidden">
-                <div class="d-flex align-items-center justify-content-between px-4 pt-4 pb-3 border-bottom">
-                    <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                        <i data-lucide="file-check" width="16" class="text-primary"></i>
-                        Evaluated Reports
-                        <span id="eval-list-count" class="badge bg-primary bg-opacity-10 text-primary fw-bold ms-1" style="font-size:0.7rem;">0</span>
-                    </h6>
-                    <div class="input-group input-group-sm" style="max-width:220px;">
-                        <span class="input-group-text bg-light border-0"><i data-lucide="search" width="13" class="text-muted"></i></span>
-                        <input type="text" class="form-control bg-light border-0 rounded-end-pill" id="evalSearchInput" placeholder="Search...">
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead style="background:#f8fafc;">
-                            <tr>
-                                <th class="small text-secondary fw-semibold ps-4" style="white-space:nowrap;">Project Title</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Agency</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Evaluating Division</th>
-                                <th class="small text-secondary fw-semibold text-center pe-4" data-sort-skip="true">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="evalTableBody">
-                            <tr>
-                                <td colspan="4" class="text-center py-5">
-                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                                    <span class="text-muted">Loading candidates...</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>`
+        title: 'Project Assessment Report'
     },
     'sectoral': {
-        title: 'SecCom Presentation',
-        html: `
-            <div class="row g-3 mb-4">
-                <div class="col-md-3"><div class="p-3 text-white border-0 rounded shadow-sm text-center" style="background:#154A9A;"><span class="small fw-bold opacity-75">EDC</span><h3 class="mt-1 mb-0 fw-bold">12</h3></div></div>
-                <div class="col-md-3"><div class="p-3 text-white border-0 rounded shadow-sm text-center" style="background:#0ea5e9;"><span class="small fw-bold opacity-75">IDD</span><h3 class="mt-1 mb-0 fw-bold">8</h3></div></div>
-                <div class="col-md-3"><div class="p-3 text-white border-0 rounded shadow-sm text-center" style="background:#10b981;"><span class="small fw-bold opacity-75">DAC</span><h3 class="mt-1 mb-0 fw-bold">15</h3></div></div>
-                <div class="col-md-3"><div class="p-3 text-white border-0 rounded shadow-sm text-center" style="background:#6366f1;"><span class="small fw-bold opacity-75">SDC</span><h3 class="mt-1 mb-0 fw-bold">9</h3></div></div>
-            </div>
-
-            <div class="bg-white rounded-4 shadow-sm border overflow-hidden">
-                <div class="d-flex align-items-center justify-content-between px-4 pt-4 pb-3 border-bottom">
-                    <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                        <i data-lucide="list" width="16" class="text-primary"></i>
-                        Sectoral Presentation CPPs
-                        <span id="sectoral-list-count" class="badge bg-primary bg-opacity-10 text-primary fw-bold ms-1" style="font-size:0.7rem;">0</span>
-                    </h6>
-                    <div class="input-group input-group-sm" style="max-width:220px;">
-                        <span class="input-group-text bg-light border-0"><i data-lucide="search" width="13" class="text-muted"></i></span>
-                        <input type="text" class="form-control bg-light border-0 rounded-end-pill" id="sectoralSearchInput" placeholder="Search...">
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead style="background:#f8fafc;">
-                            <tr>
-                                <th class="small text-secondary fw-semibold ps-4" style="white-space:nowrap;">Project Title</th>
-                                <th class="small text-secondary fw-semibold">Agency</th>
-                                <th class="small text-secondary fw-semibold">Sector</th>
-                                <th class="small text-secondary fw-semibold">Status</th>
-                                <th class="small text-secondary fw-semibold text-center pe-4" data-sort-skip="true">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sectoralTableBody">
-                            <tr>
-                                <td colspan="5" class="text-center py-5 text-muted small">
-                                    Loading sectoral presentation CPPs…
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>`
+        title: 'SecCom Presentation'
     },
     'findings': {
-        title: 'Findings & Recommendations',
-        html: `
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="list-group list-group-flush border shadow-sm rounded-4 overflow-hidden">
-                        <div class="list-group-item active bg-primary border-0 p-3"><span class="small fw-bold">EDC COMMITTEE</span></div>
-                        <div class="list-group-item border-0 p-3"><span class="small fw-bold">IDC COMMITTEE</span></div>
-                        <div class="list-group-item border-0 p-3"><span class="small fw-bold">DAC COMMITTEE</span></div>
-                        <div class="list-group-item border-0 p-3"><span class="small fw-bold">SDC COMMITTEE</span></div>
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    <div class="bg-white p-4 rounded-4 shadow-sm border h-100">
-                        <div class="d-flex justify-content-between mb-4"><span class="small fw-bold uppercase">Technical Recommendations</span></div>
-                        <div class="p-3 bg-light rounded-3 mb-3 border-start border-4 border-navy">
-                            <p class="small mb-0 italic text-muted">"Recommended for approval with provisions for climate resilience mapping integration."</p>
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-6"><div class="p-2 border rounded text-center"><span class="d-block x-small text-muted mb-1">Response Time (Avg)</span><span class="fw-bold">4.2 Days</span></div></div>
-                            <div class="col-6"><div class="p-2 border rounded text-center"><span class="d-block x-small text-muted mb-1">Key Compliance Rate</span><span class="fw-bold">92%</span></div></div>
-                        </div>
-                    </div>
-                </div>
-            </div>`
+        title: 'Findings & Recommendations'
     },
     'revised': {
-        title: 'Revised Submissions',
-        html: `
-            <div class="bg-white p-4 rounded-4 shadow-sm border animate-popup">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h6 class="fw-bold mb-0 small text-uppercase letter-spacing-05 d-flex align-items-center gap-2">
-                        <i data-lucide="refresh-cw" width="16" class="text-primary"></i>
-                        Revised Projects
-                        <span id="revised-list-count" class="badge bg-primary bg-opacity-10 text-primary fw-bold ms-1" style="font-size:0.7rem;">0</span>
-                    </h6>
-                    <div class="input-group input-group-sm" style="max-width:220px;">
-                        <span class="input-group-text bg-light border-0"><i data-lucide="search" width="13" class="text-muted"></i></span>
-                        <input type="text" class="form-control bg-light border-0 rounded-end-pill" id="revisedSearchInput" placeholder="Search...">
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead style="background:#f8fafc;">
-                            <tr>
-                                <th class="small text-secondary fw-semibold ps-4" style="white-space:nowrap;">Project Title</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Agency</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Stage</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Revised Date</th>
-                                <th class="small text-secondary fw-semibold text-center pe-4" data-sort-skip="true">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="revisedTableBody">
-                            <tr>
-                                <td colspan="5" class="text-center py-5">
-                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                                    <span class="text-muted">Loading revised submissions...</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>`
+        title: 'Revised Submissions'
     },
     'rdc-pres': {
-        title: 'RDC Presentation',
-        html: `
-            <div class="row g-4 mb-4">
-                <div class="col-md-4">
-                    <div class="bg-white p-4 rounded-4 shadow-sm border h-100 text-center">
-                        <span class="small fw-bold d-block mb-3">RDIP DECISION FUNNEL</span>
-                        <div class="funnel-container d-flex flex-column align-items-center gap-1">
-                            <div style="width:100%; height:25px; background:#154A9A; border-radius:15px 15px 2px 2px;"></div>
-                            <div style="width:85%; height:25px; background:#3b82f6; border-radius:2px;"></div>
-                            <div style="width:65%; height:25px; background:#f97316; border-radius:2px;"></div>
-                            <div style="width:40%; height:25px; background:#10b981; border-radius:2px 2px 15px 15px;"></div>
-                        </div>
-                        <div class="mt-3 small text-muted">Final Approval Funnel (RDIP)</div>
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    <div class="bg-white p-4 rounded-4 shadow-sm border mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="badge bg-primary px-3">READY FOR RDC: 24</span>
-                            <span class="badge bg-danger px-3">DEFERRED: 11</span>
-                        </div>
-                        <div class="p-3 bg-light rounded text-muted small">
-                            <div class="d-flex justify-content-between border-bottom pb-1 mb-1"><span>Priority Projects</span><span class="fw-bold text-dark">18</span></div>
-                            <div class="d-flex justify-content-between"><span>RDC Agenda Items</span><span class="fw-bold text-dark">6</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-4 shadow-sm border animate-popup">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h6 class="fw-bold mb-0 small text-uppercase letter-spacing-05 d-flex align-items-center gap-2">
-                        <i data-lucide="arrow-right-circle" width="16" class="text-primary"></i>
-                        RDC Presentation Projects
-                        <span id="rdc-pres-list-count" class="badge bg-primary bg-opacity-10 text-primary fw-bold ms-1" style="font-size:0.7rem;">0</span>
-                    </h6>
-                    <div class="input-group input-group-sm" style="max-width:240px;">
-                        <span class="input-group-text bg-light border-0"><i data-lucide="search" width="13" class="text-muted"></i></span>
-                        <input type="text" class="form-control bg-light border-0 rounded-end-pill" id="rdcPresSearchInput" placeholder="Search RDC items...">
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead style="background:#f8fafc;">
-                            <tr>
-                                <th class="small text-secondary fw-semibold ps-4" style="white-space:nowrap;">Project Title</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Agency</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Stage</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Status</th>
-                                <th class="small text-secondary fw-semibold text-end pe-4" style="white-space:nowrap;">Updated</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rdcPresTableBody">
-                            <tr>
-                                <td colspan="5" class="text-center py-5">
-                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                                    <span class="text-muted">Loading RDC presentation submissions...</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>`
+        title: 'RDC Presentation'
     },
     'approved': {
-        title: 'RDC Approved',
-        html: `
-            <div class="p-4 bg-white rounded-4 shadow-sm border text-center mb-4">
-                <div class="row g-4">
-                    <div class="col-md-6 border-end text-center">
-                        <h2 class="fw-bold text-success mb-1">18</h2>
-                        <span class="small text-muted uppercase fw-bold">Approved Projects</span>
-                    </div>
-                    <div class="col-md-6 text-center">
-                        <h2 class="fw-bold text-primary mb-1">5</h2>
-                        <span class="small text-muted uppercase fw-bold">Resolutions Issued</span>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-4 shadow-sm border mb-3 animate-popup">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h6 class="fw-bold mb-0 small text-uppercase letter-spacing-05 d-flex align-items-center gap-2">
-                        <i data-lucide="award" width="16" class="text-success"></i>
-                        RDC Approved Projects
-                        <span id="rdc-approved-list-count" class="badge bg-success bg-opacity-10 text-success fw-bold ms-1" style="font-size:0.7rem;">0</span>
-                    </h6>
-                    <div class="input-group input-group-sm" style="max-width:240px;">
-                        <span class="input-group-text bg-light border-0"><i data-lucide="search" width="13" class="text-muted"></i></span>
-                        <input type="text" class="form-control bg-light border-0 rounded-end-pill" id="rdcApprovedSearchInput" placeholder="Search RDC approved...">
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead style="background:#f8fafc;">
-                            <tr>
-                                <th class="small text-secondary fw-semibold ps-4" style="white-space:nowrap;">Project Title</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Agency</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Stage</th>
-                                <th class="small text-secondary fw-semibold" style="white-space:nowrap;">Status</th>
-                                <th class="small text-secondary fw-semibold text-end pe-4" style="white-space:nowrap;">Updated</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rdcApprovedTableBody">
-                            <tr>
-                                <td colspan="5" class="text-center py-5">
-                                    <div class="spinner-border spinner-border-sm text-success me-2" role="status"></div>
-                                    <span class="text-muted">Loading RDC approved submissions...</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="bg-light p-3 rounded-4 border">
-                <span class="small fw-bold d-block mb-3">LATEST RDC RESOLUTIONS</span>
-                <ul class="list-unstyled mb-0 small text-muted">
-                    <li class="mb-2 d-flex gap-2"><i data-lucide="file-check" width="14" class="text-success"></i> Resolution No. 42 s. 2024 - Project Alpha Approval</li>
-                    <li class="mb-2 d-flex gap-2"><i data-lucide="file-check" width="14" class="text-success"></i> Resolution No. 43 s. 2024 - RDP Sectoral Update</li>
-                    <li class="d-flex gap-2"><i data-lucide="file-check" width="14" class="text-success"></i> Resolution No. 45 s. 2024 - Infrastructure Funding</li>
-                </ul>
-            </div>`
+        title: 'RDC Approved'
     }
 };
 
@@ -690,7 +288,10 @@ window.toggleStepDetails = function (event, id) {
         stepEl.classList.add('active');
     }
 
-    // Update Content
+    // Update Content from template if available
+    const template = document.getElementById(`workflow-template-${id}`);
+    const htmlContent = template ? template.innerHTML : (stepData.html || '');
+
     contentEl.innerHTML = `
         <div class="d-flex align-items-center justify-content-between gap-3 mb-4 flex-wrap">
             <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
@@ -700,7 +301,7 @@ window.toggleStepDetails = function (event, id) {
             ${stepData.headerRight || ''}
         </div>
         <div class="animate-popup">
-            ${stepData.html}
+            ${htmlContent}
         </div>
     `;
     contentEl.dataset.activeStage = id;
@@ -710,38 +311,102 @@ window.toggleStepDetails = function (event, id) {
     // Initialize charts and tables after content injection
     setTimeout(() => { 
         if (typeof window.initStageCharts === 'function') window.initStageCharts(id);
+        
+        const currentUser = (window.__CURRENT_USER__ || {});
+        const userDivision = (currentUser.division || '').toUpperCase();
+        const isPdipbdStaff = userDivision.includes('PDIPBD') || userDivision.includes('PDIPB');
+        
         if (id === 'submission') {
-            // Prefer admin table renderer; fall back to agency loader
-            if (typeof window.initAdminCipgTable === 'function') {
-                window.initAdminCipgTable();
-            } else if (typeof window.initSubmissionsLoader === 'function') {
-                window.initSubmissionsLoader();
+            if (isPdipbdStaff) {
+                // Show CTE, hide CPP
+                const adminList = document.querySelector('.admin-cpp-list-container');
+                const cteList = document.querySelector('.pdipb-cte-list-container');
+                if (adminList) adminList.style.display = 'none';
+                if (cteList) cteList.style.display = 'block';
+
+                import('../staff/pdipb-cte-loader.js').then(m => {
+                    m.initPdipbCteLoader('dashboard-cte-tbody');
+                }).catch(e => console.warn('Failed to load CTE loader:', e));
+            } else {
+                // Show CPP, hide CTE
+                const adminList = document.querySelector('.admin-cpp-list-container');
+                const cteList = document.querySelector('.pdipb-cte-list-container');
+                if (adminList) adminList.style.display = 'block';
+                if (cteList) cteList.style.display = 'none';
+
+                // Prefer admin table renderer; fall back to agency loader
+                if (typeof window.initAdminCipgTable === 'function') {
+                    window.initAdminCipgTable();
+                } else if (typeof window.initSubmissionsLoader === 'function') {
+                    window.initSubmissionsLoader();
+                }
             }
         }
         if (id === 'referred') {
-            if (typeof window.initReferredStage === 'function') {
-                window.initReferredStage();
-            }
-        }
-        if (id === 'evaluation') {
-            if (typeof window.initEvaluationStage === 'function') {
-                window.initEvaluationStage();
-            }
-        }
-        if (id === 'revised') {
-            import('../admin/admin-revision-stage-loader.js').then(m => {
-                m.initRevisionStage();
+            import('../admin/admin-referred-stage-loader.js').then(() => {
+                if (typeof window.initReferredStage === 'function') {
+                    window.initReferredStage();
+                }
             });
         }
+        if (id === 'evaluation') {
+            import('../admin/admin-evaluation-stage-loader.js').then(() => {
+                if (typeof window.initEvaluationStage === 'function') {
+                    window.initEvaluationStage();
+                }
+            });
+        }
+        if (id === 'revised') {
+            const adminContainer = document.querySelector('.admin-revised-container');
+            const staffContainer = document.querySelector('.pdipb-revised-container');
+            if (isPdipbdStaff) {
+                if (adminContainer) adminContainer.style.display = 'none';
+                if (staffContainer) staffContainer.style.display = 'block';
+                import('../staff/pdipb-par-loader.js').then(m => m.initPdipbParLoader());
+            } else {
+                if (adminContainer) adminContainer.style.display = 'block';
+                if (staffContainer) staffContainer.style.display = 'none';
+                import('../admin/admin-revision-stage-loader.js').then(m => {
+                    m.initRevisionStage();
+                });
+            }
+        }
         if (id === 'sectoral') {
-            if (typeof window.initAdminSectoralStage === 'function') {
-                window.initAdminSectoralStage();
+            const adminContainer = document.querySelector('.admin-sectoral-container');
+            const staffContainer = document.querySelector('.pdipb-sectoral-container');
+            if (isPdipbdStaff) {
+                if (adminContainer) adminContainer.style.display = 'none';
+                if (staffContainer) staffContainer.style.display = 'block';
+                import('../staff/pdipb-par-loader.js').then(m => m.initPdipbParLoader());
+            } else {
+                if (adminContainer) adminContainer.style.display = 'block';
+                if (staffContainer) staffContainer.style.display = 'none';
+                if (typeof window.initAdminSectoralStage === 'function') {
+                    window.initAdminSectoralStage();
+                }
             }
         }
         if (id === 'rdc-pres') {
-            if (typeof window.initRdcPresentationStage === 'function') {
-                window.initRdcPresentationStage();
+            const adminContainer = document.querySelector('.admin-rdc-container');
+            const staffContainer = document.querySelector('.pdipb-rdc-container');
+            if (isPdipbdStaff) {
+                if (adminContainer) adminContainer.style.display = 'none';
+                if (staffContainer) staffContainer.style.display = 'block';
+                import('../staff/pdipb-par-loader.js').then(m => m.initPdipbParLoader());
+            } else {
+                if (adminContainer) adminContainer.style.display = 'block';
+                if (staffContainer) staffContainer.style.display = 'none';
+                if (typeof window.initRdcPresentationStage === 'function') {
+                    window.initRdcPresentationStage();
+                }
             }
+        }
+        if (id === 'findings') {
+            import('../admin/comments-recommendations-loader.js').then(() => {
+                if (typeof window.initCommentsRecommendationsLoader === 'function') {
+                    window.initCommentsRecommendationsLoader();
+                }
+            });
         }
         if (id === 'approved') {
             if (typeof window.initRdcApprovedStage === 'function') {

@@ -30,6 +30,7 @@ class User extends Authenticatable
         'email',
         'password',
         'agency_id',
+        'division_id',
     ];
 
     /**
@@ -77,5 +78,10 @@ class User extends Authenticatable
     public function agency()
     {
         return $this->belongsTo(Agency::class);
+    }
+
+    public function division()
+    {
+        return $this->belongsTo(\App\Models\Division::class, 'division_id');
     }
 }

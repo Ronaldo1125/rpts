@@ -122,7 +122,7 @@
                         <span class="step-label">Submission</span>
                         <div class="step-meta">
                             <i data-lucide="bar-chart-3" width="12" height="12"></i>
-                            <span class="step-count" id="admin-dash-initial-count">52</span>
+                            <span class="step-count" id="admin-dash-initial-count">{{ $dashboardInitialCount ?? 0 }}</span>
                         </div>
                     </div>
                 </div>
@@ -140,11 +140,11 @@
                         <span class="step-label">Project Assessment Report</span>
                         <div class="step-meta">
                             <i data-lucide="bar-chart-3" width="12" height="12"></i>
-                            <span class="step-count" id="admin-dash-eval-count">85</span>
+                            <span class="step-count" id="admin-dash-eval-count">{{ $dashboardEvaluationCount ?? 0 }}</span>
                         </div>
                     </div>
                 </div>
-                <div class="process-step step-4" onclick="toggleStepDetails(event, 'findings')">
+                <!--<div class="process-step step-4" onclick="toggleStepDetails(event, 'findings')">
                     <div class="step-content">
                         <span class="step-label">Comments & Recommendations</span>
                         <div class="step-meta">
@@ -152,7 +152,7 @@
                             <span class="step-count" id="admin-dash-findings-count">28</span>
                         </div>
                     </div>
-                </div>
+                </div>-->
                 <div class="process-step step-5" onclick="toggleStepDetails(event, 'revised')">
                     <div class="step-content">
                         <span class="step-label">Revised Submissions</span>
@@ -347,8 +347,35 @@
             </div>
         </div>
     </div>
-</div>
+    </div>
+
+    <!-- Workflow Stage Templates (Injected into JS) -->
+    <div class="d-none" id="workflow-templates">
+        <script type="text/html" id="workflow-template-submission">@include('partials.workflow.submission')</script>
+        <script type="text/html" id="workflow-template-referred">@include('partials.workflow.referred')</script>
+        <script type="text/html" id="workflow-template-evaluation">@include('partials.workflow.evaluation')</script>
+        <script type="text/html" id="workflow-template-sectoral">@include('partials.workflow.sectoral')</script>
+        <script type="text/html" id="workflow-template-findings">@include('partials.workflow.findings')</script>
+        <script type="text/html" id="workflow-template-revised">@include('partials.workflow.revised')</script>
+        <script type="text/html" id="workflow-template-rdc-pres">@include('partials.workflow.rdc-pres')</script>
+        <script type="text/html" id="workflow-template-approved">@include('partials.workflow.approved')</script>
+    </div>
+
 @endsection
 
+@section('scripts')
+<script>
+    window.__ADMIN_DASHBOARD_SUBMISSIONS__ = @json($dashboardSubmissions ?? []);
+    window.__ADMIN_DASHBOARD_USERS__ = @json($dashboardPdipbStaff ?? []);
+    window.__ADMIN_DASHBOARD_EVALUATED_PARS__ = @json($dashboardEvaluatedPars ?? []);
+    window.__ADMIN_DASHBOARD_REVIEWED_PARS__ = @json($dashboardReviewedPars ?? []);
+</script>
+<script type="module">
+    import { initAdminDashboard } from '{{ asset('js/admin/admin-dashboard-loader.js') }}';
+    import '{{ asset('js/common/ui-utils.js') }}';
 
-
+    document.addEventListener('DOMContentLoaded', () => {
+        initAdminDashboard();
+    });
+</script>
+@endsection

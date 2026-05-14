@@ -40,13 +40,13 @@ Route::get('/faq', [FAQController::class, 'index'])->name('faq.index');
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index_v2'])->name('home');
-Route::get('/admin/home', [App\Http\Controllers\HomeController::class, 'admin'])->name('admin.dashboard');
-Route::get('/agency/home', [App\Http\Controllers\HomeController::class, 'agency'])->name('agency.dashboard');
-Route::get('/staff/home', [App\Http\Controllers\HomeController::class, 'staff'])->name('staff.dashboard');
-Route::get('/chief/home', [App\Http\Controllers\HomeController::class, 'chief'])->name('chief.dashboard');
+Route::get('/home', [App\Http\Controllers\V2\HomeController::class, 'index'])->name('home');
+Route::get('/admin/home', [App\Http\Controllers\V2\HomeController::class, 'admin'])->name('admin.dashboard');
+Route::get('/agency/home', [App\Http\Controllers\V2\HomeController::class, 'agency'])->name('agency.dashboard');
+Route::get('/staff/home', [App\Http\Controllers\V2\HomeController::class, 'staff'])->name('staff.dashboard');
+Route::get('/chief/home', [App\Http\Controllers\V2\HomeController::class, 'chief'])->name('chief.dashboard');
 
-Route::group(['middleware' => ['auth']], function() {
+Route::group(['middleware' => ['auth']], function () {
 
     // CIPG Submission — requires login + explicit permission
     Route::get('/cipgSubmission', [CipgSubmissionController::class, 'index'])
@@ -67,7 +67,7 @@ Route::group(['middleware' => ['auth']], function() {
     Route::post('projects/update/{id}', [ProjectController::class, 'update'])->name('projects.update');
     Route::post('projects/store', [ProjectController::class, 'store'])->name('projects.store');
     Route::post('projects/media', [ProjectController::class, 'storeMedia'])->name('projects.storeMedia');
-    Route::delete('projects/{id}',[ProjectController::class, 'destroy'])->name('projects.destroy');
+    Route::delete('projects/{id}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::get('projects/getSubSectors', [ProjectController::class, 'getSubSectors'])->name('projects.getSubSectors');
 
     Route::get('components', [ComponentController::class, 'index'])->name('components.index');
@@ -94,7 +94,7 @@ Route::group(['middleware' => ['auth']], function() {
     //Route of Indicators
     Route::resource('/indicators', IndicatorController::class);
 
-     //Route of Endorse Years
+    //Route of Endorse Years
     Route::resource('/endorse_years', EndorseYearController::class);
 
     //Route of Report Generation
@@ -115,9 +115,22 @@ Route::group(['middleware' => ['auth']], function() {
 
     //Route of Activity Logs
     Route::get('/activity_logs', [ActivityLogController::class, 'index'])->name('activity_logs.index');
-    
+
     // Modernized V2 Routes
     Route::prefix('v2')->name('v2.')->group(function () {
+
+        //Route of CIPG Submission
+        Route::get('cipg_submissions', [\App\Http\Controllers\V2\CipgSubmissionController::class, 'index'])->name('cipg_submissions.index');
+        Route::get('cipg_submissions/manage', [\App\Http\Controllers\V2\CipgSubmissionController::class, 'manage'])->name('cipg_submissions.manage');
+        Route::get('cipg_submissions/create', [\App\Http\Controllers\V2\CipgSubmissionController::class, 'create'])->name('cipg_submissions.create');
+        Route::get('cipg_submissions/fetch', [\App\Http\Controllers\V2\CipgSubmissionController::class, 'fetchData'])->name('cipg_submissions.fetch');
+        Route::get('cipg_submissions/{id}/show', [\App\Http\Controllers\V2\CipgSubmissionController::class, 'show'])->name('cipg_submissions.show');
+        Route::get('cipg_submissions/{id}/edit', [\App\Http\Controllers\V2\CipgSubmissionController::class, 'edit'])->name('cipg_submissions.edit');
+        Route::post('cipg_submissions/store', [\App\Http\Controllers\V2\CipgSubmissionController::class, 'store'])->name('cipg_submissions.store');
+        Route::get('cipg_submissions/{id}/details', [\App\Http\Controllers\V2\CipgSubmissionController::class, 'details'])->name('cipg_submissions.details');
+        Route::delete('cipg_submissions/{id}', [\App\Http\Controllers\V2\CipgSubmissionController::class, 'destroy'])->name('cipg_submissions.destroy');
+
+        //Route of Projects
         Route::get('projects/get-sub-sectors', [\App\Http\Controllers\V2\ProjectController::class, 'getSubSectors'])->name('projects.getSubSectors');
         Route::post('projects/media', [\App\Http\Controllers\V2\ProjectController::class, 'storeMedia'])->name('projects.storeMedia');
         Route::resource('projects', \App\Http\Controllers\V2\ProjectController::class);
@@ -166,13 +179,25 @@ Route::group(['middleware' => ['auth']], function() {
         Route::get('reports/generatePdf', [\App\Http\Controllers\V2\ReportController::class, 'generatePdf'])->name('reports.generatePdf');
         Route::get('reports/generateExcel', [\App\Http\Controllers\V2\ReportController::class, 'generateExcel'])->name('reports.generateExcel');
 
+
+
         Route::get('profiles', [\App\Http\Controllers\V2\ProfileController::class, 'index'])->name('profiles.index');
         Route::post('profiles/update', [\App\Http\Controllers\V2\ProfileController::class, 'update'])->name('profiles.update');
         Route::post('profiles/update-pic', [\App\Http\Controllers\V2\ProfileController::class, 'updatePic'])->name('profiles.updatePic');
         Route::post('profiles/update-password', [\App\Http\Controllers\V2\ProfileController::class, 'updatePassword'])->name('profiles.updatePassword');
+
     });
-    
-    
+
+    // Referrals API Routes
+    Route::get('referrals', [\App\Http\Controllers\ReferralController::class, 'index'])->name('referrals.index');
+    Route::get('referrals/validated-projects', [\App\Http\Controllers\ReferralController::class, 'validatedProjects'])->name('referrals.validatedProjects');
+    Route::get('referrals/staff', [\App\Http\Controllers\ReferralController::class, 'staffByDivision'])->name('referrals.staffByDivision');
+    Route::post('referrals', [\App\Http\Controllers\ReferralController::class, 'store'])->name('referrals.store');
+    Route::post('referrals/{referral}/assign-staff', [\App\Http\Controllers\ReferralController::class, 'assignStaff'])->name('referrals.assignStaff');
+    Route::delete('referrals/{referral}', [\App\Http\Controllers\ReferralController::class, 'destroy'])->name('referrals.destroy');
+    Route::post('referrals/staff-action/{submissionId}', [\App\Http\Controllers\ReferralController::class, 'staffAction'])->name('referrals.staffAction');
+    Route::post('referrals/save-comments/{submissionId}', [\App\Http\Controllers\ReferralController::class, 'saveComments'])->name('referrals.saveComments');
+
     // Route of Profiles
 
     Route::get('/profiles', [ProfileController::class, 'index'])->name('profiles.index');
@@ -185,7 +210,12 @@ Route::group(['middleware' => ['auth']], function() {
 
     Route::get('/location/getDistricts', [LocationController::class, 'getDistricts'])->name('location.getDistricts');
     Route::get('/location/getMunicipalities', [LocationController::class, 'getMunicipalities'])->name('location.getMunicipalities');
-    
+    Route::get('/location/getBarangays', [LocationController::class, 'getBarangays'])->name('location.getBarangays');
+
+    // Project Assessment Report Routes
+    Route::resource('project-assessment-reports', \App\Http\Controllers\ProjectAssessmentReportController::class);
+
+
 
 });
 

@@ -36,14 +36,14 @@
             )
             <div class="nav-item mb-1">
                 <a href="{{ route('cipg_guide.index') }}"
-                    class="nav-link d-flex align-items-center gap-2 rounded-xl px-2 py-2 text-secondary hover-primary collapsed"
+                    class="nav-link {{ Request::is('cipg_guide*') ? 'active' : '' }} d-flex align-items-center gap-2 rounded-xl px-2 py-2 text-secondary hover-primary collapsed"
                     data-page="cipg-guide">
                     <i data-lucide="book-open" width="18"></i>
                     <span class="fw-semibold">CIPG Guide</span>
                 </a>
             </div>
 
-            <a href="#" class="nav-link d-flex align-items-center gap-2 mb-2 rounded-xl px-2 py-2 text-secondary hover-primary"
+            <a href="{{ route('v2.cipg_submissions.index') }}" class="nav-link {{ Request::is('v2.cipg_submissions.index*') ? 'active' : '' }} d-flex align-items-center gap-2 mb-2 rounded-xl px-2 py-2 text-secondary hover-primary"
                 data-page="submissions">
                 <i data-lucide="send" width="18"></i>
                 <span class="fw-semibold">Submit Project</span>
@@ -52,7 +52,7 @@
 
             @can('cipg_submission-view')
                 @if(!auth()->user()->hasRole('implementing_agency'))
-                    <a href="#" class="nav-link d-flex align-items-center gap-2 mb-2 rounded-xl px-2 py-2"
+                    <a href="{{ route('v2.cipg_submissions.manage') }}" class="nav-link d-flex align-items-center gap-2 mb-2 rounded-xl px-2 py-2"
                         data-page="manage-submissions">
                         <i data-lucide="list-checks" width="18"></i>
                         <span class="fw-semibold">Manage Projects for RDIP Inclusion</span>
@@ -92,10 +92,10 @@
                 <div class="collapse" id="rdc-review-validation-submenu" data-bs-parent=".nav-menu">
                     <ul class="nav flex-column submenu-list ps-3">
                         <li class="nav-item">
-                            <a href="#" class="nav-link submenu-link" data-page="admin-referrals">Referrals</a>
+                            <a href="{{ route('referrals.index') }}" class="nav-link submenu-link" data-page="admin-referrals">Referrals</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link submenu-link" data-page="admin-project-assessment">Project Assessment Report</a>
+                            <a href="{{ route('project-assessment-reports.index') }}" class="nav-link submenu-link" data-page="admin-project-assessment">Project Assessment Report</a>
                         </li>
                     </ul>
                 </div>
