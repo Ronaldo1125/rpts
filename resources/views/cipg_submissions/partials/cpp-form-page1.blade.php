@@ -162,7 +162,7 @@
                                 class="form-check-input mt-0 pe-none" type="checkbox"> {{ $province->province_name }}</a></li>
                     @endforeach
                 </ul>
-                <input type="hidden" id="f-provinces" value="" data-required>
+                <input type="hidden" id="f-provinces" name="f-provinces" value="" data-required>
                 <div class="invalid-feedback d-block" id="f-provinces-err" style="display:none!important;">Please select
                     at least one province.</div>
             </div>

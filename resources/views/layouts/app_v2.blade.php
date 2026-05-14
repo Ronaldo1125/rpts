@@ -84,6 +84,7 @@
     <script src="{{ asset('js/common/table-sort.js') }}"></script>
     <!-- RPTS Global Utilities -->
     <script src="{{ asset('js/rpts-utils.js') }}"></script>
+    <script type="module" src="{{ asset('js/common/ui-utils.js') }}"></script>
 
     @yield('scripts')
 

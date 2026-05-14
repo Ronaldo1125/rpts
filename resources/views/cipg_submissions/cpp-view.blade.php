@@ -409,247 +409,404 @@
 
     <div id="cpp-view-container">
         <!-- Render from JS original layout -->
-        <div id="printable-cpp" class="page-container animate__animated animate__fadeIn" style="max-width:950px; margin: 0 auto; background:#fff; padding:3rem; box-shadow:0 0 40px rgba(0,0,0,0.1); color:#000; font-family:'Times New Roman', serif;">
+        <div id="printable-cpp" class="animate__animated animate__fadeIn" style="max-width:950px; margin: 0 auto; color:#000; font-family:'Times New Roman', serif;">
             
-            <!-- HEADER SECTION -->
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width:60px; height:60px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:5px; background:#fff;">
-                        <img src="{{ asset('assets/images/rnp.png') }}" style="max-width:100%; max-height:100%;" alt="RNP Logo" onerror="this.style.display='none'">
-                    </div>
-                    <div style="width:60px; height:60px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:5px; background:#fff;">
-                        <img src="{{ asset('assets/images/rdc.png') }}" style="max-width:100%; max-height:100%;" alt="RDC Logo" onerror="this.style.display='none'">
-                    </div>
-                    <div>
-                        <p class="mb-0 fw-bold" style="font-size:0.75rem;">REPUBLIC OF THE PHILIPPINES</p>
-                        <p class="mb-0 fw-bold" style="font-size:0.75rem; color:#108543;">REGIONAL DEVELOPMENT COUNCIL</p>
-                        <p class="mb-0 fw-bold" style="font-size:0.75rem; color:#154A9A;">BICOL REGION</p>
-                    </div>
-                </div>
-                <div class="text-end" style="font-size:0.6rem; color:#475569; line-height:1.4;">
-                    <p class="mb-0">FM-PDI-01 | CPP Form | Revision No. 01</p>
-                    <p class="mb-0">Effectivity Date: August 1, 2025</p>
-                    <p class="mb-0 mt-3 fw-bold" style="font-size:0.7rem;">Annex C</p>
-                    <p class="mb-0 mt-1">Submission ID: <span class="text-dark fw-bold">{{ $submission->id }}</span></p>
-                </div>
-            </div>
-
-            <!-- BLUE TITLE BAR -->
-            <div style="background:#154A9A; color:#fff; text-align:center; font-weight:bold; padding:6px; margin-top:20px;">
-                COMPREHENSIVE PROJECT PROFILE
-            </div>
-
-            <!-- AGENCY & SECTOR BOXES -->
-            <div class="row g-0 border-top border-bottom border-dark mt-2">
-                <div class="col-8 border-end border-dark p-2 d-flex align-items-center gap-2">
-                    <span class="fw-bold" style="font-size:0.7rem; width:50px;">Agency:</span>
-                    <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:2px; flex-grow:1;">{!! $g('f-agency') !!}</div>
-                </div>
-                <div class="col-4 p-2 d-flex align-items-center gap-2">
-                    <span class="fw-bold" style="font-size:0.7rem; width:45px;">Sector:</span>
-                    <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:2px; flex-grow:1;">{{ $submission->sector->sector_name ?? '—' }}</div>
-                </div>
-            </div>
-
-            <!-- I. PROJECT INFORMATION -->
-            <div style="font-weight:bold; font-size:0.85rem; margin-top:15px; margin-bottom:5px;">I. PROJECT INFORMATION</div>
-            <div class="ps-3">
-                <div class="mb-2">
-                    <span style="font-size:0.72rem; display:block; font-weight:bold;">1. Project Title:</span>
-                    <div style="border:1px solid #000; font-size:0.82rem; min-height:40px; padding:2px; line-height:1.2; font-weight:bold;">{!! nl2br(e($g('f-title'))) !!}</div>
-                </div>
-                <div class="row g-3">
-                    <div class="col-6">
-                        <span style="font-size:0.72rem; display:block; font-weight:bold;">2. Project Type:</span>
-                        <div class="ms-2">
-                            {!! $renderCheckboxGroup(['Capital Outlay', 'Technical Assistance'], $d['project-type'] ?? []) !!}
+            <!-- PAGE 1: SECTIONS I, II, III -->
+            <div class="page-container" style="background:#fff; padding:3rem; box-shadow:0 0 40px rgba(0,0,0,0.1); margin-bottom:2rem; position:relative; min-height:1050px;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:60px; height:60px; border:1px solid #e2e8f0; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:5px; background:#fff;">
+                            <img src="{{ asset('assets/images/rdc.png') }}" style="max-width:100%; max-height:100%;" alt="RDC Logo" onerror="this.style.display='none'">
+                        </div>
+                        <div style="width:60px; height:60px; border:1px solid #e2e8f0; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:5px; background:#fff;">
+                            <img src="{{ asset('assets/images/rnp.png') }}" style="max-width:100%; max-height:100%;" alt="RNP Logo" onerror="this.style.display='none'">
+                        </div>
+                        <div>
+                            <p class="mb-0 fw-bold" style="font-size:0.75rem;">REPUBLIC OF THE PHILIPPINES</p>
+                            <p class="mb-0 fw-bold" style="font-size:0.75rem; color:#108543;">REGIONAL DEVELOPMENT COUNCIL</p>
+                            <p class="mb-0 fw-bold" style="font-size:0.75rem; color:#154A9A;">BICOL REGION</p>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <span style="font-size:0.72rem; display:block; font-weight:bold;">3. Project Components:</span>
-                        <div style="border:1px solid #000; font-size:0.82rem; min-height:36px; padding:2px;">{!! nl2br(e($g('f-components'))) !!}</div>
+                    <div class="text-end" style="font-size:0.6rem; color:#475569; line-height:1.4;">
+                        <p class="mb-0">FM-PDI-01 | CPP Form | Revision No. 01</p>
+                        <p class="mb-0">Effectivity Date: August 1, 2025</p>
+                        <p class="mb-0 mt-3 fw-bold" style="font-size:0.7rem;">Annex C</p>
+                        <p class="mb-0 mt-1">Submission ID: <span class="text-dark fw-bold">{{ $submission->id }}</span></p>
                     </div>
                 </div>
-                <div class="mt-2">
-                    <span style="font-size:0.72rem; display:block; font-weight:bold;">4. Project Location:</span>
-                    <div class="row gx-1 mt-1">
-                        @if(($d['project-coverage'] ?? '') === 'Regionwide')
-                            <div class="col-12 d-flex align-items-center gap-2">
-                                <span style="font-size:0.65rem; width:60px; text-align:right;">Coverage:</span>
-                                <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:5px; flex-grow:1; font-weight:bold;">REGIONWIDE (BICOL REGION)</div>
+
+                <div style="background:#154A9A; color:#fff; text-align:center; font-weight:bold; padding:6px; margin-top:20px;">
+                    COMPREHENSIVE PROJECT PROFILE
+                </div>
+
+                <div class="row g-0 border-top border-bottom border-dark mt-2">
+                    <div class="col-12 border-bottom border-dark p-2 d-flex align-items-center gap-2">
+                        <span class="fw-bold" style="font-size:0.7rem; width:50px;">Agency:</span>
+                        <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:4px; flex-grow:1; font-weight:bold;">{!! $g('f-agency') !!}</div>
+                    </div>
+                    <div class="col-6 border-end border-dark p-2 d-flex align-items-center gap-2">
+                        <span class="fw-bold" style="font-size:0.7rem; width:45px;">Sector:</span>
+                        <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:4px; flex-grow:1;">{{ $submission->sector->sector_name ?? $g('f-sector') }}</div>
+                    </div>
+                    <div class="col-6 p-2 d-flex align-items-center gap-2">
+                        <span class="fw-bold" style="font-size:0.7rem; width:65px;">Sub-Sector:</span>
+                        <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:4px; flex-grow:1;">{!! $g('f-sub-sector') !!}</div>
+                    </div>
+                </div>
+
+                <div style="font-weight:bold; font-size:0.85rem; margin-top:15px; margin-bottom:5px;">I. PROJECT INFORMATION</div>
+                <div class="ps-3">
+                    <div class="mb-2">
+                        <span style="font-size:0.72rem; display:block; font-weight:bold;">1. Project Title:</span>
+                        <div style="border:1px solid #000; font-size:0.85rem; min-height:40px; padding:4px; line-height:1.2; font-weight:bold; background:#f8fafc;">{!! nl2br(e($g('f-title'))) !!}</div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">2. Project Type:</span>
+                            <div class="ms-2">
+                                {!! $renderCheckboxGroup(['Capital Outlay', 'Technical Assistance'], $d['project-type'] ?? []) !!}
                             </div>
-                        @elseif(($d['project-coverage'] ?? '') === 'Inter-Province')
-                            <div class="col-12 d-flex align-items-center gap-2">
-                                <span style="font-size:0.65rem; width:60px; text-align:right;">Provinces:</span>
-                                <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:5px; flex-grow:1;">{{ str_replace('||', ', ', $g('f-provinces')) }}</div>
+                        </div>
+                        <div class="col-6">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">3. Project Components:</span>
+                            <div style="border:1px solid #000; font-size:0.78rem; min-height:50px; padding:4px;">{!! nl2br(e($g('f-components'))) !!}</div>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <span style="font-size:0.72rem; display:block; font-weight:bold;">4. Project Location:</span>
+                        @if($g('project-coverage') === 'Regionwide')
+                            <div class="row gx-1 mt-1 border p-1" style="background:#fdfdfd;">
+                                <div class="col-12 d-flex align-items-center gap-1">
+                                    <span style="font-size:0.6rem; width:100px; text-align:right;">Coverage:</span>
+                                    <div style="border-bottom:1px solid #000; font-size:0.75rem; flex-grow:1; font-weight:bold;">
+                                        Regionwide
+                                    </div>
+                                </div>
+                            </div>
+                        @elseif($g('project-coverage') === 'Inter-Province')
+                            <div class="row gx-1 mt-1 border p-1" style="background:#fdfdfd;">
+                                <div class="col-12 d-flex align-items-center gap-1">
+                                    <span style="font-size:0.6rem; width:100px; text-align:right;">Provinces:</span>
+                                    <div style="border-bottom:1px solid #000; font-size:0.75rem; flex-grow:1; font-weight:bold;">
+                                        {{ $submission->locations->map(fn($l) => $l->province->province_name ?? '')->filter()->implode(', ') ?: (isset($d['f-provinces']) ? str_replace('||', ', ', $d['f-provinces']) : '') }}
+                                    </div>
+                                </div>
                             </div>
                         @else
-                            <div class="col-6 d-flex align-items-center gap-2">
-                                <span style="font-size:0.65rem; width:60px; text-align:right;">Province:</span>
-                                <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:2px; flex-grow:1;">{{ $submission->location->province->province_name ?? '—' }}</div>
-                            </div>
-                            <div class="col-6 d-flex align-items-center gap-2">
-                                <span style="font-size:0.65rem; width:70px; text-align:right;">Municipality:</span>
-                                <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:2px; flex-grow:1;">{{ $submission->location->municipality->municipality_name ?? '—' }}</div>
+                            <div class="row gx-1 mt-1 border p-1" style="background:#fdfdfd;">
+                                <div class="col-3 d-flex align-items-center gap-1">
+                                    <span style="font-size:0.6rem; width:45px; text-align:right;">Province:</span>
+                                    <div style="border-bottom:1px solid #000; font-size:0.75rem; flex-grow:1; font-weight:bold;">
+                                        {{ $submission->locations->first()?->province?->province_name ?? (isset($d['f-provinces']) ? str_replace('||', ', ', $d['f-provinces']) : $g('f-province')) }}
+                                    </div>
+                                </div>
+                                <div class="col-3 d-flex align-items-center gap-1">
+                                    <span style="font-size:0.6rem; width:45px; text-align:right;">District:</span>
+                                    <div style="border-bottom:1px solid #000; font-size:0.75rem; flex-grow:1;">{!! $g('f-district') !!}</div>
+                                </div>
+                                <div class="col-3 d-flex align-items-center gap-1">
+                                    <span style="font-size:0.6rem; width:55px; text-align:right;">Municipality:</span>
+                                    <div style="border-bottom:1px solid #000; font-size:0.75rem; flex-grow:1;">
+                                        {{ $submission->locations->first()?->municipality?->municipality_name ?? $g('f-municipality') }}
+                                    </div>
+                                </div>
+                                <div class="col-3 d-flex align-items-center gap-1">
+                                    <span style="font-size:0.6rem; width:45px; text-align:right;">Barangay:</span>
+                                    <div style="border-bottom:1px solid #000; font-size:0.75rem; flex-grow:1;">{!! $g('f-barangay') !!}</div>
+                                </div>
                             </div>
                         @endif
                     </div>
                 </div>
-            </div>
 
-            <!-- II. PROJECT STATUS -->
-            <div style="font-weight:bold; font-size:0.85rem; margin-top:15px; margin-bottom:5px;">II. PROJECT STATUS</div>
-            <div class="ps-3">
-                <div class="row g-0">
-                    <div class="col-4">
-                        {!! $renderCheckboxGroup(['Ongoing', 'Pipeline', 'Proposed'], $d['project-status'] ?? []) !!}
-                    </div>
-                    <div class="col-8">
-                        <p class="mb-1" style="font-size:0.65rem; font-weight:bold;">Preparatory Works:</p>
-                        <div class="d-flex flex-column gap-1">
-                            <div class="d-flex align-items-center gap-2">
-                                <div style="width:14px; height:14px; border:1px solid #000; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">{!! !empty($d['prep-site']) ? '✓' : '' !!}</div>
-                                <span style="font-size:0.65rem;">Site is readily available</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <div style="width:14px; height:14px; border:1px solid #000; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">{!! !empty($d['prep-row']) ? '✓' : '' !!}</div>
-                                <span style="font-size:0.65rem;">No issue on right-of-way</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <div style="width:14px; height:14px; border:1px solid #000; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">{!! !empty($d['prep-ded']) ? '✓' : '' !!}</div>
-                                <span style="font-size:0.65rem;">Detailed Engineering Design was prepared</span>
+                <div style="font-weight:bold; font-size:0.85rem; margin-top:20px; margin-bottom:5px;">II. PROJECT STATUS</div>
+                <div class="ps-3">
+                    <div class="row g-0">
+                        <div class="col-4">
+                            {!! $renderCheckboxGroup(['Ongoing', 'Pipeline', 'Proposed'], $d['project-status'] ?? []) !!}
+                        </div>
+                        <div class="col-8">
+                            <p class="mb-1" style="font-size:0.65rem; font-weight:bold;">Preparatory Works:</p>
+                            <div class="d-flex flex-column gap-1">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width:14px; height:14px; border:1px solid #000; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">{!! !empty($d['prep-site']) ? '✓' : '' !!}</div>
+                                    <span style="font-size:0.65rem;">Site is readily available</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width:14px; height:14px; border:1px solid #000; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">{!! !empty($d['prep-row']) ? '✓' : '' !!}</div>
+                                    <span style="font-size:0.65rem;">No issue on right-of-way</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width:14px; height:14px; border:1px solid #000; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">{!! !empty($d['prep-ded']) ? '✓' : '' !!}</div>
+                                    <span style="font-size:0.65rem;">Detailed Engineering Design was prepared</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <div style="font-weight:bold; font-size:0.85rem; margin-top:20px; margin-bottom:5px;">III. ENDORSEMENTS</div>
+                <div class="ps-3 mb-3">
+                    <table class="table table-bordered table-sm mb-0" style="border-color:#000 !important; font-size:0.75rem;">
+                        <thead>
+                            <tr class="text-center" style="background:#f8fafc;">
+                                <th style="width:40%; border-color:#000 !important;">Resolution / Letter</th>
+                                <th style="width:30%; border-color:#000 !important;">Reference No.</th>
+                                <th style="width:30%; border-color:#000 !important;">Date of Issuance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td style="border-color:#000 !important;">Sangguniang Panlalawigan</td><td style="border-color:#000 !important;">{!! $g('f-sp-res') !!}</td><td style="border-color:#000 !important;">{!! $g('f-sp-date') !!}</td></tr>
+                            <tr><td style="border-color:#000 !important;">Sangguniang Bayan</td><td style="border-color:#000 !important;">{!! $g('f-sb-res') !!}</td><td style="border-color:#000 !important;">{!! $g('f-sb-date') !!}</td></tr>
+                            <tr><td style="border-color:#000 !important;">Letter Request to SP / SB</td><td style="border-color:#000 !important;">{!! $g('f-letter-req') !!}</td><td style="border-color:#000 !important;">{!! $g('f-letter-date') !!}</td></tr>
+                            <tr><td style="border-color:#000 !important;">BOR / BOT Resolution</td><td style="border-color:#000 !important;">{!! $g('f-bor-res') !!}</td><td style="border-color:#000 !important;">{!! $g('f-bor-date') !!}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="position:absolute; bottom:15px; right:30px; font-size:0.6rem; color:#64748b;">Page 1 of 3</div>
             </div>
 
-            <!-- III. ENDORSEMENTS -->
-            <div style="font-weight:bold; font-size:0.85rem; margin-top:15px; margin-bottom:5px;">III. ENDORSEMENTS</div>
-            <div class="ps-3 mb-3">
-                <table class="table table-bordered table-sm mb-0" style="border-color:#000 !important; font-size:0.75rem;">
-                    <thead>
-                        <tr class="text-center">
-                            <th style="width:40%; border-color:#000 !important;">Resolution / Letter</th>
-                            <th style="width:30%; border-color:#000 !important;">Reference No.</th>
-                            <th style="width:30%; border-color:#000 !important;">Date of Issuance</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td style="border-color:#000 !important;">Sangguniang Panlalawigan</td><td style="border-color:#000 !important;">{!! $g('f-sp-res') !!}</td><td style="border-color:#000 !important;">{!! $g('f-sp-date') !!}</td></tr>
-                        <tr><td style="border-color:#000 !important;">Sangguniang Bayan</td><td style="border-color:#000 !important;">{!! $g('f-sb-res') !!}</td><td style="border-color:#000 !important;">{!! $g('f-sb-date') !!}</td></tr>
-                        <tr><td style="border-color:#000 !important;">Letter Request to SP / SB</td><td style="border-color:#000 !important;">{!! $g('f-letter-req') !!}</td><td style="border-color:#000 !important;">{!! $g('f-letter-date') !!}</td></tr>
-                        <tr><td style="border-color:#000 !important;">BOR / BOT Resolution</td><td style="border-color:#000 !important;">{!! $g('f-bor-res') !!}</td><td style="border-color:#000 !important;">{!! $g('f-bor-date') !!}</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- IV. PROJECT JUSTIFICATION -->
-            <div style="font-weight:bold; font-size:0.85rem; margin-top:15px; margin-bottom:5px;">IV. PROJECT JUSTIFICATION</div>
-            <div class="ps-3 mb-3">
-                <div class="mb-2">
-                    <span style="font-size:0.72rem; display:block; font-weight:bold;">Alignment to SDG 2030 and RDP 2023-2028:</span>
-                    <div style="border:1px solid #000; font-size:0.65rem; min-height:40px; padding:2px; white-space: pre-line;">{!! e($g('f-alignment')) !!}
-{!! e($g('f-rdp-alignment')) !!}</div>
-                </div>
-                <div class="mb-2">
-                    <span style="font-size:0.72rem; display:block; font-weight:bold;">1. Background / Demand for the Project:</span>
-                    <div style="border:1px solid #000; font-size:0.65rem; min-height:60px; padding:2px;">{!! nl2br(e($g('f-background'))) !!}</div>
-                </div>
-                <div class="row g-2">
-                    <div class="col-6">
-                        <span style="font-size:0.72rem; display:block; font-weight:bold;">2. Goal:</span>
-                        <div style="border:1px solid #000; font-size:0.65rem; min-height:40px; padding:2px;">{!! nl2br(e($g('f-goal'))) !!}</div>
+            <!-- PAGE 2: SECTIONS IV, V, VI, VII -->
+            <div class="page-container" style="background:#fff; padding:3rem; box-shadow:0 0 40px rgba(0,0,0,0.1); margin-bottom:2rem; position:relative; min-height:1050px;">
+                <div style="font-weight:bold; font-size:0.85rem; margin-bottom:5px;">IV. PROJECT JUSTIFICATION</div>
+                <div class="ps-3 mb-3">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">Alignment to SDGs 2030:</span>
+                            <div style="border:1px solid #000; font-size:0.65rem; min-height:30px; padding:2px; background:#fdfdfd;">{!! $g('f-alignment') !!}</div>
+                        </div>
+                        <div class="col-6">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">Alignment to RDP 2023-2028:</span>
+                            <div style="border:1px solid #000; font-size:0.65rem; min-height:30px; padding:2px; background:#fdfdfd;">{!! $g('f-rdp-alignment') !!}</div>
+                        </div>
                     </div>
-                    <div class="col-6">
-                        <span style="font-size:0.72rem; display:block; font-weight:bold;">3. Purpose:</span>
-                        <div style="border:1px solid #000; font-size:0.65rem; min-height:40px; padding:2px;">{!! nl2br(e($g('f-purpose'))) !!}</div>
+                    <div class="mt-2 mb-2">
+                        <span style="font-size:0.72rem; display:block; font-weight:bold;">1. Background / Demand for the Project:</span>
+                        <div style="border:1px solid #000; font-size:0.7rem; min-height:60px; padding:4px; text-align:justify;">{!! nl2br(e($g('f-background'))) !!}</div>
                     </div>
-                </div>
-            </div>
-
-            <!-- VIII. LOGICAL FRAMEWORK -->
-            <div style="font-weight:bold; font-size:0.85rem; margin-top:15px; margin-bottom:5px;">VIII. PROJECT LOGICAL FRAMEWORK</div>
-            <div class="ps-3 mb-3">
-                <table class="table table-bordered table-sm mb-0" style="border-color:#000 !important; font-size:0.75rem;">
-                    <thead class="text-center">
-                        <tr>
-                            <th style="width:15%; border-color:#000 !important;">Hierarchy</th>
-                            <th style="width:25%; border-color:#000 !important;">Narrative Summary</th>
-                            <th style="width:30%; border-color:#000 !important;">Obj. Verifiable Indicators</th>
-                            <th style="width:30%; border-color:#000 !important;">Means of Verification</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td class="fw-bold" style="border-color:#000 !important;">Goal</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-goal-narrative'))) !!}</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-goal-indicators'))) !!}</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-goal-verification'))) !!}</td></tr>
-                        <tr><td class="fw-bold" style="border-color:#000 !important;">Purpose</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-purpose-narrative'))) !!}</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-purpose-indicators'))) !!}</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-purpose-verification'))) !!}</td></tr>
-                        <tr><td class="fw-bold" style="border-color:#000 !important;">Outputs</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-outputs-narrative'))) !!}</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-outputs-indicators'))) !!}</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-outputs-verification'))) !!}</td></tr>
-                        <tr><td class="fw-bold" style="border-color:#000 !important;">Inputs</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-inputs-narrative'))) !!}</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-inputs-indicators'))) !!}</td><td style="border-color:#000 !important;">{!! nl2br(e($g('lf-inputs-verification'))) !!}</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- IX. MAP & SIGNATURES -->
-            <div class="row g-4 mt-4 mb-5">
-                <div class="col-6">
-                    <div style="font-weight:bold; font-size:0.85rem; margin-bottom:5px;">IX. GEOTAGGED PHOTO / MAP</div>
-                    <div style="height:200px; background:#f8fafc; border:1px dashed #000; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; overflow:hidden;">
-                        @if($d['geo-photo-url'] ?? null)
-                            <img src="{{ $d['geo-photo-url'] }}" style="max-width:100%; max-height:100%; object-fit:contain;">
-                        @else
-                            <i data-lucide="map" width="30" class="mb-1 text-muted"></i>
-                            <span class="text-muted" style="font-size:0.6rem;">Satellite Map Verification Overlay / Geotagged Photo</span>
-                        @endif
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">2. Goal:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! nl2br(e($g('f-goal'))) !!}</div>
+                        </div>
+                        <div class="col-6">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">3. Purpose:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! nl2br(e($g('f-purpose'))) !!}</div>
+                        </div>
+                        <div class="col-12 mt-1">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">4. Project Output/s:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! nl2br(e($g('f-outputs'))) !!}</div>
+                        </div>
+                        <div class="col-6 mt-1">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">5. Project Activities:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! nl2br(e($g('f-activities'))) !!}</div>
+                        </div>
+                        <div class="col-6 mt-1">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">6. Project Linkages:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! nl2br(e($g('f-linkages'))) !!}</div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-6">
-                    <div style="font-weight:bold; font-size:0.85rem; margin-bottom:5px;">X. GEOLOCATION COORDINATES</div>
+
+                <div style="font-weight:bold; font-size:0.85rem; margin-top:15px; margin-bottom:5px;">V. PROJECT FINANCING</div>
+                <div class="ps-3 mb-3">
+                    <div class="mb-2">
+                        <span style="font-size:0.72rem; display:block; font-weight:bold;">1. Funding Requirement (PHP):</span>
+                        @php
+                            $totalCost = (float)($d['f-total-cost'] ?? 0);
+                        @endphp
+                        <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding:4px; font-weight:bold; background:#fff7ed; color:#9a3412;">₱ {{ number_format($totalCost, 2) }}</div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-7">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">2. Project Financing / Source of Fund:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! $g('f-funding-source') !!}</div>
+                        </div>
+                        <div class="col-5">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">3. Counterpart Funding:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! $g('f-counterpart-funding') !!}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-weight:bold; font-size:0.85rem; margin-top:15px; margin-bottom:5px;">VI. PROJECT BENEFITS AND COSTS</div>
+                <div class="ps-3 mb-3">
                     <div class="row g-2">
                         <div class="col-12">
-                            <span style="font-size:0.72rem; display:block; font-weight:bold;">Beginning:</span>
-                            <div style="border:1px solid #000; font-size:0.75rem; min-height:20px; padding:2px; font-family:monospace;">{!! $g('f-geo-start-lat') !!}, {!! $g('f-geo-start-lng') !!}</div>
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">1. Beneficiaries:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:30px; padding:4px;">{!! $g('f-beneficiaries') !!}</div>
                         </div>
-                        <div class="col-12 mt-2">
-                            <span style="font-size:0.72rem; display:block; font-weight:bold;">End:</span>
-                            <div style="border:1px solid #000; font-size:0.75rem; min-height:20px; padding:2px; font-family:monospace;">{!! $g('f-geo-end-lat') ?: 'N/A' !!}, {!! $g('f-geo-end-lng') ?: 'N/A' !!}</div>
+                        <div class="col-6">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">2. Social Benefits:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! nl2br(e($g('f-social-benefits'))) !!}</div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-5 pt-4">
-                <div class="row gx-5">
-                    <div class="col-6">
-                        <div style="background:#154A9A; color:#fff; padding:3px 12px; font-size:0.75rem; font-weight:bold;">Prepared by:</div>
-                        <div class="text-center mt-3">
-                            @if($gSig('sig-prep-data'))
-                                <img src="{!! $gSig('sig-prep-data') !!}" style="max-height:70px; max-width:180px; margin-bottom:-10px;">
-                            @else
-                                <div style="height:50px;"></div>
-                            @endif
-                            <p class="mb-0 fw-bold" style="border-bottom:2px solid #000; display:inline-block; padding:0 2rem 2px 2rem;">{!! strtoupper($g('f-prepared-name')) !!}</p>
-                            <p class="mb-0 small" style="font-size:0.7rem;">{!! $g('f-prepared-pos') !!}</p>
-                            <p class="mb-0 small mt-1" style="font-size:0.68rem; color:#334155;">{!! $g('f-prepared-date') !!}</p>
+                        <div class="col-6">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">3. Economic Benefits:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! nl2br(e($g('f-economic-benefits'))) !!}</div>
                         </div>
-                    </div>
-                    <div class="col-6">
-                        <div style="background:#154A9A; color:#fff; padding:3px 12px; font-size:0.75rem; font-weight:bold;">Noted by:</div>
-                        <div class="text-center mt-3">
-                            @if($gSig('sig-noted-data'))
-                                <img src="{!! $gSig('sig-noted-data') !!}" style="max-height:70px; max-width:180px; margin-bottom:-10px;">
-                            @else
-                                <div style="height:50px;"></div>
-                            @endif
-                            <p class="mb-0 fw-bold" style="border-bottom:2px solid #000; display:inline-block; padding:0 2rem 2px 2rem;">{!! strtoupper($g('f-noted-name')) !!}</p>
-                            <p class="mb-0 small" style="font-size:0.7rem;">{!! $g('f-noted-pos') !!}</p>
-                            <p class="mb-0 small mt-1" style="font-size:0.68rem; color:#334155;">{!! $g('f-noted-date') !!}</p>
+                        <div class="col-6">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">4. Social Costs:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! nl2br(e($g('f-social-costs'))) !!}</div>
+                        </div>
+                        <div class="col-6">
+                            <span style="font-size:0.72rem; display:block; font-weight:bold;">5. Economic Costs:</span>
+                            <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! nl2br(e($g('f-economic-costs'))) !!}</div>
                         </div>
                     </div>
                 </div>
+
+                <div style="font-weight:bold; font-size:0.85rem; margin-top:15px; margin-bottom:5px;">VII. PROJECT IMPLEMENTATION</div>
+                <div class="ps-3 mb-3">
+                    <div class="mb-2">
+                        <span style="font-size:0.72rem; display:block; font-weight:bold;">1. Agencies Involved:</span>
+                        <div style="border:1px solid #000; font-size:0.75rem; min-height:20px; padding:4px;">{!! $g('f-agencies-involved') !!}</div>
+                    </div>
+                    <div class="mb-2">
+                        <span style="font-size:0.72rem; display:block; font-weight:bold;">2. Implementation Schedule:</span>
+                        <table class="table table-bordered table-sm mb-0" style="border-color:#000 !important; font-size:0.68rem;">
+                            <thead>
+                                <tr class="text-center" style="background:#f0f5ff;">
+                                    <th style="width:12%; border-color:#000 !important;">Year</th>
+                                    <th style="width:48%; border-color:#000 !important;">Physical Target</th>
+                                    <th style="width:20%; border-color:#000 !important;">Indicator</th>
+                                    <th style="width:20%; border-color:#000 !important;">Amount (₱)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $rows = is_array($d['_impl_schedule'] ?? null) ? $d['_impl_schedule'] : [];
+                                @endphp
+                                @if(count($rows) === 0)
+                                    <tr><td colspan="4" class="text-center" style="border-color:#000 !important;">—</td></tr>
+                                @else
+                                    @foreach($rows as $r)
+                                        <tr>
+                                            <td style="border-color:#000 !important; text-align:center;">{{ $r['year'] ?? '—' }}</td>
+                                            <td style="border-color:#000 !important; padding-left:4px;">{{ $r['target'] ?? '—' }}</td>
+                                            <td style="border-color:#000 !important; text-align:center;">{{ $r['indicator'] ?? '—' }}</td>
+                                            <td style="border-color:#000 !important; text-align:right; padding-right:4px;">{{ isset($r['amount']) && $r['amount'] !== '' ? number_format((float)$r['amount'], 2) : '—' }}</td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="position:absolute; bottom:15px; right:30px; font-size:0.6rem; color:#64748b;">Page 2 of 3</div>
             </div>
 
-            <div class="mt-5 pt-4 text-end border-top" style="font-size:0.6rem; color:#64748b;">
-                Page 1 of 1 — Viewed via RPTS Portals
+            <!-- PAGE 3: SECTIONS VII(cont), VIII, IX, X, Signatures -->
+            <div class="page-container" style="background:#fff; padding:3rem; box-shadow:0 0 40px rgba(0,0,0,0.1); margin-bottom:2rem; position:relative; min-height:1050px;">
+                <div class="ps-3 mb-4">
+                    <div class="mb-2">
+                        <span style="font-size:0.72rem; display:block; font-weight:bold;">3. Implementation Arrangement:</span>
+                        <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! nl2br(e($g('f-impl-arrangement'))) !!}</div>
+                    </div>
+                    <div class="mb-2">
+                        <span style="font-size:0.72rem; display:block; font-weight:bold;">4. Environmental Clearance:</span>
+                        <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px;">{!! nl2br(e($g('f-env-clearance-desc'))) !!}</div>
+                    </div>
+                    <div class="mb-2">
+                        <span style="font-size:0.72rem; display:block; font-weight:bold;">5. Social Acceptability / Public Consultations:</span>
+                        <div style="border:1px solid #000; font-size:0.7rem; min-height:40px; padding:4px; background:#f9fafb;">
+                            <strong>Status:</strong> {!! $g('consultation-status') !!}<br>
+                            @if(($d['consultation-status'] ?? '') === 'Yes')
+                                <strong>Dates:</strong> {!! $g('f-consult-done-dates') !!}
+                            @else
+                                <strong>Planned:</strong> {!! $g('f-consult-planned-date') !!}
+                            @endif
+                            <br>
+                            <strong>Highlights:</strong> {!! nl2br(e($g('f-consult-highlights'))) !!}
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <span style="font-size:0.72rem; display:block; font-weight:bold;">5.1 HGDG Score/Criteria:</span>
+                        <div style="border:1px solid #000; font-size:0.7rem; min-height:20px; padding:4px;">{!! $g('f-hgdg') !!}</div>
+                    </div>
+                </div>
+
+                <div style="font-weight:bold; font-size:0.85rem; margin-bottom:5px;">VIII. PROJECT LOGICAL FRAMEWORK</div>
+                <div class="ps-1 mb-4" style="overflow-x:auto;">
+                    <table class="table table-bordered table-sm mb-0" style="border-color:#000 !important; font-size:0.65rem; table-layout:fixed; width:100%;">
+                        <thead class="text-center">
+                            <tr style="background:#f8fafc;">
+                                <th style="width:12%; border-color:#000 !important;">Hierarchy</th>
+                                <th style="width:22%; border-color:#000 !important;">Narrative Summary</th>
+                                <th style="width:22%; border-color:#000 !important;">Obj. Verifiable Indicators</th>
+                                <th style="width:22%; border-color:#000 !important;">Means of Verification</th>
+                                <th style="width:22%; border-color:#000 !important;">Assumptions / Risks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="fw-bold text-center" style="border-color:#000 !important;">Goal</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-goal-narrative'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-goal-indicators'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-goal-verification'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-goal-assumptions'))) !!}</td></tr>
+                            <tr><td class="fw-bold text-center" style="border-color:#000 !important;">Purpose</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-purpose-narrative'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-purpose-indicators'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-purpose-verification'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-purpose-assumptions'))) !!}</td></tr>
+                            <tr><td class="fw-bold text-center" style="border-color:#000 !important;">Outputs</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-outputs-narrative'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-outputs-indicators'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-outputs-verification'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-outputs-assumptions'))) !!}</td></tr>
+                            <tr><td class="fw-bold text-center" style="border-color:#000 !important;">Inputs</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-inputs-narrative'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-inputs-indicators'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-inputs-verification'))) !!}</td><td style="border-color:#000 !important; padding:2px;">{!! nl2br(e($g('lf-inputs-assumptions'))) !!}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-6">
+                        <div style="font-weight:bold; font-size:0.85rem; margin-bottom:5px;">IX. GEOTAGGED PHOTO / MAP</div>
+                        <div style="min-height:180px; background:#f8fafc; border:1px dashed #000; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding: 5px;">
+                            @if($gSig('geo-photo-data') || ($d['geo-photo-url'] ?? null))
+                                <img src="{{ $gSig('geo-photo-data') ?: $d['geo-photo-url'] }}" style="max-width:100%; max-height:170px; object-fit:contain;">
+                            @else
+                                <i data-lucide="map" width="30" class="mb-1 text-muted"></i>
+                                <span class="text-muted" style="font-size:0.6rem;">No Photo Provided</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="font-weight:bold; font-size:0.85rem; margin-bottom:5px;">X. GEOLOCATION COORDINATES</div>
+                        <div class="row g-2">
+                            <div class="col-12 border p-2" style="background:#fdfdfd;">
+                                <span style="font-size:0.7rem; display:block; font-weight:bold;">Beginning:</span>
+                                <div style="font-size:0.75rem; font-family:monospace; padding-left:10px;">{!! $g('f-geo-start-lat') !!}, {!! $g('f-geo-start-lng') !!}</div>
+                            </div>
+                            <div class="col-12 border p-2 mt-2" style="background:#fdfdfd;">
+                                <span style="font-size:0.7rem; display:block; font-weight:bold;">End:</span>
+                                <div style="font-size:0.75rem; font-family:monospace; padding-left:10px;">{!! $g('f-geo-end-lat') ?: 'N/A' !!}, {!! $g('f-geo-end-lng') ?: 'N/A' !!}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-top">
+                    <div class="row gx-5">
+                        <div class="col-6">
+                            <div style="background:#154A9A; color:#fff; padding:3px 12px; font-size:0.75rem; font-weight:bold;">Prepared by:</div>
+                            <div class="text-center mt-3">
+                                @if($gSig('sig-prep-data'))
+                                    <img src="{!! $gSig('sig-prep-data') !!}" style="max-height:60px; max-width:180px; display:block; margin:0 auto 8px auto;">
+                                @else
+                                    <div style="height:50px;"></div>
+                                @endif
+                                <p class="mb-0 fw-bold" style="border-bottom:2px solid #000; display:inline-block; padding:0 1.5rem 2px 1.5rem; font-size:0.9rem;">{!! strtoupper($g('f-prepared-name') !== '—' ? $g('f-prepared-name') : $g('f-prep-name')) !!}</p>
+                                <p class="mb-0 small" style="font-size:0.7rem;">{!! $g('f-prepared-pos') !== '—' ? $g('f-prepared-pos') : $g('f-prep-position') !!}</p>
+                                <p class="mb-0 small mt-1" style="font-size:0.65rem; color:#334155;">{!! $g('f-prepared-date') !== '—' ? $g('f-prepared-date') : $g('f-prep-date') !!}</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="background:#154A9A; color:#fff; padding:3px 12px; font-size:0.75rem; font-weight:bold;">Noted by:</div>
+                            <div class="text-center mt-3">
+                                @if($gSig('sig-noted-data'))
+                                    <img src="{!! $gSig('sig-noted-data') !!}" style="max-height:60px; max-width:180px; display:block; margin:0 auto 8px auto;">
+                                @else
+                                    <div style="height:50px;"></div>
+                                @endif
+                                <p class="mb-0 fw-bold" style="border-bottom:2px solid #000; display:inline-block; padding:0 1.5rem 2px 1.5rem; font-size:0.9rem;">{!! strtoupper($g('f-noted-name')) !!}</p>
+                                <p class="mb-0 small" style="font-size:0.7rem;">{!! $g('f-noted-pos') !== '—' ? $g('f-noted-pos') : $g('f-noted-position') !!}</p>
+                                <p class="mb-0 small mt-1" style="font-size:0.65rem; color:#334155;">{!! $g('f-noted-date') !!}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="position:absolute; bottom:15px; right:30px; font-size:0.6rem; color:#64748b;">Page 3 of 3 — Viewed via RPTS Portals</div>
             </div>
 
         </div>
@@ -736,7 +893,11 @@
             commentsText.classList.remove('is-invalid');
 
             // Here you can implement the logic to save comments
-            alert('Comment submitted: ' + comments);
+            if (window.showSimpleAlert) {
+                window.showSimpleAlert('Comment submitted successfully!', 'success');
+            } else {
+                alert('Comment submitted: ' + comments);
+            }
             
             // Clear and close the modal
             commentsText.value = '';

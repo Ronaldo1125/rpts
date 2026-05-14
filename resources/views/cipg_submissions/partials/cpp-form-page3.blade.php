@@ -163,7 +163,7 @@
                     <input type="date" id="consult-date-picker"
                         style="position:absolute; opacity:0; pointer-events:none; width:0; height:0;" tabindex="-1">
                 </div>
-                <input type="hidden" id="f-consult-done-dates">
+                <input type="hidden" id="f-consult-done-dates" name="f-consult-done-dates">
 
             </div>
             <div id="consult-yes-panel" style="display:none; margin-left:1.6rem; margin-top:0.5rem;"></div>

@@ -148,11 +148,13 @@ class CipgSubmissionController extends Controller
     public function details($id)
     {
         $s = CppSubmission::with([
-            'sector', 'sub_sector', 'user.agency', 'location', 
+            'sector', 'sub_sector', 'user.agency', 'locations.province', 
             'implementation_schedules', 'consultation_dates', 
             'logframe', 'endorsement', 'benefits_costs',
             'sdg_alignments', 'rdp_alignments'
         ])->findOrFail($id);
+
+        $loc = $s->locations->first();
 
         // Map model fields to form field names
         $data = [
@@ -163,15 +165,15 @@ class CipgSubmissionController extends Controller
             'project-type' => $s->project_type, // Array
             'f-components' => $s->components,
             'project-coverage' => $s->project_coverage,
-            'f-province' => $s->location->province_id ?? '',
-            'f-district' => $s->location->district_id ?? '',
-            'f-municipality' => $s->location->municipality_id ?? '',
-            'f-barangay' => $s->location->barangay_id ?? '',
-            'f-geo-start-lat' => $s->location->geo_start_lat ?? '',
-            'f-geo-start-lng' => $s->location->geo_start_lng ?? '',
-            'f-geo-end-lat' => $s->location->geo_end_lat ?? '',
-            'f-geo-end-lng' => $s->location->geo_end_lng ?? '',
-            'f-provinces' => $s->location->inter_provinces ?? '',
+            'f-province' => $loc->province_id ?? '',
+            'f-district' => $loc->district_id ?? '',
+            'f-municipality' => $loc->municipality_id ?? '',
+            'f-barangay' => $loc->barangay_id ?? '',
+            'f-geo-start-lat' => $s->geo_start_lat ?? '',
+            'f-geo-start-lng' => $s->geo_start_lng ?? '',
+            'f-geo-end-lat' => $s->geo_end_lat ?? '',
+            'f-geo-end-lng' => $s->geo_end_lng ?? '',
+            'f-provinces' => $s->locations->map(fn($l) => $l->province->province_name ?? '')->filter()->implode('||'),
             'f-alignment' => $s->sdg_alignments->map(fn($g) => $g->number . ': ' . $g->title)->toArray() ? implode('||', $s->sdg_alignments->map(fn($g) => $g->number . ': ' . $g->title)->toArray()) : '',
             'f-rdp-alignment' => $s->rdp_alignments->pluck('chapter_name')->toArray() ? implode('||', $s->rdp_alignments->pluck('chapter_name')->toArray()) : '',
             'project-status' => $s->project_status,
@@ -265,7 +267,7 @@ class CipgSubmissionController extends Controller
             'implementation_schedules',
             'consultation_dates',
             'user.agency',
-            'location',
+            'locations.province',
             'logframe',
             'endorsement',
             'benefits_costs',
@@ -273,6 +275,8 @@ class CipgSubmissionController extends Controller
             'rdp_alignments',
             'sector'
         ])->findOrFail($id);
+
+        $loc = $submission->locations->first();
 
         if (!Auth::user()->hasRole(['admin', 'pmed_staff', 'chief', 'pmed_chief', 'staff', 'division_head']) && $submission->user_id !== Auth::id()) {
             abort(403, 'Unauthorized');
@@ -285,14 +289,15 @@ class CipgSubmissionController extends Controller
             'project-coverage' => $submission->project_coverage,
             
             // Location
-            'f-province' => $submission->location->province_id ?? null,
-            'f-district' => $submission->location->district_id ?? null,
-            'f-municipality' => $submission->location->municipality_id ?? null,
-            'f-barangay' => $submission->location->barangay_id ?? null,
-            'f-geo-start-lat' => $submission->location->geo_start_lat ?? null,
-            'f-geo-start-lng' => $submission->location->geo_start_lng ?? null,
-            'f-geo-end-lat' => $submission->location->geo_end_lat ?? null,
-            'f-geo-end-lng' => $submission->location->geo_end_lng ?? null,
+            'f-province' => $loc->province_id ?? null,
+            'f-district' => $loc->district_id ?? null,
+            'f-municipality' => $loc->municipality_id ?? null,
+            'f-barangay' => $loc->barangay_id ?? null,
+            'f-geo-start-lat' => $submission->geo_start_lat ?? null,
+            'f-geo-start-lng' => $submission->geo_start_lng ?? null,
+            'f-geo-end-lat' => $submission->geo_end_lat ?? null,
+            'f-geo-end-lng' => $submission->geo_end_lng ?? null,
+            'f-provinces' => $submission->locations->map(fn($l) => $l->province->province_name ?? '')->filter()->implode('||'),
 
             'project-status' => $submission->project_status,
             'prep-site' => $submission->prep_status['site'] ?? false,
@@ -318,18 +323,31 @@ class CipgSubmissionController extends Controller
             'f-alignment' => $submission->sdg_alignments->map(fn($s) => "SDG {$s->number}: {$s->sdg_name}")->implode("\n"),
             'f-rdp-alignment' => $submission->rdp_alignments->pluck('chapter_name')->implode("\n"),
 
+            // Project Justification (Page 2)
             'f-background' => $submission->background,
             'f-goal' => $submission->goal,
+            'f-purpose' => $submission->purpose,
+            'f-outputs' => $submission->outputs,
+            'f-activities' => $submission->activities,
+            'f-linkages' => $submission->linkages,
+
+            // Project Financing (Page 2)
             'f-total-cost' => $submission->total_cost,
             'f-funding-source' => $submission->funding_source,
+            'f-counterpart-funding' => $submission->counterpart_funding,
             
             // Benefits & Costs
+            'f-beneficiaries' => $submission->benefits_costs->beneficiaries ?? null,
+            'f-social-benefits' => $submission->benefits_costs->social_benefits ?? null,
+            'f-economic-benefits' => $submission->benefits_costs->economic_benefits ?? null,
             'f-social-costs' => $submission->benefits_costs->social_costs ?? null,
             'f-economic-costs' => $submission->benefits_costs->economic_costs ?? null,
             'f-social-accept' => $submission->social_accept,
-            'beneficiaries' => $submission->benefits_costs->beneficiaries ?? null,
-            'social_benefits' => $submission->benefits_costs->social_benefits ?? null,
-            'economic_benefits' => $submission->benefits_costs->economic_benefits ?? null,
+
+            // Project Implementation (Page 3)
+            'f-agencies-involved' => $submission->agencies_involved,
+            'f-impl-arrangement' => $submission->impl_arrangement,
+            'f-env-clearance-desc' => $submission->env_clearance_desc,
 
             'consultation-status' => $submission->consultation_status,
             'f-consult-planned-date' => $submission->consult_planned_date ? $submission->consult_planned_date->format('Y-m-d') : null,
@@ -348,7 +366,7 @@ class CipgSubmissionController extends Controller
             'lf-outputs-narrative' => $submission->logframe->lf_outputs_narrative ?? null,
             'lf-outputs-indicators' => $submission->logframe->lf_outputs_indicators ?? null,
             'lf-outputs-verification' => $submission->logframe->lf_outputs_verification ?? null,
-            'lf-outputs_assumptions' => $submission->logframe->lf_outputs_assumptions ?? null,
+            'lf-outputs-assumptions' => $submission->logframe->lf_outputs_assumptions ?? null,
             'lf-inputs-narrative' => $submission->logframe->lf_inputs_narrative ?? null,
             'lf-inputs-indicators' => $submission->logframe->lf_inputs_indicators ?? null,
             'lf-inputs-verification' => $submission->logframe->lf_inputs_verification ?? null,
@@ -362,7 +380,12 @@ class CipgSubmissionController extends Controller
             'f-noted-date' => $submission->noted_date ? $submission->noted_date->format('Y-m-d') : null,
             
             'f-consult-done-dates' => $submission->consultation_dates->pluck('consultation_date')->map(fn($d) => $d->format('Y-m-d'))->implode(','),
-            'impl_schedule' => $submission->implementation_schedules,
+            '_impl_schedule' => $submission->implementation_schedules->map(fn($row) => [
+                'year' => $row->year,
+                'target' => $row->physical_target,
+                'indicator' => $row->indicator,
+                'amount' => $row->amount,
+            ])->toArray(),
             'status' => $submission->status,
             'stage' => $submission->stage
         ];
@@ -468,6 +491,10 @@ class CipgSubmissionController extends Controller
             $submission->project_type = $data['project-type'] ?? [];
             $submission->components = $data['f-components'] ?? null;
             $submission->project_coverage = $data['project-coverage'] ?? null;
+            $submission->geo_start_lat = $data['f-geo-start-lat'] ?? null;
+            $submission->geo_start_lng = $data['f-geo-start-lng'] ?? null;
+            $submission->geo_end_lat = $data['f-geo-end-lat'] ?? null;
+            $submission->geo_end_lng = $data['f-geo-end-lng'] ?? null;
             $submission->project_status = $data['project-status'] ?? null;
             $submission->prep_status = $data['prep_status'] ?? [];
             
@@ -501,16 +528,23 @@ class CipgSubmissionController extends Controller
             $submission->save();
 
             // 1. Location
-            $submission->location()->updateOrCreate([], [
-                'province_id' => $data['f-province'] ?? null,
-                'district_id' => $data['f-district'] ?? null,
-                'municipality_id' => $data['f-municipality'] ?? null,
-                'barangay_id' => $data['f-barangay'] ?? null,
-                'geo_start_lat' => $data['f-geo-start-lat'] ?? null,
-                'geo_start_lng' => $data['f-geo-start-lng'] ?? null,
-                'geo_end_lat' => $data['f-geo-end-lat'] ?? null,
-                'geo_end_lng' => $data['f-geo-end-lng'] ?? null,
-            ]);
+            $submission->locations()->delete();
+            if (($data['project-coverage'] ?? '') === 'Inter-Province' && !empty($data['f-provinces'])) {
+                $provinceNames = explode('||', $data['f-provinces']);
+                foreach ($provinceNames as $name) {
+                    $province = \App\Models\Province::where('province_name', $name)->first();
+                    if ($province) {
+                        $submission->locations()->create(['province_id' => $province->id]);
+                    }
+                }
+            } elseif (($data['project-coverage'] ?? '') === 'Location-Specific') {
+                $submission->locations()->create([
+                    'province_id' => $data['f-province'] ?? null,
+                    'district_id' => $data['f-district'] ?? null,
+                    'municipality_id' => $data['f-municipality'] ?? null,
+                    'barangay_id' => $data['f-barangay'] ?? null,
+                ]);
+            }
 
             // 2. Logframe
             $submission->logframe()->updateOrCreate([], [

@@ -14,10 +14,6 @@ class CppLocation extends Model
         'district_id',
         'municipality_id',
         'barangay_id',
-        'geo_start_lat',
-        'geo_start_lng',
-        'geo_end_lat',
-        'geo_end_lng',
     ];
 
     public function submission()

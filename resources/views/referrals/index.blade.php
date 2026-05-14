@@ -327,15 +327,21 @@
         document.querySelectorAll('.delete-referral').forEach(btn => {
             btn.onclick = async (e) => {
                 e.preventDefault();
-                if (!confirm('Are you sure you want to remove this referral?')) return;
-                const id = btn.dataset.id;
-                try {
-                    await _api(`/referrals/${id}`, { method: 'DELETE' });
-                    if (window.showSimpleAlert) window.showSimpleAlert('Referral removed successfully.', 'success');
-                    setTimeout(() => reloadTable(), 1500);
-                } catch (err) {
-                    if (window.showSimpleAlert) window.showSimpleAlert('Failed to remove referral.', 'danger');
-                }
+                window.showConfirmModal({
+                    title: 'Remove Referral',
+                    message: 'Are you sure you want to remove this referral?',
+                    confirmClass: 'btn-danger',
+                    onConfirm: async () => {
+                        const id = btn.dataset.id;
+                        try {
+                            await _api(`/referrals/${id}`, { method: 'DELETE' });
+                            if (window.showSimpleAlert) window.showSimpleAlert('Referral removed successfully.', 'success');
+                            setTimeout(() => reloadTable(), 1500);
+                        } catch (err) {
+                            if (window.showSimpleAlert) window.showSimpleAlert('Failed to remove referral.', 'danger');
+                        }
+                    }
+                });
             };
         });
 

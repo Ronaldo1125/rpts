@@ -711,26 +711,9 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => { if (hd.value) update(); }, 100);
     }
 
-    // Geotagged Photo
-    const gz = document.getElementById('geo-photo-zone');
-    const gi = document.getElementById('geo-photo-input');
-    const gp = document.getElementById('geo-photo-preview');
-    if (gz && gi) {
-        gz.addEventListener('click', () => gi.click());
-        gi.addEventListener('change', () => {
-            const file = gi.files[0]; if (!file || !gp) return;
-            const r = new FileReader(); r.onload = e => {
-                gp.dataset.dataUri = e.target.result; gp.dataset.fileName = file.name;
-                gp.innerHTML = `<div class="text-success small fw-bold">✓ ${file.name}</div>`;
-                if (window.saveDraftLocally) window.saveDraftLocally();
-            }; r.readAsDataURL(file);
-        });
-    }
+    // Geotagged Photo — handled in cpp-form.js (full-featured version with image/PDF preview)
 
-    // Other Attachments
-    const al = document.getElementById('other-attachments-list');
-    const ab = document.getElementById('add-attachment-btn');
-    if (al) { window._createAttachmentRow(al, 1); if (ab) ab.addEventListener('click', () => window._createAttachmentRow(al, Date.now())); }
+    // Other Attachments — handled in cpp-form.js
 
     // Certification Toggle for Submit Button
     const certifyCb = document.getElementById('f-certify');

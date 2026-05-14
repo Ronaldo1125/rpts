@@ -19,6 +19,10 @@ class CppSubmission extends Model implements HasMedia
         'project_type',
         'components',
         'project_coverage',
+        'geo_start_lat',
+        'geo_start_lng',
+        'geo_end_lat',
+        'geo_end_lng',
         'project_status',
         'prep_status',
         'background',
@@ -74,9 +78,9 @@ class CppSubmission extends Model implements HasMedia
         return $this->hasMany(CppConsultationDate::class, 'cpp_submission_id');
     }
 
-    public function location()
+    public function locations()
     {
-        return $this->hasOne(CppLocation::class, 'cpp_submission_id');
+        return $this->hasMany(CppLocation::class, 'cpp_submission_id');
     }
 
     public function logframe()

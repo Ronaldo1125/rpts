@@ -134,7 +134,7 @@
                                             <option value="">-- Select --</option>
                                             @php
                                                 $provinces = ['Albay', 'Camarines Norte', 'Camarines Sur', 'Catanduanes', 'Masbate', 'Sorsogon'];
-                                                $selectedProvince = $submission->location->province->province_name ?? '';
+                                                $selectedProvince = $submission->locations->first()?->province?->province_name ?? '';
                                             @endphp
                                             @foreach($provinces as $prov)
                                                 <option {{ $selectedProvince === $prov ? 'selected' : '' }}>{{ $prov }}</option>
@@ -146,8 +146,8 @@
                                                 class="text-danger">*</span></label>
                                         <select class="form-select" id="f-district" name="district" disabled>
                                             <option value="">-- Select --</option>
-                                            @if(isset($submission->location->district))
-                                                <option selected>{{ $submission->location->district->district_name }}</option>
+                                            @if($submission->locations->first()?->district)
+                                                <option selected>{{ $submission->locations->first()?->district?->district_name }}</option>
                                             @endif
                                         </select>
                                     </div>
@@ -156,8 +156,8 @@
                                                 class="text-danger">*</span></label>
                                         <select class="form-select" id="f-municipality" name="municipality" disabled>
                                             <option value="">-- Select --</option>
-                                            @if(isset($submission->location->municipality))
-                                                <option selected>{{ $submission->location->municipality->municipality_name }}
+                                            @if($submission->locations->first()?->municipality)
+                                                <option selected>{{ $submission->locations->first()?->municipality?->municipality_name }}
                                                 </option>
                                             @endif
                                         </select>
@@ -166,7 +166,7 @@
                                         <label class="form-label small fw-semibold text-secondary">Barangay</label>
                                         <input type="text" class="form-control" name="barangay"
                                             placeholder="Enter Barangay..."
-                                            value="{{ $submission->location->barangay->barangay_name ?? '' }}">
+                                            value="{{ $submission->locations->first()?->barangay?->barangay_name ?? '' }}">
                                     </div>
                                 </div>
                             </div>
@@ -778,7 +778,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (rows.length > 1) {
                 e.target.closest('.finding-row').remove();
             } else {
-                alert('At least one finding row is required.');
+                if (window.showSimpleAlert) {
+                    window.showSimpleAlert('At least one finding row is required.', 'warning');
+                } else {
+                    alert('At least one finding row is required.');
+                }
             }
         }
     });
@@ -843,9 +847,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                if (confirm(`Are you sure you want to save this report as ${statusMap[btnId]}?`)) {
-                    syncFindingsToForm();
-                    form.submit();
+                if (window.showConfirmModal) {
+                    window.showConfirmModal({
+                        title: 'Confirm Save',
+                        message: `Are you sure you want to save this report as ${statusMap[btnId]}?`,
+                        confirmClass: btnId === 'btnSaveApproved' ? 'btn-success' : 'btn-primary',
+                        onConfirm: () => {
+                            syncFindingsToForm();
+                            form.submit();
+                        }
+                    });
+                } else {
+                    if (confirm(`Are you sure you want to save this report as ${statusMap[btnId]}?`)) {
+                        syncFindingsToForm();
+                        form.submit();
+                    }
                 }
             });
         }
