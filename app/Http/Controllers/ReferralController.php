@@ -21,7 +21,8 @@ class ReferralController extends Controller
             if ($user && !$user->hasRole('administrator')) {
                 $division = $user->division;
                 if ($division) {
-                    $query->where('to_division_id', $division->id);
+                    $query->where('to_division_id', $division->id)
+                          ->where('status', '!=', 'Referred to Staff');
                 }
             }
 
@@ -53,7 +54,8 @@ class ReferralController extends Controller
         if ($user && !$user->hasRole('administrator')) {
             $division = $user->division;
             if ($division) {
-                $query->where('to_division_id', $division->id);
+                $query->where('to_division_id', $division->id)
+                      ->where('status', '!=', 'Referred to Staff');
             }
         }
 

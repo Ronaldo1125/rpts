@@ -6,24 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('project_assessment_reports', function (Blueprint $table) {
-            $table->dropForeign(['referral_id']);
-            $table->dropColumn('referral_id');
+            $table->json('readiness_data')->nullable()->after('readiness_level');
+            $table->json('endorsement_data')->nullable()->after('doc_endorsements');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('project_assessment_reports', function (Blueprint $table) {
-            $table->foreignId('referral_id')->nullable()->constrained('referrals')->onDelete('set null');
+            $table->dropColumn(['readiness_data', 'endorsement_data']);
         });
     }
 };

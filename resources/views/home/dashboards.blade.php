@@ -370,6 +370,23 @@
     window.__ADMIN_DASHBOARD_EVALUATED_PARS__ = @json($dashboardEvaluatedPars ?? []);
     window.__ADMIN_DASHBOARD_REVIEWED_PARS__ = @json($dashboardReviewedPars ?? []);
 </script>
+{{-- Cache-bust: sync server-injected data into localforage before any module loader runs.
+     This ensures that clearing the DB table is immediately reflected in the dashboard
+     even though other JS files read localforage directly. --}}
+<script>
+(async function bustLocalforageCache() {
+    if (typeof localforage === 'undefined') return;
+    try {
+        // Always write the server payload (even empty []) so stale cache is evicted.
+        await localforage.setItem('cpp_submissions', window.__ADMIN_DASHBOARD_SUBMISSIONS__ ?? []);
+        // Clear derived caches so they are rebuilt from the fresh submission list.
+        await localforage.removeItem('project_referrals');
+        await localforage.removeItem('project_assessments');
+    } catch (e) {
+        console.warn('[CacheBust] localforage sync failed:', e);
+    }
+})();
+</script>
 <script type="module">
     import { initAdminDashboard } from '{{ asset('js/admin/admin-dashboard-loader.js') }}';
     import '{{ asset('js/common/ui-utils.js') }}';

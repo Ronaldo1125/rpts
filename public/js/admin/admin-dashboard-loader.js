@@ -69,23 +69,18 @@ export async function initAdminDashboard() {
         }
 
         async function _getAdminSubmissions() {
-            const serverSubmissions = Array.isArray(window.__ADMIN_DASHBOARD_SUBMISSIONS__)
-                ? window.__ADMIN_DASHBOARD_SUBMISSIONS__
-                : [];
-            const localSubmissions = await localforage.getItem('cpp_submissions') || [];
+            // If the server injected the variable (even as an empty array), it is
+            // authoritative — always prefer it over the stale localforage cache.
+            const serverDefined = Array.isArray(window.__ADMIN_DASHBOARD_SUBMISSIONS__);
+            if (serverDefined) {
+                const serverSubmissions = window.__ADMIN_DASHBOARD_SUBMISSIONS__;
+                // Keep localforage in sync so offline / non-server-injected pages stay fresh.
+                await localforage.setItem('cpp_submissions', serverSubmissions);
+                return serverSubmissions;
+            }
 
-            if (!serverSubmissions.length) return localSubmissions;
-            if (!localSubmissions.length) return serverSubmissions;
-
-            const merged = new Map();
-            localSubmissions.forEach(submission => {
-                merged.set(String(submission?.id ?? ''), submission);
-            });
-            serverSubmissions.forEach(submission => {
-                merged.set(String(submission?.id ?? ''), submission);
-            });
-
-            return Array.from(merged.values());
+            // Fallback: page was served without server-injected data (e.g. pure SPA nav).
+            return await localforage.getItem('cpp_submissions') || [];
         }
 
         async function _getPdipbStaff() {
@@ -719,6 +714,8 @@ export async function initAdminDashboard() {
                     renderCipgTable('all');
                     if (window.initAdminSectoralStage) window.initAdminSectoralStage();
                     if (window.initRdcPresentationStage) window.initRdcPresentationStage();
+                    if (window.initEvaluationStage) window.initEvaluationStage();
+                    if (window.initTestAndEvaluationLoader) window.initTestAndEvaluationLoader();
                     
                 } catch (err) {
                     console.error('[AdminDashboard] Referral error:', err);

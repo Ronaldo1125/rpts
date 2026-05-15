@@ -2,6 +2,13 @@
 @section('content')
 
 <link rel="stylesheet" href="/css/referrals.css">
+<style>
+    .fade-out {
+        opacity: 0;
+        transform: translateX(20px);
+        transition: all 0.3s ease;
+    }
+</style>
 <section id="referrals" class="page-content active container-fluid py-4 text-dark">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -336,7 +343,21 @@
                         try {
                             await _api(`/referrals/${id}`, { method: 'DELETE' });
                             if (window.showSimpleAlert) window.showSimpleAlert('Referral removed successfully.', 'success');
-                            setTimeout(() => reloadTable(), 1500);
+                            
+                            // Immediately remove row from DOM
+                            const row = btn.closest('tr');
+                            if (row) {
+                                row.classList.add('fade-out');
+                                setTimeout(() => {
+                                    row.remove();
+                                    // Update count
+                                    const countEl = document.getElementById('referral-count');
+                                    if (countEl) {
+                                        const current = document.querySelectorAll('#referral-tbody tr').length;
+                                        countEl.textContent = `Showing ${current} of ${current} entries`;
+                                    }
+                                }, 300);
+                            }
                         } catch (err) {
                             if (window.showSimpleAlert) window.showSimpleAlert('Failed to remove referral.', 'danger');
                         }
@@ -394,14 +415,28 @@
                     return;
                 }
                 try {
-                    await _api(`/referrals/${referralId}/assign-staff`, {
+                    const res = await _api(`/referrals/${referralId}/assign-staff`, {
                         method: 'POST',
                         body: JSON.stringify({ staff_id: staffId }),
                     });
                     const modalEl = document.getElementById('assignStaffModal');
                     bootstrap.Modal.getInstance(modalEl).hide();
                     if (window.showSimpleAlert) window.showSimpleAlert('Project assignment updated.', 'success');
-                    setTimeout(() => reloadTable(), 1500);
+                    
+                    // Immediately remove row from DOM
+                    const row = document.querySelector(`.assign-staff-btn[data-id="${referralId}"]`).closest('tr');
+                    if (row) {
+                        row.classList.add('fade-out');
+                        setTimeout(() => {
+                            row.remove();
+                            // Update count
+                            const countEl = document.getElementById('referral-count');
+                            if (countEl) {
+                                const current = document.querySelectorAll('#referral-tbody tr').length;
+                                countEl.textContent = `Showing ${current} of ${current} entries`;
+                            }
+                        }, 300);
+                    }
                 } catch (err) {
                     if (window.showSimpleAlert) window.showSimpleAlert('Failed to assign staff.', 'danger');
                 }

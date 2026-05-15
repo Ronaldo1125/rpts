@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class ProjectAssessmentReport extends Model
+class ProjectAssessmentReport extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'cpp_submission_id',
@@ -27,13 +29,20 @@ class ProjectAssessmentReport extends Model
         'typology_data',
         'responsiveness_data',
         'readiness_level',
-        'par_analysis',
+        'par_background',
+        'par_components',
+        'par_spatial',
+        'par_qualitative',
+        'par_recommendations',
         'final_recommendation',
         'annex_description',
         'budget_breakdown',
         'total_project_cost',
         'status',
-        'is_sectoral'
+        'is_sectoral',
+        'readiness_data',
+        'endorsement_data',
+        'finalization_notes'
     ];
 
     protected $casts = [
@@ -42,10 +51,11 @@ class ProjectAssessmentReport extends Model
         'doc_endorsements' => 'boolean',
         'typology_data' => 'array',
         'responsiveness_data' => 'array',
-        'par_analysis' => 'array',
         'budget_breakdown' => 'array',
         'is_sectoral' => 'boolean',
-        'total_project_cost' => 'decimal:2'
+        'total_project_cost' => 'decimal:2',
+        'readiness_data' => 'array',
+        'endorsement_data' => 'array'
     ];
 
     public function submission()

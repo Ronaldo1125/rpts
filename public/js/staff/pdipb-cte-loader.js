@@ -176,7 +176,18 @@ export async function initPdipbCteLoader(targetTbodyId = 'cte-tbody') {
                         const data = await res.json();
                         if (data.success) {
                             if (window.showSimpleAlert) window.showSimpleAlert(data.message || `Feedback sent for "${title}".`, 'success');
-                            setTimeout(() => window.location.reload(), 1000); // Refresh list from server
+                            
+                            // Proactively update local state to reflect the change
+                            if (window.__ADMIN_DASHBOARD_SUBMISSIONS__) {
+                                window.__ADMIN_DASHBOARD_SUBMISSIONS__ = window.__ADMIN_DASHBOARD_SUBMISSIONS__.filter(s => String(s.id) !== String(sid));
+                            }
+                            // Also update localforage
+                            const all = await localforage.getItem('cpp_submissions') || [];
+                            const updated = all.filter(s => String(s.id) !== String(sid));
+                            await localforage.setItem('cpp_submissions', updated);
+
+                            // Re-render immediately
+                            render();
                         } else {
                             if (window.showSimpleAlert) window.showSimpleAlert(data.message || 'Error sending feedback.', 'error');
                         }
@@ -228,7 +239,18 @@ export async function initPdipbCteLoader(targetTbodyId = 'cte-tbody') {
             const data = await res.json();
             if (data.success) {
                 if (window.showSimpleAlert) window.showSimpleAlert(data.message || `"${title}" validated and forwarded.`, 'success');
-                setTimeout(() => window.location.reload(), 1000); // Refresh list from server
+                
+                // Proactively update local state to reflect the change
+                if (window.__ADMIN_DASHBOARD_SUBMISSIONS__) {
+                    window.__ADMIN_DASHBOARD_SUBMISSIONS__ = window.__ADMIN_DASHBOARD_SUBMISSIONS__.filter(s => String(s.id) !== String(sid));
+                }
+                // Also update localforage
+                const all = await localforage.getItem('cpp_submissions') || [];
+                const updated = all.filter(s => String(s.id) !== String(sid));
+                await localforage.setItem('cpp_submissions', updated);
+
+                // Re-render immediately
+                render();
             } else {
                 if (window.showSimpleAlert) window.showSimpleAlert(data.message || 'Error completing submission.', 'error');
             }

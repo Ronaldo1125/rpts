@@ -164,7 +164,7 @@
     <div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width:460px;">
             <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden;">
-                <div class="modal-header border-0" style="background:#1e40af;color:#fff;padding:1.25rem 1.5rem;">
+                <div class="modal-header border-0" style="background:#ef4444;color:#fff;padding:1.25rem 1.5rem;">
                     <div class="d-flex align-items-center gap-2">
                         <div class="d-flex align-items-center justify-content-center rounded-2"
                             style="width:32px;height:32px;background:rgba(255,255,255,0.15);">
@@ -200,7 +200,7 @@
                     <button type="button" class="btn btn-sm rounded-pill px-4 fw-medium"
                         style="background:#e2e8f0;color:#475569;border:none;" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-sm rounded-pill px-4 fw-semibold text-white"
-                        id="pdipb-cpp-feedback-send" style="background:#1e40af;border:none;">
+                        id="pdipb-cpp-feedback-send" style="background:#ef4444;color:#fff;border:none;">
                         <i data-lucide="send" width="13" class="me-1"></i>Send Feedback
                     </button>
                 </div>
@@ -486,7 +486,7 @@
                         @elseif($g('project-coverage') === 'Inter-Province')
                             <div class="row gx-1 mt-1 border p-1" style="background:#fdfdfd;">
                                 <div class="col-12 d-flex align-items-center gap-1">
-                                    <span style="font-size:0.6rem; width:100px; text-align:right;">Provinces:</span>
+                                    <span style="font-size:0.6rem; width:100px; text-align:right;">Inter-Province:</span>
                                     <div style="border-bottom:1px solid #000; font-size:0.75rem; flex-grow:1; font-weight:bold;">
                                         {{ $submission->locations->map(fn($l) => $l->province->province_name ?? '')->filter()->implode(', ') ?: (isset($d['f-provinces']) ? str_replace('||', ', ', $d['f-provinces']) : '') }}
                                     </div>
@@ -616,7 +616,7 @@
                         @php
                             $totalCost = (float)($d['f-total-cost'] ?? 0);
                         @endphp
-                        <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding:4px; font-weight:bold; background:#fff7ed; color:#9a3412;">₱ {{ number_format($totalCost, 2) }}</div>
+                        <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding:4px; font-weight:bold;">₱ {{ number_format($totalCost, 2) }}</div>
                     </div>
                     <div class="row g-2">
                         <div class="col-7">

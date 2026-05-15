@@ -52,7 +52,7 @@ window.initEvaluationStage = async function () {
 
                 const alreadyReferred = localReferrals.some(ref =>
                     ref.stage === 'Project Appraisal' &&
-                    (ref.parId === p.id || ref.submissionId === p.id)
+                    (String(ref.parId) === String(p.id) || String(ref.submissionId) === String(p.id))
                 );
                 return !alreadyReferred;
             });

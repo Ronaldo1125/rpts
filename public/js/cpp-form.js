@@ -53,63 +53,11 @@ const getDraftKey = () => {
 window.saveDraftLocally = function() {
     // Prevent saving if we are currently loading data or in the middle of a server save
     if (window.isInitializing || window.isSaving) return;
+    const data = gatherAllData();
+    if (!data) return;
 
-    const form = document.getElementById('cppMainForm');
-    if (!form) return;
-    
-    const draftData = {};
-    const allInputs = form.querySelectorAll('input, select, textarea');
-    
-    allInputs.forEach(input => {
-        const key = input.name || input.id;
-        if (!key || input.type === 'file' || input.type === 'submit' || input.type === 'button') return;
-        
-        if (input.type === 'checkbox' || input.type === 'radio') {
-            if (input.checked) {
-                if (draftData[key]) {
-                    if (!Array.isArray(draftData[key])) draftData[key] = [draftData[key]];
-                    draftData[key].push(input.value || 'on');
-                } else {
-                    draftData[key] = input.value || 'on';
-                }
-            }
-        } else {
-            draftData[key] = input.value;
-        }
-    });
-
-    // Special handles for custom components
-    const interProvinces = document.getElementById('f-provinces');
-    if (interProvinces) draftData['f-provinces'] = interProvinces.value;
-
-    const sdgAlignment = document.getElementById('f-alignment');
-    if (sdgAlignment) draftData['f-alignment'] = sdgAlignment.value;
-
-    const rdpAlignment = document.getElementById('f-rdp-alignment');
-    if (rdpAlignment) draftData['f-rdp-alignment'] = rdpAlignment.value;
-
-    const consultDates = document.getElementById('f-consult-done-dates');
-    if (consultDates) draftData['f-consult-done-dates'] = consultDates.value;
-
-    // Implementation Schedule Scraping
-    const implBody = document.getElementById('impl-schedule-body');
-    if (implBody) {
-        draftData.impl_schedule = [];
-        implBody.querySelectorAll('tr').forEach((tr, index) => {
-            const inputs = tr.querySelectorAll('input, textarea');
-            if (inputs.length >= 4) {
-                draftData.impl_schedule.push({
-                    year: inputs[0].value,
-                    physical_target: inputs[1].value,
-                    indicator: inputs[2].value,
-                    amount: inputs[3].value
-                });
-            }
-        });
-    }
-
-    draftData._timestamp = Date.now();
-    localStorage.setItem(getDraftKey(), JSON.stringify(draftData));
+    data._timestamp = Date.now();
+    localStorage.setItem(getDraftKey(), JSON.stringify(data));
 };
 
 // Load form state from local storage
@@ -135,12 +83,13 @@ window.loadDraftLocally = function() {
                         } else {
                             opt.checked = (opt.value === val || val === 'on');
                         }
+                        // Dispatch change to trigger UI dependencies
+                        opt.dispatchEvent(new Event('change'));
                     });
                 } else {
                     input.value = val;
-                    if (['f-sector', 'f-province', 'f-district', 'f-municipality'].includes(key)) {
-                        setTimeout(() => input.dispatchEvent(new Event('change')), 50);
-                    }
+                    // Trigger change for all to be safe
+                    input.dispatchEvent(new Event('change'));
                 }
             }
         });
@@ -181,6 +130,126 @@ window.loadDraftLocally = function() {
                     }
                 });
             }
+        }
+        // Restore Attachments
+        if (draftData.attachments && draftData.attachments.length) {
+            const attPanelIdMap = {
+                'sp':          'sp-upload-panel',
+                'sb':          'sb-upload-panel',
+                'letter':      'letter-upload-panel',
+                'bor':         'bor-upload-panel',
+                'ded':         'ded-upload-panel',
+                'env':         'env-clearance-upload-panel',
+                'consult':     'consult-yes-panel',
+                'hgdg':        'hgdg-upload-panel',
+            };
+
+            draftData.attachments.forEach(att => {
+                const panelId = attPanelIdMap[att.type] || `${att.type}-upload-panel`;
+                const panel = document.getElementById(panelId);
+                const label = att.label || 'Document';
+
+                if (panel && att.data) {
+                    panel.style.display = 'block';
+                    panel.dataset.attachDataUri = att.data;
+                    panel.dataset.attachFileName = att.name || 'document.pdf';
+                    panel.dataset.attachMimeType = att.mime || 'application/pdf';
+                    panel.dataset.attachLabel = label;
+
+                    if (window._createUploadZone) {
+                        window._createUploadZone(panel, label);
+                    }
+                    
+                    // Update UI manually for _createUploadZone to show "✓ filename"
+                    const labelEl = panel.querySelector('.upload-toggle-label');
+                    const changeBtn = panel.querySelector('.upload-change-btn');
+                    const dz = panel.querySelector('.drop-zone');
+                    const listEl = panel.querySelector('[id$="-list"]');
+                    const body = panel.querySelector('.upload-body');
+
+                    if (labelEl) { labelEl.textContent = '✓ ' + (att.name || 'Attached'); labelEl.style.color = '#15803d'; }
+                    if (changeBtn) changeBtn.style.display = 'inline-block';
+                    if (dz) dz.style.display = 'none';
+                    if (listEl) {
+                        listEl.innerHTML = `<span style="color:#15803d;">&#10003; ${att.name || 'Attached'}</span>`;
+                        listEl.style.display = 'block';
+                    }
+                    if (body) body.style.display = 'none';
+                } 
+                // Handle Geotagged Photo
+                else if (att.type === 'geo_photo' && att.data) {
+                    const geoPreview = document.getElementById('geo-photo-preview');
+                    const geoZone = document.getElementById('geo-photo-zone');
+                    if (geoPreview) {
+                        geoPreview.dataset.dataUri = att.data;
+                        geoPreview.dataset.fileName = att.name;
+                        geoPreview.dataset.mimeType = att.mime;
+                        
+                        const isImage = att.mime?.startsWith('image/');
+                        if (isImage) {
+                            geoPreview.innerHTML = `
+                                <div class="position-relative d-inline-block mt-2">
+                                    <img src="${att.data}" style="max-height:200px; max-width:100%; border-radius:8px; border:1px solid #e2e8f0;" alt="Geotagged Photo">
+                                    <div class="text-success small fw-bold mt-1"><i data-lucide="check-circle" width="13"></i> ${att.name}</div>
+                                </div>`;
+                        } else {
+                            geoPreview.innerHTML = `<div class="text-success small fw-bold mt-2 p-2 rounded" style="background:rgba(22,163,74,0.07);border:1px solid rgba(22,163,74,0.2);">✓ ${att.name}</div>`;
+                        }
+                        if (geoZone) geoZone.querySelector('p')?.classList.add('text-success');
+                        if (window.lucide) window.lucide.createIcons({ node: geoPreview });
+                    }
+                }
+                // Handle Other Attachments
+                else if (att.type === 'other' && att.data) {
+                    const attList = document.getElementById('other-attachments-list');
+                    if (attList) {
+                        // Create a new row (using the internal helper if reachable, but since it's an IIFE we might need to trigger the btn)
+                        const addBtn = document.getElementById('add-attachment-btn');
+                        if (addBtn) {
+                            addBtn.click();
+                            setTimeout(() => {
+                                const rows = attList.querySelectorAll('.attachment-row');
+                                const lastRow = rows[rows.length - 1];
+                                if (lastRow) {
+                                    const descInput = lastRow.querySelector('input[type="text"]');
+                                    const preview = lastRow.querySelector('div[id$="-preview"]');
+                                    const labelEl = lastRow.querySelector('span[id$="-label"]');
+                                    const zone = lastRow.querySelector('div[id$="-zone"]');
+                                    if (descInput) descInput.value = att.label || '';
+                                    if (preview) {
+                                        preview.dataset.dataUri = att.data;
+                                        preview.dataset.fileName = att.name;
+                                        preview.dataset.mimeType = att.mime;
+                                        preview.innerHTML = `<div class="small text-success fw-bold">✓ ${att.name}</div>`;
+                                    }
+                                    if (labelEl) labelEl.textContent = 'File attached';
+                                    if (zone) zone.style.borderColor = '#22c55e';
+                                }
+                            }, 100);
+                        }
+                    }
+                }
+                // Handle Signatures — defer 350ms so _initSignature listeners are attached first
+                else if (att.type.startsWith('sig_') && att.data) {
+                    const prefix = att.type.replace('sig_', '');
+                    const preview = document.getElementById(`sig-${prefix}-upload-preview`);
+                    if (preview) {
+                        preview.dataset.dataUri = att.data;
+                        preview.dataset.fileName = att.name;
+                        preview.dataset.mimeType = att.mime;
+                        const img = preview.querySelector('img');
+                        if (img) img.src = att.data;
+                        preview.style.display = 'block';
+                        
+                        // Switch radio to upload mode
+                        const radio = document.getElementById(`sig-${prefix}-upload`);
+                        if (radio) {
+                            radio.checked = true;
+                            radio.dispatchEvent(new Event('change'));
+                        }
+                    }
+                }
+            });
         }
     } catch (e) {
         console.error("Error parsing draft data", e);
@@ -356,42 +425,84 @@ function gatherAllData() {
     data.attachments = [];
     
     // Named upload panels
+    // Panel IDs must exactly match the HTML id attributes in the blade partials
     const panels = [
-        'sp-res-upload-panel', 'sb-res-upload-panel', 'letter-upload-panel',
-        'bor-upload-panel', 'ded-upload-panel', 'env-upload-panel',
+        'sp-upload-panel', 'sb-upload-panel', 'letter-upload-panel',
+        'bor-upload-panel', 'ded-upload-panel', 'env-clearance-upload-panel',
         'consult-yes-panel', 'hgdg-upload-panel', 'spatial-cov-upload-panel'
     ];
+    // Map panel id → attachment type key stored in media custom_properties
+    const panelTypeMap = {
+        'sp-upload-panel':              'sp',
+        'sb-upload-panel':              'sb',
+        'letter-upload-panel':          'letter',
+        'bor-upload-panel':             'bor',
+        'ded-upload-panel':             'ded',
+        'env-clearance-upload-panel':   'env',
+        'consult-yes-panel':            'consult',
+        'hgdg-upload-panel':            'hgdg',
+        'spatial-cov-upload-panel':     'spatial-cov',
+    };
     panels.forEach(id => {
         const p = document.getElementById(id);
-        if (p && p.dataset.attachDataUri) {
+        if (!p) return;
+        const type = panelTypeMap[id] || id.replace('-upload-panel', '').replace('-panel', '');
+
+        if (p.dataset.attachDataUri) {
+            // User uploaded a new replacement file
             data.attachments.push({
-                type: id.replace('-upload-panel', ''),
+                type:  type,
                 label: p.dataset.attachLabel || '',
-                name: p.dataset.attachFileName,
-                mime: p.dataset.attachMimeType,
-                data: p.dataset.attachDataUri
+                name:  p.dataset.attachFileName,
+                mime:  p.dataset.attachMimeType,
+                data:  p.dataset.attachDataUri
+            });
+        } else if (p.dataset.attachExistingUrl) {
+            // No replacement chosen — tell the server to keep the existing file
+            data.attachments.push({
+                type:         type,
+                label:        p.dataset.attachLabel || '',
+                name:         p.dataset.attachExistingName || p.dataset.attachFileName || '',
+                existing_url: p.dataset.attachExistingUrl
             });
         }
     });
 
     // Geotagged Photo
     const gp = document.getElementById('geo-photo-preview');
-    if (gp && gp.dataset.dataUri) {
-        data.attachments.push({ type: 'geo_photo', name: gp.dataset.fileName, mime: gp.dataset.mimeType, data: gp.dataset.dataUri });
+    if (gp) {
+        if (gp.dataset.dataUri) {
+            // New upload
+            data.attachments.push({ type: 'geo_photo', name: gp.dataset.fileName, mime: gp.dataset.mimeType, data: gp.dataset.dataUri });
+        } else if (gp.dataset.existingUrl) {
+            // Keep existing
+            data.attachments.push({ type: 'geo_photo', name: gp.dataset.fileName, existing_url: gp.dataset.existingUrl });
+        }
     }
 
     // Other Attachments List
     document.querySelectorAll('#other-attachments-list .attachment-row').forEach(row => {
         const desc = row.querySelector('input[type="text"]')?.value;
         const preview = row.querySelector('div[id$="-preview"]');
-        if (preview && preview.dataset.dataUri) {
-            data.attachments.push({
-                type: 'other',
-                label: desc || 'Other Attachment',
-                name: preview.dataset.fileName,
-                mime: preview.dataset.mimeType,
-                data: preview.dataset.dataUri
-            });
+        if (preview) {
+            if (preview.dataset.dataUri) {
+                // New upload
+                data.attachments.push({
+                    type: 'other',
+                    label: desc || 'Other Attachment',
+                    name: preview.dataset.fileName,
+                    mime: preview.dataset.mimeType,
+                    data: preview.dataset.dataUri
+                });
+            } else if (preview.dataset.existingUrl) {
+                // Keep existing
+                data.attachments.push({
+                    type: 'other',
+                    label: desc || 'Other Attachment',
+                    name: preview.dataset.fileName,
+                    existing_url: preview.dataset.existingUrl
+                });
+            }
         }
     });
 
@@ -400,8 +511,14 @@ function gatherAllData() {
         const isUpload = document.getElementById(`sig-${prefix}-upload`)?.checked;
         if (isUpload) {
             const preview = document.getElementById(`sig-${prefix}-upload-preview`);
+            const panel = document.getElementById(`sig-${prefix}-upload-panel`);
+            
             if (preview && preview.dataset.dataUri) {
+                // New upload
                 data.attachments.push({ type: `sig_${prefix}`, name: preview.dataset.fileName, mime: preview.dataset.mimeType, data: preview.dataset.dataUri });
+            } else if (panel && panel.dataset.attachExistingUrl) {
+                // Keep existing upload
+                data.attachments.push({ type: `sig_${prefix}`, name: panel.dataset.attachFileName || 'signature.png', existing_url: panel.dataset.attachExistingUrl });
             }
         } else {
             // It's a canvas drawing
@@ -435,7 +552,25 @@ window.cppSubmit = async function(event) {
         btn.disabled = true;
         btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Submitting...`;
 
-        // 2. Gather All Data
+        // 2. Final Validation Check for ALL steps
+        let firstInvalidStep = 0;
+        for (let s = 1; s <= window.totalSteps; s++) {
+            if (window.validateStep && !window.validateStep(s)) {
+                firstInvalidStep = s;
+                break;
+            }
+        }
+
+        if (firstInvalidStep > 0) {
+            window.showToast?.("Please complete all required fields and uploads in all steps before submitting.", "warning");
+            window.goToStep?.(firstInvalidStep);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            window.isSaving = false;
+            return;
+        }
+
+        // 3. Gather All Data
         const payload = gatherAllData();
         console.log("Submitting Payload:", payload);
 
@@ -599,8 +734,19 @@ document.addEventListener('DOMContentLoaded', async function() {
                             });
                         } else {
                             input.value = val || '';
+                            // Trigger events for dependent UI logic (like showing upload panels)
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
                         }
                     }
+                });
+
+                // After setting radio values, fire change events so UI panels react.
+                // Without this, coverage-dependent panels (Inter-Province, Location-Specific)
+                // stay hidden because .checked = true does not trigger change listeners.
+                ['project-coverage', 'project-status', 'project-type'].forEach(name => {
+                    const checked = form.querySelector(`input[name="${name}"]:checked`);
+                    if (checked) checked.dispatchEvent(new Event('change', { bubbles: true }));
                 });
 
                 // 2. Implementation Schedule
@@ -633,7 +779,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (data.endorsement) {
                     Object.keys(data.endorsement).forEach(k => {
                         const el = document.getElementById(k);
-                        if (el) el.value = data.endorsement[k] || '';
+                        if (el) {
+                            el.value = data.endorsement[k] || '';
+                            // Trigger input/change so UI reactive logic (like upload panels) triggers
+                            el.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
                     });
                 }
 
@@ -655,11 +805,16 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
 
                 // 5. Inter-Province Tags
+                // Delay until after handleCoverage() has shown #inter-province-fields,
+                // otherwise the dropdown checkboxes may not be in the visible DOM.
                 if (data['f-provinces']) {
                     const hiddenInput = document.getElementById('f-provinces');
                     if (hiddenInput) {
                         hiddenInput.value = data['f-provinces'];
-                        if (window.refreshProvinceTags) window.refreshProvinceTags();
+                        // Use setTimeout so this runs after the coverage panel is displayed
+                        setTimeout(() => {
+                            if (window.refreshProvinceTags) window.refreshProvinceTags();
+                        }, 150);
                     }
                 }
 
@@ -679,19 +834,203 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 }
 
-                // 6. Attachments (Read-only list)
+                // 6. Attachments — build full interactive upload zone so user can replace files
                 if (data.attachments) {
+                    // Map attachment type → human-readable label (mirrors gatherAllData panel list)
+                    const attLabelMap = {
+                        'sp':          'SP Resolution Document',
+                        'sb':          'SB Resolution Document',
+                        'letter':      'Letter Request Document',
+                        'bor':         'BOR/BOT Resolution Document',
+                        'ded':         'Detailed Engineering Design',
+                        'env':         'Environmental Clearance Document',
+                        'consult-yes': 'Public Consultation Documentation',
+                        'hgdg':        'HGDG Document',
+                        'spatial-cov': 'Spatial Coverage File',
+                        'geo_photo':   'Geotagged Photo',
+                        'sig_prep':    'Signature (Prepared By)',
+                        'sig_noted':   'Signature (Noted By)',
+                    };
+                    // Map type → actual panel HTML id for restoration
+                    // NOTE: sig_ types and geo_photo are handled separately below
+                    const attPanelIdMap = {
+                        'sp':          'sp-upload-panel',
+                        'sb':          'sb-upload-panel',
+                        'letter':      'letter-upload-panel',
+                        'bor':         'bor-upload-panel',
+                        'ded':         'ded-upload-panel',
+                        'env':         'env-clearance-upload-panel',
+                        'consult':     'consult-yes-panel',
+                        'hgdg':        'hgdg-upload-panel',
+                        'spatial-cov': 'spatial-cov-upload-panel',
+                    };
+
                     data.attachments.forEach(att => {
-                        // Find the corresponding panel and show the file name
-                        const panelId = att.type + '-upload-panel';
+                        // Resolve panel id from explicit map first, then fall back to sig_ normalization
+                        const panelId = attPanelIdMap[att.type] || `${att.type}-upload-panel`;
                         const panel = document.getElementById(panelId);
+                        const label = attLabelMap[att.type] || (att.label || 'Document');
+
                         if (panel) {
                             panel.style.display = 'block';
-                            panel.innerHTML = `<div class="p-2 border rounded small bg-light d-flex justify-content-between align-items-center">
-                                <span><i data-lucide="file-text" width="14" class="me-1"></i> ${att.name}</span>
-                                <a href="${att.url}" target="_blank" class="btn btn-xs btn-link p-0">View</a>
-                            </div>`;
+                            panel.dataset.attachExistingUrl = att.url || '';
+                            panel.dataset.attachExistingName = att.name || '';
+                            panel.dataset.attachFileName = att.name || '';
+                            panel.dataset.attachType = att.type || '';
+                            panel.dataset.attachLabel = label;
+
+                            if (window._createUploadZone) {
+                                window._createUploadZone(panel, label);
+                            }
+
+                            panel.dataset.attachExistingUrl  = att.url  || '';
+                            panel.dataset.attachExistingName = att.name || '';
+                            panel.dataset.attachFileName     = att.name || '';
+                            panel.dataset.attachType         = att.type || '';
+                            panel.dataset.attachLabel        = label;
+
+                            const labelEl    = panel.querySelector('.upload-toggle-label');
+                            const changeBtn  = panel.querySelector('.upload-change-btn');
+                            const dz         = panel.querySelector('.drop-zone');
+                            const listEl     = panel.querySelector('[id$="-list"]');
+                            const body       = panel.querySelector('.upload-body');
+                            const arrow      = panel.querySelector('.upload-arrow');
+
+                            if (labelEl) { labelEl.textContent = '✓ ' + att.name; labelEl.style.color = '#15803d'; }
+                            if (changeBtn) changeBtn.style.display = 'inline-block';
+
+                            if (dz)      dz.style.display = 'none';
+                            if (listEl) {
+                                listEl.innerHTML = `
+                                    <div class="d-flex align-items-center justify-content-between gap-2">
+                                        <span style="color:#15803d;">&#10003; ${att.name}</span>
+                                        ${att.url ? `<a href="${att.url}" target="_blank" rel="noopener"
+                                            class="btn btn-sm btn-outline-secondary"
+                                            style="font-size:0.7rem;padding:0.15rem 0.6rem;border-radius:6px;">
+                                            <i data-lucide="external-link" width="12" class="me-1"></i>View
+                                        </a>` : ''}
+                                    </div>`;
+                                listEl.style.display = 'block';
+                            }
+                            if (body)  body.style.display  = 'none';
+                            if (arrow) arrow.style.transform = 'rotate(0deg)';
+
                             if (window.lucide) window.lucide.createIcons({ node: panel });
+                        } 
+                        // Handle Signatures (sig_prep, sig_noted) — must be before geo_photo
+                        else if (att.type.startsWith('sig_')) {
+                            const _prefix = att.type.replace('sig_', '');
+                            const _url    = att.url;
+                            const _name   = att.name;
+
+                            setTimeout(() => {
+                                const drawPanel   = document.getElementById(`sig-${_prefix}-draw-panel`);
+                                const uploadPanel = document.getElementById(`sig-${_prefix}-upload-panel`);
+                                const drawRadio   = document.getElementById(`sig-${_prefix}-draw`);
+                                const hint        = document.getElementById(`sig-${_prefix}-hint`);
+
+                                // Show draw panel, hide upload panel
+                                if (drawPanel)   drawPanel.style.display  = 'block';
+                                if (uploadPanel) uploadPanel.style.display = 'none';
+                                if (drawRadio)   drawRadio.checked = true;
+
+                                if (drawPanel && _url) {
+                                    drawPanel.querySelector('.sig-restored-preview')?.remove();
+
+                                    const wrapper = document.createElement('div');
+                                    wrapper.className = 'sig-restored-preview mb-2';
+                                    wrapper.innerHTML = `
+                                        <img src="${_url}"
+                                            style="max-height:130px;width:100%;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#fff;display:block;">
+                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                            <span class="small text-success fw-semibold">&#10003; Existing signature: ${_name}</span>
+                                            <a href="${_url}" target="_blank" class="small text-primary ms-auto">View</a>
+                                        </div>`;
+                                    drawPanel.insertBefore(wrapper, drawPanel.firstChild);
+                                }
+
+                                if (hint) hint.textContent = '✓ Signature on file';
+
+                                // Store URL so gatherAllData picks it up as existing
+                                const upPanel = document.getElementById(`sig-${_prefix}-upload-panel`);
+                                if (upPanel) {
+                                    upPanel.dataset.attachExistingUrl = _url  || '';
+                                    upPanel.dataset.attachFileName    = _name || '';
+                                }
+                            }, 350);
+                        }
+                        // Handle Geotagged Photo specifically
+                        else if (att.type === 'geo_photo') {
+                            const geoPreview = document.getElementById('geo-photo-preview');
+                            const geoZone = document.getElementById('geo-photo-zone');
+                            if (geoPreview && geoZone) {
+                                geoPreview.dataset.existingUrl = att.url;
+                                geoPreview.dataset.fileName = att.name;
+                                
+                                // Show preview based on type (simulating _handleGeoFile logic but with URL)
+                                const isImage = att.name.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/);
+                                const isPdf = att.name.toLowerCase().endsWith('.pdf');
+                                
+                                if (isImage) {
+                                    geoPreview.innerHTML = `
+                                        <div class="position-relative d-inline-block mt-2">
+                                            <img src="${att.url}" style="max-height:200px; max-width:100%; border-radius:8px; border:1px solid #e2e8f0;" alt="Geotagged Photo">
+                                            <div class="text-success small fw-bold mt-1">
+                                                <i data-lucide="check-circle" width="13"></i> Existing: ${att.name} 
+                                                <a href="${att.url}" target="_blank" class="ms-2 text-primary fw-normal">View Full</a>
+                                            </div>
+                                        </div>`;
+                                } else if (isPdf) {
+                                    geoPreview.innerHTML = `
+                                        <div class="d-flex align-items-center gap-2 mt-2 p-2 rounded" style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);">
+                                            <i data-lucide="file-text" width="16" style="color:#dc2626;"></i>
+                                            <span class="small fw-semibold" style="color:#dc2626;">✓ Existing PDF: ${att.name}</span>
+                                            <a href="${att.url}" target="_blank" class="btn btn-xs btn-link text-danger p-0 ms-auto">View</a>
+                                        </div>`;
+                                } else {
+                                    geoPreview.innerHTML = `<div class="text-success small fw-bold mt-2 p-2 rounded" style="background:rgba(22,163,74,0.07);border:1px solid rgba(22,163,74,0.2);">✓ Existing: ${att.name} <a href="${att.url}" target="_blank" class="ms-2">View</a></div>`;
+                                }
+                                
+                                geoZone.querySelector('p')?.classList.add('text-success');
+                                if (window.lucide) window.lucide.createIcons({ node: geoPreview });
+                    
+                    // Trigger draft save
+                    if (window.saveDraftLocally) window.saveDraftLocally();
+                            }
+                        }
+                        // Handle Other Attachments
+                        else if (att.type === 'other') {
+                            const attList = document.getElementById('other-attachments-list');
+                            if (attList) {
+                                // If this is the first server attachment, clear the default empty row
+                                if (!attList.dataset.restored) {
+                                    attList.innerHTML = '';
+                                    attList.dataset.restored = 'true';
+                                }
+                                
+                                // Create a new row
+                                const index = Date.now() + Math.floor(Math.random() * 1000);
+                                _createAttachmentRow(attList, index);
+                                
+                                // Find the last added row and populate it
+                                const rows = attList.querySelectorAll('.attachment-row');
+                                const lastRow = rows[rows.length - 1];
+                                if (lastRow) {
+                                    const descInput = lastRow.querySelector('input[type="text"]');
+                                    const preview = lastRow.querySelector('div[id$="-preview"]');
+                                    const labelEl = lastRow.querySelector('span[id$="-label"]');
+                                    const zone = lastRow.querySelector('div[id$="-zone"]');
+                                    
+                                    if (descInput) descInput.value = att.label || '';
+                                    if (preview) {
+                                        preview.dataset.existingUrl = att.url;
+                                        preview.dataset.fileName = att.name;
+                                        preview.innerHTML = `<div class="small text-success fw-bold">✓ Existing: ${att.name} <a href="${att.url}" target="_blank" class="ms-1">View</a></div>`;
+                                    }
+                                    if (labelEl) labelEl.textContent = 'Existing file attached';
+                                    if (zone) zone.style.borderColor = '#15803d';
+                                }
+                            }
                         }
                     });
                 }
@@ -777,31 +1116,91 @@ document.addEventListener('DOMContentLoaded', async function() {
         _createUploadZone(envPanelId, 'Environmental Clearance Document');
     }
 
-    // Public Consultation Upload
-    document.querySelectorAll('input[name="consultation-status"]').forEach(r => {
-        r.addEventListener('change', () => {
-            const panel = document.getElementById('consult-yes-panel');
+    // Detailed Engineering Design (DED)
+    const ded = document.getElementById('prep-ded');
+    if (ded) {
+        ded.addEventListener('change', () => {
+            const panel = document.getElementById('ded-upload-panel');
             if (!panel) return;
-            const isYes = r.checked && r.id === 'consult-yes';
-            panel.style.display = isYes ? 'block' : 'none';
-            if (isYes && panel.children.length === 0) {
-                // Reset margins to align with environmental clearance design
+            const isChecked = ded.checked;
+            panel.style.display = isChecked ? 'block' : 'none';
+            if (isChecked && panel.children.length === 0) {
+                _createUploadZone('ded-upload-panel', 'Detailed Engineering Design Document');
+            }
+        });
+        // Initial check
+        if (ded.checked) {
+            const panel = document.getElementById('ded-upload-panel');
+            if (panel) {
+                panel.style.display = 'block';
+                if (panel.children.length === 0) {
+                    _createUploadZone('ded-upload-panel', 'Detailed Engineering Design Document');
+                }
+            }
+        }
+    }
+
+    // Public Consultation Upload & Input Toggling
+    const initConsultationToggling = () => {
+        const radios = document.querySelectorAll('input[name="consultation-status"]');
+        const handleToggle = () => {
+            const r = document.querySelector('input[name="consultation-status"]:checked');
+            if (!r) return;
+
+            const panel = document.getElementById('consult-yes-panel');
+            const plannedDateInput = document.getElementById('f-consult-planned-date');
+            const datesBox = document.getElementById('consult-dates-box');
+            const datePicker = document.getElementById('consult-date-picker');
+            const hiddenDates = document.getElementById('f-consult-done-dates');
+
+            const isYes = r.value === 'Yes';
+            const isNo = r.value === 'No';
+
+            if (panel) panel.style.display = isYes ? 'block' : 'none';
+            if (plannedDateInput) plannedDateInput.disabled = !isNo;
+
+            if (datesBox && datePicker) {
+                if (isYes) {
+                    datesBox.style.background = '#fff';
+                    datesBox.style.cursor = 'pointer';
+                    datesBox.style.opacity = '1';
+                    datesBox.style.pointerEvents = 'auto';
+                    datePicker.disabled = false;
+                    const addBtn = datesBox.querySelector('.consult-date-add');
+                    if (addBtn) addBtn.style.cursor = 'pointer';
+                } else {
+                    datesBox.style.background = '#f8fafc';
+                    datesBox.style.cursor = 'not-allowed';
+                    datesBox.style.opacity = '0.6';
+                    datesBox.style.pointerEvents = 'none';
+                    datePicker.disabled = true;
+                    const addBtn = datesBox.querySelector('.consult-date-add');
+                    if (addBtn) addBtn.style.cursor = 'default';
+                }
+            }
+
+            if (isYes && panel && panel.children.length === 0) {
                 panel.style.marginLeft = '0';
                 panel.style.marginTop = '0.5rem';
                 _createUploadZone('consult-yes-panel', 'Public Consultation Documentation');
             }
-        });
-    });
+        };
+
+        radios.forEach(r => r.addEventListener('change', handleToggle));
+        // Also call it once to handle initial state after refresh/load
+        setTimeout(handleToggle, 100); 
+    };
+    initConsultationToggling();
 
     // --- PAGE 3: HGDG Upload ---
     const hgdg = document.getElementById('f-hgdg');
     if (hgdg) {
         const showHGDG = () => {
-            const panel = document.getElementById('p3-hgdg-panel');
+            const panel = document.getElementById('hgdg-upload-panel');
             if (panel) {
                 panel.style.display = 'block';
                 if (panel.children.length === 0) {
-                    _createUploadZone('p3-hgdg-panel', 'HGDG Document');
+                    _createUploadZone('hgdg-upload-panel', 'HGDG Document');
                 }
             }
         };
@@ -1084,6 +1483,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     </div>`;
             }
             if (window.lucide) window.lucide.createIcons();
+            
+            // Trigger draft save to capture the new file data
+            if (window.saveDraftLocally) window.saveDraftLocally();
         };
         reader.readAsDataURL(file);
         if (labelEl) labelEl.textContent = 'File attached';
@@ -1145,6 +1547,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         geoPreview.innerHTML = `<div class="text-success small fw-bold mt-2 p-2 rounded" style="background:rgba(22,163,74,0.07);border:1px solid rgba(22,163,74,0.2);">✓ ${file.name}</div>`;
                     }
                     if (window.lucide) window.lucide.createIcons();
+                    if (window.saveDraftLocally) window.saveDraftLocally();
                 }
                 geoZone.querySelector('p')?.classList.add('text-success');
             };
@@ -1194,7 +1597,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         const preview = document.getElementById(`sig-${prefix}-upload-preview`);
 
         if (!canvas) return;
-        canvas.dataset.dirty = 'false';
+        // Only mark canvas as clean if it's truly blank (has no restored content)
+        const _checkBlank = () => {
+            const _ctx = canvas.getContext('2d');
+            const _data = _ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            return !_data.some(v => v !== 0);
+        };
+        if (_checkBlank()) canvas.dataset.dirty = 'false';
 
         [drawRadio, uploadRadio].forEach(radio => {
             if (!radio) return;
@@ -1226,7 +1635,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); 
         });
         canvas.addEventListener('mousemove', e => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-        canvas.addEventListener('mouseup', () => { drawing = false; if (hint) hint.textContent = '✓ Signature recorded'; });
+        canvas.addEventListener('mouseup', () => { 
+            drawing = false; 
+            if (hint) hint.textContent = '✓ Signature recorded'; 
+            if (window.saveDraftLocally) window.saveDraftLocally();
+        });
         canvas.addEventListener('mouseleave', () => { drawing = false; });
         canvas.addEventListener('touchstart', e => { 
             e.preventDefault(); 
@@ -1235,7 +1648,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); 
         }, { passive: false });
         canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }, { passive: false });
-        canvas.addEventListener('touchend', () => { drawing = false; if (hint) hint.textContent = '✓ Signature recorded'; });
+        canvas.addEventListener('touchend', e => { 
+            e.preventDefault(); 
+            drawing = false; 
+            if (hint) hint.textContent = '✓ Signature recorded'; 
+            if (window.saveDraftLocally) window.saveDraftLocally();
+        });
 
         if (uploadZone && uploadInput) {
             uploadZone.addEventListener('click', () => uploadInput.click());
@@ -1244,8 +1662,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const file = uploadInput.files[0];
                 const reader = new FileReader();
                 reader.onload = ev => {
+                    const dataUri = ev.target.result;
                     if (preview) {
-                        preview.innerHTML = `<img src="${ev.target.result}" style="max-height:100px; border-radius:6px; border:1px solid #e2e8f0; margin-top:6px;">
+                        preview.dataset.dataUri = dataUri;
+                        preview.dataset.fileName = file.name;
+                        preview.dataset.mimeType = file.type;
+                        preview.innerHTML = `<img src="${dataUri}" style="max-height:100px; border-radius:6px; border:1px solid #e2e8f0; margin-top:6px;">
                             <div class="small text-success fw-bold mt-1">✓ ${file.name}</div>`;
                     }
                 };

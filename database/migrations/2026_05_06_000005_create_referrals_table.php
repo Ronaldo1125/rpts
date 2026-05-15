@@ -4,12 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('referrals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cipg_submission_id')->nullable()->constrained('cpp_submissions')->nullOnDelete();
+            // PAR linked from referral side (referrals.par_id → project_assessment_reports)
+            $table->foreignId('par_id')->nullable()->constrained('project_assessment_reports')->nullOnDelete();
             $table->foreignId('from_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('from_division_id')->nullable()->constrained('divisions')->nullOnDelete();
             $table->foreignId('to_user_id')->nullable()->constrained('users')->nullOnDelete();

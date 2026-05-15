@@ -277,138 +277,109 @@ export function initProjectAssessmentLoader() {
     async function _initForm() {
         if (!formEl) return;
         
-        formEl.reset(); // Clear old cached data
-        formEl.dataset.connectedCteId = ''; // Clear old linked data
-        _togglePARFormReadonly(false); // Reset to editable state by default
+        formEl.reset();
+        formEl.dataset.connectedCteId = '';
+        _togglePARFormReadonly(false);
         
-        const titleInput = formEl.querySelector('[name="projectTitle"]');
-        if (titleInput) titleInput.readOnly = false;
-
-        const proponentInput = formEl.querySelector('[name="implementingAgency"]');
-        if (proponentInput) proponentInput.disabled = false;
-
-        // Initial population (for New or Prefill)
-        const agencySelect = formEl.querySelector('[name="implementingAgency"]');
-        if (agencySelect && !editId) {
-            const prefill = sessionStorage.getItem('par_prefill_agency') || '';
-            await window.populateAgencyDropdown(agencySelect, prefill);
-        }
-        
+        const editId = sessionStorage.getItem('par_edit_id');
         const allCtes = await _getAllCtes();
 
-        // CASE A: Existing Assessment (Edit Mode)
         if (editId) {
-            const all = await _getAllPARs();
-            const par = all.find(x => x.id === editId);
-            
-            // Re-populate agency dropdown with the saved value (ensures it's in the list)
-            const agencySelect = formEl.querySelector('[name="implementingAgency"]');
-            const savedAgency = par?.formData?.implementingAgency || par?.proponent;
-            if (agencySelect && savedAgency) {
-                await window.populateAgencyDropdown(agencySelect, savedAgency);
-            }
-
-            if (par && par.formData) {
-
-                // 2. Populate text/select/radio inputs
-                // Sort keys to ensure province is set before district, etc.
-                const sortedEntries = Object.entries(par.formData).sort(([a], [b]) => {
-                    if (a.includes('province') && (b.includes('district') || b.includes('municipality'))) return -1;
-                    if (a.includes('district') && b.includes('municipality')) return -1;
-                    return 0;
+            try {
+                const response = await fetch(`/project-assessment-reports/${editId}`, {
+                    headers: { 'Accept': 'application/json' }
                 });
+                const result = await response.json();
+                const par = result.data;
 
-                for (let [name, value] of sortedEntries) {
-                    const inputs = formEl.querySelectorAll(`[name="${name}"]`);
-                    inputs.forEach(input => {
-                        if (input.type === 'radio') {
-                            if (input.value === value) {
-                                input.checked = true;
-                                input.dispatchEvent(new Event('change', { bubbles: true }));
-                            }
-                        } else if (input.type !== 'checkbox') {
-                            input.value = value;
-                            input.dispatchEvent(new Event('change', { bubbles: true }));
-                        }
-                    });
-                }
-                
-                // Fallbacks for top-level PAR data if missing from formData
-                if (par.projectTitle) {
+                if (par) {
+                    // Hidden IDs
+                    const hiddenCte = document.getElementById('par_cpp_submission_id');
+                    if (hiddenCte) hiddenCte.value = par.cpp_submission_id;
+
+                    // Title & Agency
+                    const projectTitle = par.submission?.project_title || par.project_title;
+                    const proponent = par.submission?.user?.agency?.agency_name || par.proponent;
+
                     const titleInput = formEl.querySelector('[name="projectTitle"]');
                     if (titleInput) {
-                        titleInput.value = par.projectTitle;
-                        titleInput.readOnly = true; // Lock the title
-                        titleInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        titleInput.value = projectTitle;
+                        titleInput.readOnly = true;
+                    }
+
+                    const agencySelect = formEl.querySelector('[name="implementingAgency"]');
+                    if (agencySelect) {
+                        // Ensure the agency is in the dropdown if it's a static select, 
+                        // or just set the value if it was populated.
+                        agencySelect.value = proponent;
+                        agencySelect.disabled = true;
+                    }
+
+                    _showConnectedInfo(projectTitle, proponent);
+
+                    // Populate simple fields
+                    const simpleFields = [
+                        'par_background', 'par_components', 'par_spatial', 
+                        'par_qualitative', 'par_recommendations', 'par_final_recs',
+                        'annex_desc', 'annex_total',
+                        'prepared_by', 'prepared_by_pos', 
+                        'reviewed_by', 'reviewed_by_pos', 
+                        'approved_by', 'approved_by_pos',
+                        'endo_sp_res_text', 'endo_other_text'
+                    ];
+
+                    simpleFields.forEach(field => {
+                        const input = formEl.querySelector(`[name="${field}"]`);
+                        if (input) {
+                            input.value = par[field] || '';
+                        }
+                    });
+
+                    // Checkboxes
+                    const checkboxes = [
+                        'doc_request', 'doc_cpp_fs', 'doc_endorsements'
+                    ];
+                    checkboxes.forEach(name => {
+                        const cb = formEl.querySelector(`input[name="${name}"]`);
+                        if (cb) cb.checked = !!par[name];
+                    });
+
+                    // Array Checkboxes (Typology, Endorsement, Readiness)
+                    const arrayMaps = [
+                        { name: 'typology_checks[]', data: par.typology_data },
+                        { name: 'endorsement_checks[]', data: par.endorsement_data?.checks },
+                        { name: 'readiness_checks[]', data: par.readiness_data }
+                    ];
+
+                    arrayMaps.forEach(map => {
+                        if (Array.isArray(map.data)) {
+                            map.data.forEach(val => {
+                                const cb = formEl.querySelector(`input[name="${map.name}"][value="${val}"]`);
+                                if (cb) cb.checked = true;
+                            });
+                        }
+                    });
+
+                    // Budget
+                    if (par.budget_breakdown) {
+                        Object.entries(par.budget_breakdown).forEach(([year, amount]) => {
+                            const input = formEl.querySelector(`[name="annex_${year}"]`);
+                            if (input) input.value = amount;
+                        });
+                    }
+
+                    _attachBudgetCalculationLogic(formEl.querySelector('#parSingleProjectContainer'));
+
+                    // Status specific logic
+                    if (par.status === 'Final' || par.status === 'Evaluated') {
+                         _togglePARFormReadonly(true);
                     }
                 }
-                if (par.proponent) {
-                    const agencyInput = formEl.querySelector('[name="implementingAgency"]');
-                    if (agencyInput) {
-                        agencyInput.value = par.proponent;
-                        agencyInput.disabled = true; // Lock the agency
-                        agencyInput.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                }
-
-                // 3. Populate checkboxes
-                formEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                    if (par.formData.hasOwnProperty(cb.id)) {
-                        cb.checked = par.formData[cb.id];
-                        cb.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                });
-
-                // 4. Trigger budget calculations for the single Annex form
-                const budgetInputs = formEl.querySelectorAll('.budgetary-year-input');
-                if (budgetInputs.length > 0) {
-                    budgetInputs[0].dispatchEvent(new Event('input', { bubbles: true }));
-                }
-
-                if (par.connectedCteId) {
-                    formEl.dataset.connectedCteId = par.connectedCteId;
-                    _showConnectedInfo(par.projectTitle, par.proponent);
-                }
-
-                // Re-render province tags if interProvince has value
-                if (par.formData.interProvince && typeof _initPARProvincesTag === 'function') {
-                    _initPARProvincesTag();
-                }
-
-                // Check if form should be readonly based on status & role
-                let isReadonly = false;
-                const role = (currentUser.role || '').toLowerCase();
-                const status = par.status;
-                
-                // Finalized/Locked statuses per role
-                const staffLocked = ['Assessed', 'Evaluated', 'Sectoral Presentation', 'Reviewed', 'Final'];
-                const divisionLocked = ['Evaluated', 'Sectoral Presentation', 'Reviewed', 'Final'];
-
-                if (role.includes('staff') && staffLocked.includes(status)) isReadonly = true;
-                if (role.includes('division') && divisionLocked.includes(status)) isReadonly = true;
-                
-                // PDIPBD staff should be able to edit even if Evaluated/Reviewed, but NOT if Final
-                if (isPdipbd && status !== 'Final') isReadonly = false;
-                
-                if (isReadonly) {
-                    _togglePARFormReadonly(true);
-                } else {
-                    _togglePARFormReadonly(false);
-                    
-                    // Specific override: Proponent and Title stay locked if they were already set, even for PDIPBD
-                    if (par.projectTitle) {
-                        const titleInput = formEl.querySelector('[name="projectTitle"]');
-                        if (titleInput) titleInput.readOnly = true;
-                    }
-                    if (par.proponent) {
-                        const agencyInput = formEl.querySelector('[name="implementingAgency"]');
-                        if (agencyInput) agencyInput.disabled = true;
-                    }
-                }
+            } catch (error) {
+                console.error('Error fetching PAR details:', error);
             }
-        } 
-        // CASE B: New Referral Pre-fill
-        else {
+        } else {
+            // New Pre-fill Logic (same as before but setting hidden field)
             const prefillTitle = sessionStorage.getItem('par_prefill_title');
             const prefillAgency = sessionStorage.getItem('par_prefill_agency');
             const prefillCteId = sessionStorage.getItem('par_prefill_cte_id');
@@ -417,39 +388,30 @@ export function initProjectAssessmentLoader() {
                 const titleInput = formEl.querySelector('[name="projectTitle"]');
                 if (titleInput) {
                     titleInput.value = prefillTitle;
-                    titleInput.readOnly = true; // Lock the title
+                    titleInput.readOnly = true;
                 }
             }
             
             if (prefillAgency) {
-                const proponentInput = formEl.querySelector('[name="implementingAgency"]');
-                if (proponentInput) {
-                    proponentInput.value = prefillAgency;
-                    proponentInput.disabled = true; // Lock the agency
+                const agencySelect = formEl.querySelector('[name="implementingAgency"]');
+                if (agencySelect) {
+                    // Populate agency dropdown if needed
+                    await window.populateAgencyDropdown(agencySelect, prefillAgency);
+                    agencySelect.value = prefillAgency;
+                    agencySelect.disabled = true;
                 }
-                sessionStorage.removeItem('par_prefill_agency');
             }
 
             if (prefillCteId) {
                 formEl.dataset.connectedCteId = prefillCteId;
-                
-                const title = prefillTitle || '';
-                const agency = prefillAgency || '';
-                _showConnectedInfo(title, agency);
-                
-                // Fetch CTE to pre-fill agency if not already set (fallback)
-                const cte = allCtes.find(x => x.id === prefillCteId);
-                if (cte) {
-                    const proponentInput = formEl.querySelector('[name="implementingAgency"]');
-                    if (proponentInput && !proponentInput.value && cte.formData?.implementingAgency) {
-                        proponentInput.value = cte.formData.implementingAgency;
-                    }
-                }
-            } else if (prefillTitle || prefillAgency) {
-                // If it came directly without a CTE
-                _showConnectedInfo(prefillTitle || '', prefillAgency || '');
+                const hiddenCte = document.getElementById('par_cpp_submission_id');
+                if (hiddenCte) hiddenCte.value = prefillCteId;
+                _showConnectedInfo(prefillTitle || 'Untitled', prefillAgency || 'N/A');
             }
+            
+            _attachBudgetCalculationLogic(formEl.querySelector('#parSingleProjectContainer'));
         }
+    }
         
         // Always attach budget calculations to the single Annex A table
         _attachBudgetCalculationLogic(formEl.querySelector('#parSingleProjectContainer'));
@@ -613,74 +575,82 @@ export function initProjectAssessmentLoader() {
     }
 
     async function _saveAssessment(status) {
-        const all = await _getAllPARs();
+        if (!formEl) return;
+
         const editId = sessionStorage.getItem('par_edit_id');
+        const statusInput = document.getElementById('par_report_status');
+        if (statusInput) statusInput.value = status;
+
+        const formData = new FormData(formEl);
         
-        const projectTitle = formEl.querySelector('[name="projectTitle"]').value || 'Untitled Project';
-        const proponent = formEl.querySelector('[name="implementingAgency"]').value || 'N/A';
+        // Finalize Modal Data (if exists in DOM)
+        const fileInput = document.getElementById('finalParFileInput');
+        if (fileInput && fileInput.files[0]) {
+            formData.append('final_par_file', fileInput.files[0]);
+        }
+        const notesArea = document.getElementById('finalParNotes');
+        if (notesArea) {
+            formData.append('finalization_notes', notesArea.value);
+        }
+        const isSectoralSwitch = document.getElementById('finalParSectoralCheckbox');
+        if (isSectoralSwitch && isSectoralSwitch.checked) {
+            formData.append('is_sectoral', '1');
+        }
+        
+        // Handle checkboxes (browsers don't send them if unchecked)
+        formEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            if (cb.name && !cb.checked) {
+                // Ensure the field is present even if false
+                if (!cb.name.endsWith('[]')) {
+                    formData.append(cb.name, '0');
+                }
+            }
+        });
 
-        const currentUser = (window.__CURRENT_USER__ || {});
-        const payload = {
-            id: editId || `PAR-${Date.now()}`,
-            status: status,
-            projectTitle: projectTitle,
-            proponent: proponent,
-            preparedBy: currentUser.email || 'System User',
-            preparedByRole: currentUser.role || 'staff',
-            connectedCteId: formEl.dataset.connectedCteId || null,
-            datePrepared: new Date().toISOString(),
-            formData: _readPARFormData()
-        };
+        const url = editId 
+            ? `/project-assessment-reports/${editId}`
+            : `/project-assessment-reports`;
+        
+        if (editId) {
+            formData.append('_method', 'PUT');
+        }
 
-        const idx = all.findIndex(x => x.id === payload.id);
-        if (idx >= 0) all[idx] = payload;
-        else all.unshift(payload);
-
-        await _setAllPARs(all);
-
-        // 1. Link orphan comments if this is a new PAR
-        if (!editId && payload.connectedCteId) {
-            const allCR = await localforage.getItem('comments_recommendations') || [];
-            let updated = false;
-            allCR.forEach(cr => {
-                if (!cr.connectedParId && cr.connectedCteId === payload.connectedCteId) {
-                    cr.connectedParId = payload.id;
-                    updated = true;
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
                 }
             });
-            if (updated) {
-                await localforage.setItem('comments_recommendations', allCR);
+
+            const result = await response.json();
+
+            if (result.success) {
+                if (window.showSimpleAlert) {
+                    window.showSimpleAlert(result.message || 'Assessment saved successfully.', 'success');
+                }
+
+                // Redirect back to list
+                const currentUser = (window.__CURRENT_USER__ || {});
+                const role = (currentUser.role || '').toLowerCase();
+                let target = 'project-assessment-report';
+                if (role === 'admin') target = 'admin-project-assessment';
+                else if (role.includes('division')) target = 'division-head-project-assessment';
+                else if (role.includes('staff')) target = 'staff-project-assessment';
+                
+                if (window.switchPage) window.switchPage(target);
+                setTimeout(() => initProjectAssessmentLoader(), 80);
+            } else {
+                throw new Error(result.message || 'Failed to save assessment.');
+            }
+        } catch (error) {
+            console.error('Error saving PAR:', error);
+            if (window.showSimpleAlert) {
+                window.showSimpleAlert('Error saving assessment: ' + error.message, 'danger');
             }
         }
-
-        // 2. Update Referral Status so "Start PAR" disappears from dashboard
-        if (payload.connectedCteId) {
-            const referrals = await localforage.getItem('project_referrals') || [];
-            const rIdx = referrals.findIndex(r => r.cteId === payload.connectedCteId);
-            if (rIdx >= 0) {
-                referrals[rIdx].status = (status === 'Assessed' || status === 'Evaluated') ? 'Assessed' : 'Draft';
-                await localforage.setItem('project_referrals', referrals);
-            }
-        }
-
-        let msg = "Assessment saved.";
-        if (status === 'Assessed') msg = "Project assessment saved as Assessed.";
-        if (status === 'Evaluated') msg = "Project assessment finalized as Evaluated.";
-
-        if (window.showSimpleAlert) {
-            window.showSimpleAlert(msg, 'success');
-        }
-
-        if (window.switchPage) {
-            const currentUser = (window.__CURRENT_USER__ || {});
-            const role = (currentUser.role || '').toLowerCase();
-            let target = 'project-assessment-report';
-            if (role === 'admin') target = 'admin-project-assessment';
-            else if (role.includes('division')) target = 'division-head-project-assessment';
-            else if (role.includes('staff')) target = 'staff-project-assessment';
-            window.switchPage(target);
-        }
-        setTimeout(() => initProjectAssessmentLoader(), 80);
     }
 
     async function _populateValidationSelect(selectEl) {
@@ -701,103 +671,70 @@ export function initProjectAssessmentLoader() {
 
     async function _renderPARTable(tbody, countSpan) {
         if (!tbody) return;
-        let [all, referrals] = await Promise.all([
-            _getAllPARs(),
-            localforage.getItem('project_referrals')
-        ]);
-        referrals = referrals || [];
 
-        const currentUser = (window.__CURRENT_USER__ || {});
-        const role = (currentUser.role || '').toLowerCase();
-        const userEmail = (currentUser.email || '').toLowerCase();
-        const isPdipbdPage = tbody.id === 'pdipbd-par-tbody' || tbody.id === 'dashboard-par-tbody';
-
-        // Filtering logic
-        if (isPdipbdPage) {
-            // PDIPBD Staff view includes reports referred to them
-            if (role === 'admin') {
-                all = all.filter(p => p.isReferredToPdipbd === true);
-            } else {
-                // For PDIPBD Staff, show those assigned to THEM OR those they prepared themselves
-                all = all.filter(p => {
-                    const isReferredToMe = (p.isReferredToPdipbd === true && p.pdipbdAssignedStaffId === currentUser.id);
-                    const isPreparedByMe = (p.preparedBy || '').toLowerCase() === userEmail;
-                    return isReferredToMe || isPreparedByMe;
-                });
-            }
-        } else if (role.includes('staff')) {
-            // Regular technical staff see only their own work
-            all = all.filter(p => {
-                const preparedBy = (p.preparedBy || '').toLowerCase();
-                return preparedBy === userEmail;
+        try {
+            const response = await fetch('/project-assessment-reports', {
+                headers: { 'Accept': 'application/json' }
             });
-            
-            // If we are on a "Dashboard" (not the main sidebar page), hide finalized reports
-            const isDashboard = !!tbody.closest('.dash-card-view, .dashboard-section'); 
-            if (isDashboard) {
-                const hiddenStatuses = ['Assessed', 'Evaluated', 'Sectoral Committee'];
-                all = all.filter(p => !hiddenStatuses.includes(p.status));
+            const result = await response.json();
+            let all = result.data || [];
+
+            const currentUser = (window.__CURRENT_USER__ || {});
+            const role = (currentUser.role || '').toLowerCase();
+            const userEmail = (currentUser.email || '').toLowerCase();
+            const isPdipbdPage = tbody.id === 'pdipbd-par-tbody' || tbody.id === 'dashboard-par-tbody';
+
+            if (all.length === 0) {
+                const colspan = tbody.closest('table')?.querySelectorAll('thead th').length || 6;
+                tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-5 text-muted">No assessments found.</td></tr>`;
+                if (countSpan) countSpan.textContent = 'Showing 0 entries';
+                return;
             }
+
+            tbody.innerHTML = all.map(par => {
+                let badgeClass = 'bg-secondary';
+                if (par.status === 'Assessed') badgeClass = 'bg-success';
+                if (par.status === 'For Revision') badgeClass = 'bg-warning text-dark';
+                if (par.status === 'Sectoral Committee') badgeClass = 'bg-primary';
+                if (par.status === 'Evaluated') badgeClass = 'bg-dark';
+                if (par.status === 'Reviewed') badgeClass = 'bg-info text-white';
+                if (par.status === 'Final') badgeClass = 'bg-success';
+
+                const projectTitle = par.submission?.project_title || 'Untitled';
+                const proponent = par.submission?.user?.agency?.agency_name || '—';
+                const division = par.submission?.referrals?.[0]?.to_division?.name || '—';
+                const datePrepared = par.created_at ? new Date(par.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—';
+
+                return `
+                    <tr>
+                        <td class="fw-bold text-dark">${projectTitle}</td>
+                        <td>${proponent}</td>
+                        <td><span class="badge ${badgeClass} border border-white-subtle px-3 py-1 rounded-pill">${par.status}</span></td>
+                        <td>${division}</td>
+                        <td class="small text-muted">${datePrepared}</td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown">
+                                    <i data-lucide="more-vertical" width="16"></i>
+                                </button>
+                                <ul class="dropdown-menu border-0 shadow">
+                                    <li><a class="dropdown-item py-2 edit-par" href="#" data-id="${par.id}"><i data-lucide="edit" width="14" class="me-2 text-primary"></i>View / Edit</a></li>
+                                    <li><a class="dropdown-item py-2 text-danger delete-par" href="#" data-id="${par.id}"><i data-lucide="trash-2" width="14" class="me-2"></i>Delete</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            if (countSpan) countSpan.textContent = `Showing 1 to ${all.length} of ${all.length} entries`;
+            if (window.lucide) window.lucide.createIcons();
+
+        } catch (error) {
+            console.error('Error rendering PAR table:', error);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger">Error loading data.</td></tr>`;
         }
-
-        if (all.length === 0) {
-            const colspan = tbody.closest('table')?.querySelectorAll('thead th').length || 6;
-            tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-5 text-muted">No assessments found.</td></tr>`;
-            if (countSpan) countSpan.textContent = 'Showing 0 entries';
-            return;
-        }
-
-        function _getDivBadge(div) {
-            const map = {
-                'PFPD': ['#dbeafe', '#1e40af'],
-                'PMED': ['#bfdbfe', '#1d4ed8'],
-                'DRD':  ['#e0f2fe', '#0369a1'],
-            };
-            const [bg, color] = map[div] || ['#f1f5f9', '#334155'];
-            return `<span class="badge rounded-pill fw-medium" style="background:${bg};color:${color};font-size:0.7rem;padding:0.3em 0.75em;">${div || '—'}</span>`;
-        }
-
-        tbody.innerHTML = all.map(par => {
-            let badgeClass = 'bg-secondary';
-            if (par.status === 'Review') badgeClass = 'bg-indigo';
-            if (par.status === 'Assessed') badgeClass = 'bg-success';
-            if (par.status === 'For Revision') badgeClass = 'bg-warning text-dark';
-            if (par.status === 'Sectoral Committee') badgeClass = 'bg-primary';
-            if (par.status === 'Evaluated') badgeClass = 'bg-dark';
-            if (par.status === 'Referred to PDIPBD') badgeClass = 'bg-info text-white';
-            if (par.status === 'Final') badgeClass = 'bg-success';
-
-            const ref = referrals.find(r => r.cteId === par.connectedCteId);
-            const division = ref ? ref.referredToDivision : (par.evaluatingDivision || '—');
-
-            // Decide content for the 4th column based on which table is being rendered
-            const col4Content = (tbody.id === 'staff-par-tbody')
-                ? `<span class="small text-muted">${par.preparedBy ? (par.preparedBy.split('@')[0]) : '—'}</span>`
-                : _getDivBadge(division);
-
-            return `
-                <tr>
-                    <td class="fw-bold text-dark">${par.projectTitle}</td>
-                    <td>${window.getAgencyAbbreviation ? window.getAgencyAbbreviation(par.proponent) : (par.proponent || '—')}</td>
-                    <td><span class="badge ${badgeClass} border border-white-subtle px-3 py-1 rounded-pill">${par.status}</span></td>
-                    <td>${col4Content}</td>
-                    <td class="small text-muted">${new Date(par.datePrepared).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</td>
-                    <td>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-light rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown">
-                                <i data-lucide="more-vertical" width="16"></i>
-                            </button>
-                            <ul class="dropdown-menu border-0 shadow">
-                                <li><a class="dropdown-item py-2 edit-par" href="#" data-id="${par.id}"><i data-lucide="edit" width="14" class="me-2 text-primary"></i>View / Edit</a></li>
-                                <li><a class="dropdown-item py-2 text-danger delete-par" href="#" data-id="${par.id}"><i data-lucide="trash-2" width="14" class="me-2"></i>Delete</a></li>
-                            </ul>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-
-        if (countSpan) countSpan.textContent = `Showing 1 to ${all.length} of ${all.length} entries`;
+    }
         if (window.lucide) window.lucide.createIcons();
 
         // Wire edit/delete
@@ -873,6 +810,7 @@ export function initProjectAssessmentLoader() {
 
     if (btnConfirmFinal) {
         btnConfirmFinal.onclick = async () => {
+            const fileInput = document.getElementById('finalParFileInput');
             const file = fileInput?.files[0];
             if (!file) {
                 if (window.showSimpleAlert) window.showSimpleAlert('Please upload the final technical report file.', 'warning');
@@ -880,130 +818,16 @@ export function initProjectAssessmentLoader() {
                 return;
             }
 
-            const notes = document.getElementById('finalParNotes')?.value || '';
-            const isSectoral = document.getElementById('finalParSectoralCheckbox')?.checked;
-            
-            // Convert to Base64 to save in localforage
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const base64 = e.target.result;
-                
-                const all = await _getAllPARs();
-                const editId = sessionStorage.getItem('par_edit_id');
-                const idx = all.findIndex(x => x.id === editId);
-                
-                if (idx >= 0) {
-                    all[idx].status = 'Final';
-                    all[idx].finalReportFile = {
-                        name: file.name,
-                        size: file.size,
-                        type: file.type,
-                        data: base64,
-                        uploadedAt: new Date().toISOString()
-                    };
-                    all[idx].finalizationNotes = notes;
-                    await _setAllPARs(all);
+            // Close modal (optional, _saveAssessment will redirect anyway)
+            const modal = bootstrap.Modal.getInstance(document.getElementById('uploadFinalParModal'));
+            if (modal) modal.hide();
 
-                    const connectedCteId = all[idx].connectedCteId;
-
-                    // ── Check if comments/findings exist ─────────────────────
-                    let hasFindings = false;
-                    let crIdx = -1;
-                    if (connectedCteId) {
-                        const allCR = await localforage.getItem('comments_recommendations') || [];
-                        crIdx = allCR.findIndex(cr => cr.connectedParId === editId || cr.connectedCteId === connectedCteId);
-                        if (crIdx >= 0) {
-                            hasFindings = allCR[crIdx].formData?.projects?.[0]?.findingsList?.some(f => f.findings || f.recommendations) || false;
-                        }
-                    }
-
-                    // ── Decide final CPP status ───────────────────────────────
-                    // Rule 1: Sectoral checkbox checked (& no comments) → Sectoral Presentation
-                    // Rule 2: Comments exist → For Revision (submit findings to agency)
-                    let cppStatus, cppStage, successMsg;
-
-                    if (isSectoral && !hasFindings) {
-                        cppStatus = 'Sectoral Presentation';
-                        cppStage  = 'Sectoral Committee';
-                        successMsg = 'PAR finalized. Project moved to Sectoral Presentation.';
-                    } else if (hasFindings) {
-                        cppStatus = 'For Revision';
-                        cppStage  = 'Project Appraisal';
-                        successMsg = 'PAR finalized. Findings & Recommendations submitted to agency for revision.';
-
-                        // Auto-submit the comments to the agency
-                        const allCR = await localforage.getItem('comments_recommendations') || [];
-                        if (crIdx >= 0 && allCR[crIdx].status !== 'Submitted') {
-                            allCR[crIdx].status = 'Submitted';
-                            allCR[crIdx].dateSubmitted = new Date().toISOString();
-                            await localforage.setItem('comments_recommendations', allCR);
-                        }
-                    } else {
-                        cppStatus = 'Technical Report Finalized';
-                        cppStage  = 'Finalization';
-                        successMsg = 'PAR has been successfully finalized.';
-                    }
-
-                    // ── Apply to CPP submission ───────────────────────────────
-                    // connectedCteId is the CTE validation ID (CTE-xxx), NOT the CPP submission ID.
-                    // The referral record bridges: referral.cteId → referral.submissionId → cpp_submissions
-                    if (connectedCteId) {
-                        const subs = await localforage.getItem('cpp_submissions') || [];
-                        const referrals = await localforage.getItem('project_referrals') || [];
-
-                        // Step 1: Find the referral that links this CTE to a submission
-                        const ref = referrals.find(r => r.cteId === connectedCteId);
-                        const submissionId = ref?.submissionId;
-
-                        let sIdx = -1;
-                        if (submissionId) {
-                            // Preferred: match by submissionId from referral
-                            sIdx = subs.findIndex(s => s.id === submissionId);
-                        }
-                        if (sIdx < 0) {
-                            // Fallback 1: direct ID match (in case cteId IS the submission id)
-                            sIdx = subs.findIndex(s => s.id === connectedCteId || s.cteId === connectedCteId);
-                        }
-                        if (sIdx < 0 && ref?.projectTitle) {
-                            // Fallback 2: match by project title
-                            const t = ref.projectTitle.toLowerCase().trim();
-                            sIdx = subs.findIndex(s =>
-                                (s.title || s.formData?.['f-title'] || '').toLowerCase().trim() === t
-                            );
-                        }
-
-                        if (sIdx >= 0) {
-                            subs[sIdx].status           = cppStatus;
-                            subs[sIdx].projectStatus    = cppStatus;
-                            subs[sIdx].submissionStatus = cppStatus;
-                            subs[sIdx].stage            = cppStage;
-                            await localforage.setItem('cpp_submissions', subs);
-                        } else {
-                            console.warn('[PAR Finalize] Could not find CPP submission for CTE ID:', connectedCteId, 'Referral:', ref);
-                        }
-                    }
-
-                    const modalEl = document.getElementById('uploadFinalParModal');
-                    bootstrap.Modal.getInstance(modalEl)?.hide();
-
-                    if (window.showSimpleAlert) window.showSimpleAlert(successMsg, 'success');
-                    
-                    // Redirect back
-                    if (window.switchPage) {
-                        const currentUser = (window.__CURRENT_USER__ || {});
-                        const role = (currentUser.role || '').toLowerCase();
-                        let target = 'project-assessment-report';
-                        if (role === 'admin') target = 'admin-project-assessment';
-                        else if (role.includes('division')) target = 'division-head-project-assessment';
-                        else if (role.includes('staff')) target = 'staff-project-assessment';
-                        window.switchPage(target);
-                    }
-                    setTimeout(() => initProjectAssessmentLoader(), 80);
-                }
-            };
-            reader.readAsDataURL(file);
+            // Perform the AJAX save
+            await _saveAssessment('Final');
         };
     }
+    // Initialize Lucide icons for dynamic buttons
+    if (window.lucide) window.lucide.createIcons();
 
     // Initialize Lucide icons for dynamic buttons
     if (window.lucide) window.lucide.createIcons();

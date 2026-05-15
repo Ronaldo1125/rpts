@@ -313,13 +313,7 @@ function _initController() {
                     else implErr.style.setProperty('display', 'none', 'important');
                 }
 
-                // Environmental clearance: required
-                const envDesc = document.getElementById('f-env-clearance-desc');
-                if (envDesc) {
-                    const isBlank = !envDesc.value || !envDesc.value.trim();
-                    envDesc.classList.toggle('is-invalid', isBlank);
-                    if (isBlank) valid = false;
-                }
+
 
                 // Consultation status radio group
                 const consultChecked = document.querySelector('input[name="consultation-status"]:checked');
@@ -953,15 +947,35 @@ function _initController() {
         if (cov) data['project-coverage'] = cov.value;
 
         // ── Signatures: drawn canvas or uploaded image ──
+        const signatureAttachments = [];
         ['prep', 'noted'].forEach(prefix => {
             const canvas = document.getElementById(`sig-canvas-${prefix}`);
-            if (canvas && !_isCanvasBlank(canvas)) {
-                data[`sig-${prefix}-data`] = canvas.toDataURL();
-            }
-            // Only use uploaded image if it's an actual data URI (not a placeholder src)
-            const previewImg = document.getElementById(`sig-${prefix}-upload-preview`)?.querySelector('img');
-            if (previewImg && previewImg.src && previewImg.src.startsWith('data:')) {
-                data[`sig-${prefix}-data`] = previewImg.src;
+            const preview = document.getElementById(`sig-${prefix}-upload-preview`);
+            const isUpload = document.getElementById(`sig-${prefix}-upload`)?.checked;
+
+            if (isUpload) {
+                if (preview && preview.dataset.dataUri) {
+                    signatureAttachments.push({
+                        type: `sig_${prefix}`,
+                        fileName: preview.dataset.fileName,
+                        mimeType: preview.dataset.mimeType,
+                        dataUri: preview.dataset.dataUri,
+                        desc: `Signature (${prefix === 'prep' ? 'Prepared' : 'Noted'} By)`
+                    });
+                    data[`sig-${prefix}-data`] = preview.dataset.dataUri; // Keep for legacy if needed
+                }
+            } else {
+                if (canvas && !_isCanvasBlank(canvas)) {
+                    const dataUri = canvas.toDataURL();
+                    signatureAttachments.push({
+                        type: `sig_${prefix}`,
+                        fileName: `signature_${prefix}.png`,
+                        mimeType: 'image/png',
+                        dataUri: dataUri,
+                        desc: `Signature (${prefix === 'prep' ? 'Prepared' : 'Noted'} By)`
+                    });
+                    data[`sig-${prefix}-data`] = dataUri; // Keep for legacy if needed
+                }
             }
         });
 
@@ -1014,7 +1028,19 @@ function _initController() {
             }
         });
 
-        if (attachments.length > 0) data['_attachments'] = attachments;
+        if (signatureAttachments.length > 0) {
+            signatureAttachments.forEach(sig => {
+                attachments.push({
+                    type: sig.type,
+                    name: sig.fileName,
+                    mime: sig.mimeType,
+                    data: sig.dataUri,
+                    label: sig.desc
+                });
+            });
+        }
+
+        if (attachments.length > 0) data['attachments'] = attachments;
 
         // ── Implementation Schedule ──
         const implSchedule = [];
@@ -1316,19 +1342,7 @@ function _initController() {
                 if (att.mimeType) panel.dataset.attachMimeType = att.mimeType;
                 panel.dataset.attachLabel = att.desc;
 
-                // ── Special: DED panel (bespoke HTML structure, no .upload-accordion) ──
-                if (panelId === 'ded-upload-panel') {
-                    panel.style.display = 'block';
-                    const dedDz = document.getElementById('ded-dropzone');
-                    const dedName = document.getElementById('ded-file-name');
-                    if (dedDz) { dedDz.style.borderColor = '#15803d'; dedDz.style.background = 'rgba(22,163,74,0.04)'; }
-                    if (dedName) {
-                        dedName.textContent = '✓ ' + att.fileName;
-                        dedName.style.display = 'block';
-                        dedName.style.color = '#15803d';
-                    }
-                    continue;
-                }
+
 
                 // ── Standard _createUploadZone panel ──
                 // Make the panel itself visible (it may be hidden if parent toggle is off)
@@ -2863,20 +2877,24 @@ function _initController() {
 
         // --- PAGE 1: DED Upload ---
         const ded = document.getElementById('prep-ded');
-        if (ded) ded.addEventListener('change', () => {
-            const panel = document.getElementById('ded-upload-panel');
-            if (panel) panel.style.display = ded.checked ? 'block' : 'none';
-        });
-        // Connect the existing DED dropzone in HTML
-        const dedDz = document.getElementById('ded-dropzone');
-        const dedInp = document.getElementById('ded-file-input');
-        const dedName = document.getElementById('ded-file-name');
-        if (dedDz && dedInp) {
-            dedDz.onclick = () => dedInp.click();
-            dedInp.onchange = () => {
-                if (dedInp.files.length) {
-                    dedName.textContent = '✓ ' + dedInp.files[0].name;
-                    dedName.style.display = 'block';
+        if (ded) {
+            ded.addEventListener('change', () => {
+                const panel = document.getElementById('ded-upload-panel');
+                if (!panel) return;
+                const isChecked = ded.checked;
+                panel.style.display = isChecked ? 'block' : 'none';
+                if (isChecked && panel.children.length === 0) {
+                    _createUploadZone('ded-upload-panel', 'Detailed Engineering Design Document');
+                }
+            });
+            // Initial check
+            if (ded.checked) {
+                const panel = document.getElementById('ded-upload-panel');
+                if (panel) {
+                    panel.style.display = 'block';
+                    if (panel.children.length === 0) {
+                        _createUploadZone('ded-upload-panel', 'Detailed Engineering Design Document');
+                    }
                 }
             }
         }
@@ -3387,8 +3405,12 @@ function _initController() {
                     const file = uploadInput.files[0];
                     const reader = new FileReader();
                     reader.onload = ev => {
+                        const dataUri = ev.target.result;
                         if (preview) {
-                            preview.innerHTML = `<img src="${ev.target.result}" style="max-height:100px; border-radius:6px; border:1px solid #e2e8f0; margin-top:6px;">
+                            preview.dataset.dataUri = dataUri;
+                            preview.dataset.fileName = file.name;
+                            preview.dataset.mimeType = file.type;
+                            preview.innerHTML = `<img src="${dataUri}" style="max-height:100px; border-radius:6px; border:1px solid #e2e8f0; margin-top:6px;">
                                 <div class="small text-success fw-bold mt-1">✓ ${file.name}</div>`;
                         }
                     };

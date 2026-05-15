@@ -37,6 +37,10 @@ class ProjectAssessmentReportController extends Controller
 
         $reports = $query->orderBy('created_at', 'desc')->get();
 
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'data' => $reports]);
+        }
+
         return view('project_assessment_report.index', compact('reports'));
     }
 
@@ -51,10 +55,10 @@ class ProjectAssessmentReportController extends Controller
         if ($submissionId) {
             $submission = CppSubmission::with([
                 'user.agency', 
-                'location.province', 
-                'location.district', 
-                'location.municipality', 
-                'location.barangay',
+                'locations.province', 
+                'locations.district', 
+                'locations.municipality', 
+                'locations.barangay',
                 'implementation_schedules'
             ])->find($submissionId);
         }
@@ -67,14 +71,16 @@ class ProjectAssessmentReportController extends Controller
      */
     public function store(Request $request)
     {
-        $user = Auth::user();
-        
+        $user = auth()->user();
+        \Illuminate\Support\Facades\Log::info('PAR Store Request Data:', $request->all());
+        \Illuminate\Support\Facades\Log::info('PAR Store Files:', $request->allFiles());
+
         $data = $request->validate([
             'cpp_submission_id' => 'required|exists:cpp_submissions,id',
             'report_status' => 'required|string',
-            'doc_request' => 'nullable|boolean',
-            'doc_cpp_fs' => 'nullable|boolean',
-            'doc_endorsements' => 'nullable|boolean',
+            'doc_request' => 'nullable|string',
+            'doc_cpp_fs' => 'nullable|string',
+            'doc_endorsements' => 'nullable|string',
             'typology_checks' => 'nullable|array',
             'responsiveness_checks' => 'nullable|array',
             'readiness_status' => 'nullable|string',
@@ -92,9 +98,14 @@ class ProjectAssessmentReportController extends Controller
             'reviewed_by_pos' => 'nullable|string',
             'approved_by' => 'nullable|string',
             'approved_by_pos' => 'nullable|string',
-            'findings' => 'nullable|array',
             'recommendations' => 'nullable|array',
-            'is_sectoral' => 'nullable|boolean'
+            'is_sectoral' => 'nullable|boolean',
+            'endorsement_checks' => 'nullable|array',
+            'readiness_checks' => 'nullable|array',
+            'endo_sp_res_text' => 'nullable|string',
+            'endo_other_text' => 'nullable|string',
+            'final_par_file' => 'required_if:report_status,Final|file|mimes:pdf,doc,docx|max:10240',
+            'finalization_notes' => 'nullable|string'
         ]);
 
         $report = new ProjectAssessmentReport();
@@ -116,13 +127,11 @@ class ProjectAssessmentReportController extends Controller
         $report->responsiveness_data = $data['responsiveness_checks'] ?? [];
         $report->readiness_level = $data['readiness_status'] ?? null;
         
-        $report->par_analysis = [
-            'background' => $data['par_background'] ?? '',
-            'components' => $data['par_components'] ?? '',
-            'spatial' => $data['par_spatial'] ?? '',
-            'qualitative' => $data['par_qualitative'] ?? '',
-            'recommendations' => $data['par_recommendations'] ?? ''
-        ];
+        $report->par_background = $data['par_background'] ?? '';
+        $report->par_components = $data['par_components'] ?? '';
+        $report->par_spatial = $data['par_spatial'] ?? '';
+        $report->par_qualitative = $data['par_qualitative'] ?? '';
+        $report->par_recommendations = $data['par_recommendations'] ?? '';
         
         $report->final_recommendation = $data['par_final_recs'] ?? null;
         $report->annex_description = $data['annex_desc'] ?? null;
@@ -147,8 +156,23 @@ class ProjectAssessmentReportController extends Controller
         $report->approved_by_pos = $data['approved_by_pos'] ?? null;
         
         $report->is_sectoral = $request->has('is_sectoral');
+
+        // New persistent data
+        $report->endorsement_data = [
+            'checks' => $data['endorsement_checks'] ?? [],
+            'sp_res_text' => $data['endo_sp_res_text'] ?? '',
+            'other_text' => $data['endo_other_text'] ?? ''
+        ];
+        $report->readiness_data = $data['readiness_checks'] ?? [];
+        $report->finalization_notes = $data['finalization_notes'] ?? null;
         
         $report->save();
+
+        if ($request->hasFile('final_par_file')) {
+            $report->clearMediaCollection('final_technical_reports');
+            $report->addMediaFromRequest('final_par_file')
+                   ->toMediaCollection('final_technical_reports');
+        }
 
         // Link the referral to this PAR
         \App\Models\Referral::where('cipg_submission_id', $report->cpp_submission_id)
@@ -171,6 +195,10 @@ class ProjectAssessmentReportController extends Controller
             }
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Project Assessment Report saved successfully.', 'id' => $report->id]);
+        }
+
         return redirect()->route('project-assessment-reports.index')->with('success', 'Project Assessment Report saved successfully.');
     }
 
@@ -179,7 +207,20 @@ class ProjectAssessmentReportController extends Controller
      */
     public function show($id)
     {
-        // Logic for showing a specific report
+        $report = ProjectAssessmentReport::with([
+            'submission.user.agency', 
+            'submission.locations.province', 
+            'submission.locations.district', 
+            'submission.locations.municipality', 
+            'submission.locations.barangay',
+            'submission.implementation_schedules',
+            'assessor'
+        ])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $report
+        ]);
     }
 
     /**
@@ -189,10 +230,10 @@ class ProjectAssessmentReportController extends Controller
     {
         $report = ProjectAssessmentReport::with([
             'submission.user.agency', 
-            'submission.location.province', 
-            'submission.location.district', 
-            'submission.location.municipality', 
-            'submission.location.barangay',
+            'submission.locations.province', 
+            'submission.locations.district', 
+            'submission.locations.municipality', 
+            'submission.locations.barangay',
             'submission.implementation_schedules',
             'assessor'
         ])->findOrFail($id);
@@ -223,6 +264,9 @@ class ProjectAssessmentReportController extends Controller
             ->latest()
             ->first();
         
+        \Illuminate\Support\Facades\Log::info('PAR Update Request Data:', $request->all());
+        \Illuminate\Support\Facades\Log::info('PAR Update Files:', $request->allFiles());
+        
         try {
             $data = $request->validate([
                 'report_status' => 'required|string',
@@ -248,6 +292,12 @@ class ProjectAssessmentReportController extends Controller
                 'approved_by_pos' => 'nullable|string',
                 'findings' => 'nullable|array',
                 'recommendations' => 'nullable|array',
+                'endorsement_checks' => 'nullable|array',
+                'readiness_checks' => 'nullable|array',
+                'endo_sp_res_text' => 'nullable|string',
+                'endo_other_text' => 'nullable|string',
+                'final_par_file' => 'required_if:report_status,Final|file|mimes:pdf,doc,docx|max:10240',
+                'finalization_notes' => 'nullable|string'
             ]);
             \Illuminate\Support\Facades\Log::info('Validation passed for PAR update');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -263,13 +313,11 @@ class ProjectAssessmentReportController extends Controller
         $report->responsiveness_data = $data['responsiveness_checks'] ?? [];
         $report->readiness_level = $data['readiness_status'] ?? 'Potential';
         
-        $report->par_analysis = [
-            'background' => $data['par_background'] ?? '',
-            'components' => $data['par_components'] ?? '',
-            'spatial' => $data['par_spatial'] ?? '',
-            'qualitative' => $data['par_qualitative'] ?? '',
-            'recommendations' => $data['par_recommendations'] ?? '',
-        ];
+        $report->par_background = $data['par_background'] ?? '';
+        $report->par_components = $data['par_components'] ?? '';
+        $report->par_spatial = $data['par_spatial'] ?? '';
+        $report->par_qualitative = $data['par_qualitative'] ?? '';
+        $report->par_recommendations = $data['par_recommendations'] ?? '';
         
         $report->final_recommendation = $data['par_final_recs'] ?? '';
         $report->annex_description = $data['annex_desc'] ?? '';
@@ -340,8 +388,23 @@ class ProjectAssessmentReportController extends Controller
         $report->approved_by_pos = $data['approved_by_pos'] ?? $report->approved_by_pos;
         
         $report->is_sectoral = $request->has('is_sectoral');
+
+        // New persistent data
+        $report->endorsement_data = [
+            'checks' => $data['endorsement_checks'] ?? [],
+            'sp_res_text' => $data['endo_sp_res_text'] ?? '',
+            'other_text' => $data['endo_other_text'] ?? ''
+        ];
+        $report->readiness_data = $data['readiness_checks'] ?? [];
+        $report->finalization_notes = $data['finalization_notes'] ?? $report->finalization_notes;
         
         $report->save();
+
+        if ($request->hasFile('final_par_file')) {
+            $report->clearMediaCollection('final_technical_reports');
+            $report->addMediaFromRequest('final_par_file')
+                   ->toMediaCollection('final_technical_reports');
+        }
 
         // ── Sectoral/Submission stage updates ────────────────────────────────────
         if ($requestedStatus === 'Final') {
@@ -411,6 +474,10 @@ class ProjectAssessmentReportController extends Controller
                     ]);
                 }
             }
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Project Assessment Report updated successfully.']);
         }
 
         return redirect()->route('project-assessment-reports.index')->with('success', 'Project Assessment Report updated successfully.');

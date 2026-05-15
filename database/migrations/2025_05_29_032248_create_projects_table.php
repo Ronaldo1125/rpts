@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('projects', function (Blueprint $table) {
@@ -17,8 +14,10 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->foreignId('component_project_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('agency_id')->constrained();
+            $table->string('fund_source');
+            $table->string('other_fund_source')->nullable();
             $table->string('status');
-            $table->decimal('funding_requirement', 9, 2)->default(0);
+            $table->decimal('funding_requirement', 15, 2)->default(0);
             $table->string('funding_category');
             $table->string('location');
             $table->string('latitude')->nullable();
@@ -29,9 +28,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('projects');

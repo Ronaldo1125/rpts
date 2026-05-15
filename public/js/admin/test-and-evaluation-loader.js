@@ -145,7 +145,20 @@ export function initTestAndEvaluationLoader() {
 
     async function renderTable() {
         if (!listTbody) return;
-        const items = await _getAll();
+        let items = await _getAll();
+        
+        // Filter out projects that have already been referred
+        const localReferrals = await localforage.getItem('project_referrals') || [];
+        items = items.filter(v => {
+            // Only hide 'Final' status ones that are referred
+            if (v.status !== 'Final') return true; 
+            
+            const alreadyReferred = localReferrals.some(ref => 
+                String(ref.cteId) === String(v.id) || 
+                String(ref.submissionId) === String(v.id)
+            );
+            return !alreadyReferred;
+        });
 
         if (items.length === 0) {
             listTbody.innerHTML = `
@@ -477,6 +490,11 @@ export function initTestAndEvaluationLoader() {
                 subs[sIdx].stage = 'Project Appraisal';
                 await localforage.setItem('cpp_submissions', subs);
             }
+
+            // ALSO: Remove from local cte_validations so it disappears from Step 1 dashboard
+            let ctes = await localforage.getItem('cte_validations') || [];
+            ctes = ctes.filter(c => String(c.id) !== String(currentCteId));
+            await localforage.setItem('cte_validations', ctes);
         }
 
         // Hide modal and cleanup

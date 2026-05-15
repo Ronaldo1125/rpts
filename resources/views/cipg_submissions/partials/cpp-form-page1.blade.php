@@ -219,34 +219,8 @@
                 <label class="form-check-label small" for="prep-ded">Detailed Engineering Design was prepared</label>
             </div>
 
-            <!-- DED Upload Panel (toggled by cpp-form.js) -->
-            <div id="ded-upload-panel" style="display:none; margin-top:0.65rem; margin-left:1.6rem;">
-                <div id="ded-dropzone" style="
-                    border: 1.5px dashed #154A9A;
-                    border-radius: 10px;
-                    background: rgba(21,74,154,0.04);
-                    padding: 1.1rem 1.25rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    cursor: pointer;
-                    transition: background 0.2s ease, border-color 0.2s ease;
-                ">
-                    <div
-                        style="width:36px;height:36px;border-radius:8px;background:rgba(21,74,154,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i data-lucide="upload-cloud" width="18" style="color:#154A9A;"></i>
-                    </div>
-                    <div style="flex:1;min-width:0;">
-                        <p class="mb-0 small fw-semibold" style="color:#154A9A;">Attach DED Document</p>
-                        <p class="mb-0" style="font-size:0.72rem;color:#94a3b8;">Click to browse or drag &amp; drop
-                            &nbsp;&middot;&nbsp; PDF, DOCX, DWG (max 20 MB)</p>
-                        <p id="ded-file-name" class="mb-0 mt-1" style="font-size:0.75rem;color:#475569;display:none;">
-                        </p>
-                    </div>
-                    <button type="button"
-                        style="flex-shrink:0;background:#154A9A;color:#fff;border:none;border-radius:7px;padding:0.38rem 0.9rem;font-size:0.72rem;font-weight:700;pointer-events:none;">Browse</button>
-                </div>
-                <input type="file" id="ded-file-input" accept=".pdf,.doc,.docx,.dwg" style="display:none;">
+            <!-- DED Upload Panel (handled by cpp-form.js) -->
+            <div id="ded-upload-panel" style="display:none; padding-top:0.25rem; margin-left:1.6rem;">
             </div>
         </div>
     </div>

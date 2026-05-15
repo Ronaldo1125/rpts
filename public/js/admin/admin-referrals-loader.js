@@ -35,18 +35,33 @@ export async function initAdminReferralsLoader() {
         return [];
     }
 
+    async function _saveReferrals(items) {
+        await localforage.setItem('project_referrals', items);
+    }
+    
     async function renderTable() {
         let items = await _getReferrals();
-        const countLabel = document.getElementById('admin-referral-count');
-        if (countLabel) countLabel.textContent = `Showing ${items.length > 0 ? 1 : 0} to ${items.length} of ${items.length} entries`;
+        const localReferrals = await localforage.getItem('project_referrals') || [];
         
-        if (items.length === 0) {
+        // Merge local and server referrals (prefer local for immediate feedback)
+        const combinedMap = new Map();
+        items.forEach(r => combinedMap.set(String(r.id), r));
+        localReferrals.forEach(r => combinedMap.set(String(r.id), r));
+        let allItems = Array.from(combinedMap.values());
+        
+        // Sort by date desc
+        allItems.sort((a, b) => new Date(b.referralDate) - new Date(a.referralDate));
+
+        const countLabel = document.getElementById('admin-referral-count');
+        if (countLabel) countLabel.textContent = `Showing ${allItems.length > 0 ? 1 : 0} to ${allItems.length} of ${allItems.length} entries`;
+        
+        if (allItems.length === 0) {
             referralTable.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">No referrals found.</td></tr>`;
             return;
         }
 
-        referralTable.innerHTML = items.map(ref => `
-            <tr>
+        referralTable.innerHTML = allItems.map(ref => `
+            <tr data-id="${ref.id}">
                 <td class="py-3">
                     <div class="fw-bold text-dark">${ref.projectTitle}</div>
                     <div class="text-muted" style="font-size: 0.70rem;">Agency: ${ref.agency || 'N/A'}</div>
@@ -81,12 +96,24 @@ export async function initAdminReferralsLoader() {
     }
 
     function _attachHandlers() {
-        document.querySelectorAll('.delete-referral').forEach(btn => {
-            btn.onclick = async () => {
+        referralTable.querySelectorAll('.delete-referral').forEach(btn => {
+            btn.onclick = async (e) => {
+                e.preventDefault();
                 if (confirm('Are you sure you want to remove this referral?')) {
                     const id = btn.dataset.id;
-                    const all = await _getReferrals();
-                    await _saveReferrals(all.filter(r => r.id !== id));
+                    
+                    // Remove from localforage
+                    const local = await localforage.getItem('project_referrals') || [];
+                    await _saveReferrals(local.filter(r => String(r.id) !== String(id)));
+                    
+                    // Also try to delete from server
+                    try {
+                        await fetch(`/referrals/${id}`, { 
+                            method: 'DELETE',
+                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') }
+                        });
+                    } catch (e) { console.error('Server delete failed', e); }
+
                     renderTable();
                 }
             };
@@ -111,7 +138,8 @@ export async function initAdminReferralsLoader() {
     if (newReferralBtn) {
         newReferralBtn.onclick = () => {
             _populateProjects();
-            new bootstrap.Modal(document.getElementById('adminNewReferralModal')).show();
+            const modal = new bootstrap.Modal(document.getElementById('adminNewReferralModal'));
+            modal.show();
         };
     }
 
@@ -131,6 +159,7 @@ export async function initAdminReferralsLoader() {
             const newRef = {
                 id: `REF-${Date.now()}`,
                 cteId: fd.get('projectSelect'),
+                submissionId: fd.get('projectSelect'),
                 projectTitle: selectedOpt.dataset.projectTitle,
                 agency: selectedOpt.dataset.agency,
                 referrerName: currentUser.email || 'Admin',
@@ -139,16 +168,58 @@ export async function initAdminReferralsLoader() {
                 referralDate: new Date().toISOString(),
                 referralNotes: fd.get('referralNotes'),
                 status: 'Pending PAR',
+                stage: 'Completeness Test',
                 assignedStaff: ''
             };
 
-            const all = await _getReferrals();
-            all.unshift(newRef);
-            await _saveReferrals(all);
+            // Save locally first for immediate UI update
+            const local = await localforage.getItem('project_referrals') || [];
+            local.unshift(newRef);
+            await _saveReferrals(local);
 
-            bootstrap.Modal.getInstance(document.getElementById('adminNewReferralModal')).hide();
+            // Hide modal and reset
+            const modal = bootstrap.Modal.getInstance(document.getElementById('adminNewReferralModal'));
+            if (modal) modal.hide();
             referralForm.reset();
+            
+            // Re-render immediately
             renderTable();
+
+            // Then try to persist to server
+            try {
+                const resp = await fetch('/referrals', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        cipg_submission_id: newRef.cteId,
+                        to_division_id: newRef.referredToDivision === 'PMED' ? 2 : (newRef.referredToDivision === 'PFPD' ? 3 : 4),
+                        notes: newRef.referralNotes
+                    })
+                });
+                if (resp.ok) {
+                    const result = await resp.json();
+                    if (result.success && result.id) {
+                        // Update local ID with server ID
+                        const updated = await localforage.getItem('project_referrals') || [];
+                        const idx = updated.findIndex(r => r.id === newRef.id);
+                        if (idx >= 0) {
+                            updated[idx].id = String(result.id);
+                            await _saveReferrals(updated);
+                        }
+                    }
+
+                    // Refresh other tables if they exist
+                    if (window.initAdminCipgTable) window.initAdminCipgTable();
+                    if (window.initEvaluationStage) window.initEvaluationStage();
+                    if (window.initTestAndEvaluationLoader) window.initTestAndEvaluationLoader();
+                }
+            } catch (e) {
+                console.error('Server persist failed', e);
+            }
         };
     }
 

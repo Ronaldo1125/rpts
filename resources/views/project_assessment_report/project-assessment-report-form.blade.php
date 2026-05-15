@@ -49,12 +49,12 @@
                         </div>
                         <button type="button" class="btn btn-sm btn-outline-primary px-3 rounded-pill fw-bold fs-0-75"
                             id="viewSourceCppBtn" onclick="window.open('{{ route('v2.cipg_submissions.show', $submission->id) }}', '_blank')">
-                            <i data-lucide="file-text" class="me-1" width="14"></i> View Source
+                            <i data-lucide="file-text" class="me-1" width="14"></i> View CPP
                         </button>
                     </div>
                 </div>
 
-                <form id="parFormMain" action="{{ isset($report) ? route('project-assessment-reports.update', $report->id) : route('project-assessment-reports.store') }}" method="POST" novalidate>
+                <form id="parFormMain" action="{{ isset($report) ? route('project-assessment-reports.update', $report->id) : route('project-assessment-reports.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                     @csrf
                     @if(isset($report))
                         @method('PUT')
@@ -217,43 +217,43 @@
                     </div>
                     <div class="criteria-group">
                         <div class="form-check criteria-item">
-                            <input class="form-check-input" type="checkbox" name="doc_request" id="doc1_f" {{ (isset($report) && $report->doc_request) ? 'checked' : '' }}>
+                            <input class="form-check-input" type="checkbox" name="doc_request" value="1" id="doc1_f" {{ (isset($report) && $report->doc_request) ? 'checked' : '' }}>
                             <label class="form-check-label fw-semibold" for="doc1_f">Official request for the project's
                                 inclusion in the RDIP</label>
                         </div>
                         <div class="form-check criteria-item">
-                            <input class="form-check-input" type="checkbox" name="doc_cpp_fs" id="doc2_f" {{ (isset($report) && $report->doc_cpp_fs) ? 'checked' : '' }}>
+                            <input class="form-check-input" type="checkbox" name="doc_cpp_fs" value="1" id="doc2_f" {{ (isset($report) && $report->doc_cpp_fs) ? 'checked' : '' }}>
                             <label class="form-check-label fw-semibold" for="doc2_f">Comprehensive Project Profile /
                                 Feasibility Study / Pre-Feasibility Study</label>
                         </div>
                         <div class="form-check criteria-item">
-                            <input class="form-check-input" type="checkbox" name="doc_endorsements" id="doc3_f" {{ (isset($report) && $report->doc_endorsements) ? 'checked' : '' }}>
+                            <input class="form-check-input" type="checkbox" name="doc_endorsements" value="1" id="doc3_f" {{ (isset($report) && $report->doc_endorsements) ? 'checked' : '' }}>
                             <label class="form-check-label fw-semibold" for="doc3_f">Endorsements (any of the following when
                                 applicable)</label>
 
                             <div class="sub-criteria">
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="endo1_f">
+                                    <input class="form-check-input" type="checkbox" name="endorsement_checks[]" value="SP Resolution" id="endo1_f" {{ (isset($report) && is_array($report->endorsement_data['checks'] ?? null) && in_array('SP Resolution', $report->endorsement_data['checks'])) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="endo1_f">Sangguniang Panlalawigan Resolution
-                                        approving the PAP: <input type="text"
-                                            class="form-control d-inline-block border-0 border-bottom bg-transparent py-0 rounded-pill px-3 w-300px h-auto"></label>
+                                        approving the PAP: <input type="text" name="endo_sp_res_text"
+                                            class="form-control d-inline-block border-0 border-bottom bg-transparent py-0 rounded-pill px-3 w-300px h-auto" value="{{ $report->endorsement_data['sp_res_text'] ?? '' }}"></label>
                                 </div>
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="endo2_f">
+                                    <input class="form-check-input" type="checkbox" name="endorsement_checks[]" value="SB Resolution" id="endo2_f" {{ (isset($report) && is_array($report->endorsement_data['checks'] ?? null) && in_array('SB Resolution', $report->endorsement_data['checks'])) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="endo2_f">Sangguniang Panlungsod resolution or
                                         ordinance approving the PAPs</label>
                                 </div>
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="endo3_f">
+                                    <input class="form-check-input" type="checkbox" name="endorsement_checks[]" value="Board Endorsement" id="endo3_f" {{ (isset($report) && is_array($report->endorsement_data['checks'] ?? null) && in_array('Board Endorsement', $report->endorsement_data['checks'])) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="endo3_f">Endorsement of the Board of
                                         Trustees/Regents for projects to be implemented by state universities and
                                         colleges</label>
                                 </div>
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="endo4_f">
+                                    <input class="form-check-input" type="checkbox" name="endorsement_checks[]" value="Other" id="endo4_f" {{ (isset($report) && is_array($report->endorsement_data['checks'] ?? null) && in_array('Other', $report->endorsement_data['checks'])) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="endo4_f">Other endorsements (pls specify) <input
-                                            type="text"
-                                            class="form-control d-inline-block border-0 border-bottom bg-transparent py-0 rounded-pill px-3 w-300px h-auto"></label>
+                                            type="text" name="endo_other_text"
+                                            class="form-control d-inline-block border-0 border-bottom bg-transparent py-0 rounded-pill px-3 w-300px h-auto" value="{{ $report->endorsement_data['other_text'] ?? '' }}"></label>
                                 </div>
                             </div>
                         </div>
@@ -378,47 +378,47 @@
                         <h6 class="fw-bold text-dark mt-4 mb-3">3. Readiness</h6>
                         <div class="sub-criteria ms-0">
                             <div class="form-check criteria-item">
-                                <input class="form-check-input" type="checkbox" id="ready1_f">
+                                <input class="form-check-input" type="checkbox" name="readiness_checks[]" value="Completed preparation" id="ready1_f" {{ (isset($report) && is_array($report->readiness_data) && in_array('Completed preparation', $report->readiness_data)) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="ready1_f">With completed project preparation
                                     documents</label>
                             </div>
                             <div class="form-check criteria-item">
-                                <input class="form-check-input" type="checkbox" id="ready2_f">
+                                <input class="form-check-input" type="checkbox" name="readiness_checks[]" value="NEP next year" id="ready2_f" {{ (isset($report) && is_array($report->readiness_data) && in_array('NEP next year', $report->readiness_data)) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="ready2_f">For inclusion in the NEP for the next fiscal
                                     year</label>
                             </div>
                             <div class="form-check criteria-item">
-                                <input class="form-check-input" type="checkbox" id="ready3_f">
+                                <input class="form-check-input" type="checkbox" name="readiness_checks[]" value="Preparing documents" id="ready3_f" {{ (isset($report) && is_array($report->readiness_data) && in_array('Preparing documents', $report->readiness_data)) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="ready3_f">With project preparation document currently
                                     being prepared and to be completed in the current fiscal year</label>
                             </div>
                             <div class="form-check criteria-item">
-                                <input class="form-check-input" type="checkbox" id="ready4_f">
+                                <input class="form-check-input" type="checkbox" name="readiness_checks[]" value="NEP succeeding year" id="ready4_f" {{ (isset($report) && is_array($report->readiness_data) && in_array('NEP succeeding year', $report->readiness_data)) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="ready4_f">For inclusion in the NEP for the succeeding
                                     fiscal year</label>
                             </div>
                             <div class="form-check criteria-item">
-                                <input class="form-check-input" type="checkbox" id="ready5_f">
+                                <input class="form-check-input" type="checkbox" name="readiness_checks[]" value="Documents next year" id="ready5_f" {{ (isset($report) && is_array($report->readiness_data) && in_array('Documents next year', $report->readiness_data)) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="ready5_f">With project preparation documents for
                                     completion in the next fiscal year</label>
                             </div>
                             <div class="form-check criteria-item">
-                                <input class="form-check-input" type="checkbox" id="ready6_f">
+                                <input class="form-check-input" type="checkbox" name="readiness_checks[]" value="NEP beyond" id="ready6_f" {{ (isset($report) && is_array($report->readiness_data) && in_array('NEP beyond', $report->readiness_data)) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="ready6_f">For inclusion in the NEP for beyond fiscal
                                     year of the current administration</label>
                             </div>
                             <div class="form-check criteria-item">
-                                <input class="form-check-input" type="checkbox" id="ready7_f">
+                                <input class="form-check-input" type="checkbox" name="readiness_checks[]" value="Completed ROW/RAP" id="ready7_f" {{ (isset($report) && is_array($report->readiness_data) && in_array('Completed ROW/RAP', $report->readiness_data)) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="ready7_f">With completed Right of Way acquisition and
                                     Resettlement Action Plan (when applicable)</label>
                             </div>
                             <div class="form-check criteria-item">
-                                <input class="form-check-input" type="checkbox" id="ready8_f">
+                                <input class="form-check-input" type="checkbox" name="readiness_checks[]" value="Ongoing ROW/RAP" id="ready8_f" {{ (isset($report) && is_array($report->readiness_data) && in_array('Ongoing ROW/RAP', $report->readiness_data)) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="ready8_f">With ongoing Right of Way acquisition and
                                     Resettlement Action Plan (when applicable)</label>
                             </div>
                             <div class="form-check criteria-item">
-                                <input class="form-check-input" type="checkbox" id="ready9_f">
+                                <input class="form-check-input" type="checkbox" name="readiness_checks[]" value="Without ROW/RAP" id="ready9_f" {{ (isset($report) && is_array($report->readiness_data) && in_array('Without ROW/RAP', $report->readiness_data)) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="ready9_f">Without Right of Way acquisition and
                                     Resettlement Action Plan (when applicable)</label>
                             </div>
@@ -434,32 +434,32 @@
                         <div class="mb-4">
                             <label class="form-label text-secondary">A. Background</label>
                             <textarea class="form-control" name="par_background" rows="4"
-                                placeholder="Detail the project background and rationale..."></textarea>
+                                placeholder="Detail the project background and rationale...">{{ $report->par_background ?? '' }}</textarea>
                         </div>
                         <div class="mb-4">
                             <label class="form-label text-secondary">B. Project components, Cost and Financing, and
                                 Implementation Schedule</label>
                             <textarea class="form-control" name="par_components" rows="4"
-                                placeholder="Detail the components, budget, and timeline..."></textarea>
+                                placeholder="Detail the components, budget, and timeline...">{{ $report->par_components ?? '' }}</textarea>
                         </div>
 
                         <h6 class="fw-bold text-dark mt-4 mb-3">2. Assessment</h6>
                         <div class="mb-4">
                             <label class="form-label text-secondary">A. Project's Regional and Spatial Context</label>
                             <textarea class="form-control" name="par_spatial" rows="4"
-                                placeholder="Assess spatial alignment and regional impact..."></textarea>
+                                placeholder="Assess spatial alignment and regional impact...">{{ $report->par_spatial ?? '' }}</textarea>
                         </div>
                         <div class="mb-4">
                             <label class="form-label text-secondary">B. Qualitative Technical, Market, Economic, Social, and
                                 Environmental Evaluation</label>
                             <textarea class="form-control" name="par_qualitative" rows="4"
-                                placeholder="Provide multi-dimensional qualitative assessment..."></textarea>
+                                placeholder="Provide multi-dimensional qualitative assessment...">{{ $report->par_qualitative ?? '' }}</textarea>
                         </div>
 
                         <h6 class="fw-bold text-dark mt-4 mb-3">3. Recommendations</h6>
                         <div class="mb-4">
                             <textarea class="form-control" name="par_recommendations" rows="3"
-                                placeholder="Enter initial recommendations..."></textarea>
+                                placeholder="Enter initial recommendations...">{{ $report->par_recommendations ?? '' }}</textarea>
                         </div>
 
                         <h6 class="fw-bold text-dark mt-4 mb-3">4. Final Recommendations</h6>
@@ -485,7 +485,7 @@
 
                             <!-- Budgetary Requirements Table -->
                             <label class="form-label small fw-semibold text-secondary mb-2">Budgetary Requirements (in
-                                PhP)</label>
+                                Million)</label>
                             <div class="table-responsive border rounded-3 overflow-hidden mb-0">
                                 <table class="table table-bordered table-sm align-middle mb-0 text-center"
                                     style="font-size: 0.75rem; min-width: 600px;">
@@ -699,7 +699,7 @@
                         <i data-lucide="file-text" width="32" class="text-muted mb-2"></i>
                         <p class="small fw-semibold text-dark mb-1">Click to browse or drag & drop</p>
                         <p class="x-small text-muted mb-0">PDF or DOCX files accepted (Max 10MB)</p>
-                        <input type="file" id="finalParFileInput" class="d-none" accept=".pdf,.doc,.docx">
+                        <input type="file" id="finalParFileInput" name="final_par_file" class="d-none" accept=".pdf,.doc,.docx">
                     </div>
 
                     <div id="finalParFileNameDisplay"
@@ -722,7 +722,7 @@
 
                     <div class="mt-3">
                         <label class="small fw-bold text-dark mb-2 d-block">Completion Notes</label>
-                        <textarea id="finalParNotes" class="form-control border-0 bg-light rounded-3 small" rows="3"
+                        <textarea id="finalParNotes" name="finalization_notes" class="form-control border-0 bg-light rounded-3 small" rows="3"
                             style="resize: none;" placeholder="Provide any final remarks regarding this PAR..."></textarea>
                     </div>
                 </div>

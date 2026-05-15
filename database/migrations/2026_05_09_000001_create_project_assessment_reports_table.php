@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('project_assessment_reports', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cpp_submission_id')->constrained('cpp_submissions')->onDelete('cascade');
-            $table->foreignId('referral_id')->nullable()->constrained('referrals')->onDelete('set null');
+            // NOTE: referral_id was removed from this table; the link is now on referrals.par_id
 
             // Workflow Tracking (System User IDs)
             $table->foreignId('assessor_id')->constrained('users');

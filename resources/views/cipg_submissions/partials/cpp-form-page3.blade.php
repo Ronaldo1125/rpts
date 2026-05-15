@@ -107,14 +107,12 @@
         <div class="invalid-feedback">Implementation arrangement is required.</div>
     </div>
 
-    <!-- 4. Environmental Clearance -->
     <div class="mb-4">
         <label class="form-label small fw-semibold text-secondary">
-            4. Environmental Clearance <span class="text-danger">*</span>
+            4. Environmental Clearance
         </label>
         <textarea class="form-control mb-3" id="f-env-clearance-desc" name="f-env-clearance-desc" rows="3"
-            placeholder="Discuss ECC compliance. Legal impediments/political opposition if any. This section discusses the project's effects to the environment, disaster risk reduction/cliimate change adaptation, and mitigating measures in case of negative effects. The ECC shall be attached to the CPP, if available."
-            data-required></textarea>
+            placeholder="Discuss ECC compliance. Legal impediments/political opposition if any. This section discusses the project's effects to the environment, disaster risk reduction/cliimate change adaptation, and mitigating measures in case of negative effects. The ECC shall be attached to the CPP, if available."></textarea>
         <div class="invalid-feedback">Environmental clearance discussion is required.</div>
 
         <div id="env-clearance-upload-panel"></div>
@@ -139,7 +137,7 @@
                     No, but it will be conducted on:
                 </label>
                 <input type="date" class="form-control form-control-sm" id="f-consult-planned-date" name="f-consult-planned-date"
-                    style="max-width:180px;">
+                    style="max-width:180px;" disabled>
             </div>
             <div class="form-check d-flex align-items-center gap-2 flex-wrap">
                 <input class="form-check-input mt-0" type="radio" name="consultation-status" id="consult-yes"
@@ -151,17 +149,17 @@
                 <!-- Multi-date tag picker -->
                 <div id="consult-dates-box" style="display:inline-flex; align-items:center; flex-wrap:wrap; gap:0.35rem;
                            border:1.5px solid #dee2e6; border-radius:8px; padding:0.3rem 0.5rem;
-                           min-width:220px; max-width:380px; background:#fff; cursor:pointer;
-                           transition: border-color 0.2s;" id="consult-dates-box"
+                           min-width:220px; max-width:380px; background:#f8fafc; cursor:not-allowed;
+                           transition: border-color 0.2s; opacity:0.6; pointer-events:none;"
                     title="Click the calendar to add a date">
                     <!-- Tags injected here by JS -->
                     <span class="consult-date-add d-flex align-items-center gap-1 small text-secondary"
-                        style="cursor:pointer; user-select:none; white-space:nowrap;">
+                        style="user-select:none; white-space:nowrap;">
                         <i data-lucide="calendar" width="14" style="color:#154A9A;"></i>
                         <span id="consult-dates-placeholder">Pick date(s)</span>
                     </span>
                     <input type="date" id="consult-date-picker"
-                        style="position:absolute; opacity:0; pointer-events:none; width:0; height:0;" tabindex="-1">
+                        style="position:absolute; opacity:0; pointer-events:none; width:0; height:0;" tabindex="-1" disabled>
                 </div>
                 <input type="hidden" id="f-consult-done-dates" name="f-consult-done-dates">
 

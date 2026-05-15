@@ -159,8 +159,101 @@ window.validateStep = function(step) {
         }
     });
 
-    // Special check for Implementation Schedule in Step 3
+    // --- STEP 1: Conditional File Upload Requirements ---
+    if (step === 1) {
+        const checkConditionalUpload = (triggerElId, panelId, errorMsg) => {
+            const trigger = document.getElementById(triggerElId);
+            const panel = document.getElementById(panelId);
+            if (trigger && panel) {
+                const isActive = (trigger.type === 'checkbox') ? trigger.checked : (trigger.value && trigger.value.trim() !== '');
+                const hasFile = panel.dataset.attachDataUri || panel.dataset.attachExistingUrl;
+                
+                if (isActive && !hasFile) {
+                    window.showToast?.(errorMsg, "warning");
+                    panel.style.border = '1px solid #ef4444';
+                    panel.style.borderRadius = '10px';
+                    stepValid = false;
+                } else {
+                    panel.style.border = 'none';
+                }
+            }
+        };
+
+        // 1. DED
+        checkConditionalUpload('prep-ded', 'ded-upload-panel', "Please upload the Detailed Engineering Design (DED) document.");
+        
+        // 2. Endorsements
+        checkConditionalUpload('f-sp-res', 'sp-upload-panel', "Please upload the SP Resolution document.");
+        checkConditionalUpload('f-sb-res', 'sb-upload-panel', "Please upload the SB Resolution document.");
+        checkConditionalUpload('f-letter-req', 'letter-upload-panel', "Please upload the Letter Request document.");
+        checkConditionalUpload('f-bor-res', 'bor-upload-panel', "Please upload the BOR/BOT Resolution document.");
+    }
+
+    // --- STEP 3: More Conditional Requirements ---
     if (step === 3) {
+        const checkConditionalUpload = (triggerElId, panelId, errorMsg) => {
+            const trigger = document.getElementById(triggerElId);
+            const panel = document.getElementById(panelId);
+            if (trigger && panel) {
+                const isActive = (trigger.type === 'checkbox' || trigger.type === 'radio') ? trigger.checked : (trigger.value && trigger.value.trim() !== '');
+                const hasFile = panel.dataset.attachDataUri || panel.dataset.attachExistingUrl;
+                
+                if (isActive && !hasFile) {
+                    window.showToast?.(errorMsg, "warning");
+                    panel.style.border = '1px solid #ef4444';
+                    panel.style.borderRadius = '10px';
+                    stepValid = false;
+                } else {
+                    panel.style.border = 'none';
+                }
+            }
+        };
+
+        // 1. Environmental Clearance
+        checkConditionalUpload('f-env-clearance-desc', 'env-clearance-upload-panel', "Please upload the Environmental Clearance document.");
+        
+        // 2. Public Consultation
+        const consultYes = document.getElementById('consult-yes');
+        const consultNo = document.getElementById('consult-no');
+        const plannedDate = document.getElementById('f-consult-planned-date');
+        const doneDates = document.getElementById('f-consult-done-dates');
+        const datesBox = document.getElementById('consult-dates-box');
+
+        if (consultYes && consultYes.checked) {
+            // Validate File
+            const panel = document.getElementById('consult-yes-panel');
+            const hasFile = panel?.dataset.attachDataUri || panel?.dataset.attachExistingUrl;
+            if (!hasFile) {
+                window.showToast?.("Please upload the Public Consultation Documentation.", "warning");
+                if (panel) { panel.style.border = '1px solid #ef4444'; panel.style.borderRadius = '10px'; }
+                stepValid = false;
+            } else if (panel) {
+                panel.style.border = 'none';
+            }
+
+            // Validate Dates
+            if (doneDates && (!doneDates.value || doneDates.value.trim() === '')) {
+                window.showToast?.("Please pick the date(s) when the consultation was conducted.", "warning");
+                if (datesBox) datesBox.style.setProperty('border-color', '#ef4444', 'important');
+                stepValid = false;
+            } else if (datesBox) {
+                datesBox.style.setProperty('border-color', '#dee2e6', 'important');
+            }
+        } else if (consultNo && consultNo.checked) {
+            // Validate Planned Date
+            if (plannedDate && (!plannedDate.value || plannedDate.value.trim() === '')) {
+                window.showToast?.("Please provide the planned date for the public consultation.", "warning");
+                plannedDate.classList.add('is-invalid');
+                stepValid = false;
+            } else if (plannedDate) {
+                plannedDate.classList.remove('is-invalid');
+            }
+        }
+
+        // 3. HGDG
+        checkConditionalUpload('f-hgdg', 'hgdg-upload-panel', "Please upload the HGDG Checklist document.");
+
+        // Implementation schedule: require at least one non-empty row
         const implBody = document.getElementById('impl-schedule-body');
         const implErr = document.getElementById('impl-schedule-err');
         if (implBody && implErr) {
@@ -187,6 +280,56 @@ window.validateStep = function(step) {
                 consultErr.style.setProperty('display', 'none', 'important');
             }
         }
+    }
+
+    // --- STEP 5: Mandatory Geotagged Photo & Geolocation ---
+    if (step === 5) {
+        // 1. Geotagged Photo
+        const geoPreview = document.getElementById('geo-photo-preview');
+        const geoZone = document.getElementById('geo-photo-zone');
+        if (geoPreview) {
+            const hasPhoto = geoPreview.dataset.dataUri || geoPreview.dataset.existingUrl;
+            if (!hasPhoto) {
+                window.showToast?.("Please upload a geotagged photo or location map.", "warning");
+                if (geoZone) geoZone.style.setProperty('border-color', '#ef4444', 'important');
+                stepValid = false;
+            } else {
+                if (geoZone) geoZone.style.setProperty('border-color', '#cbd5e1', 'important');
+            }
+        }
+
+        // 2. Geolocation Coordinates (Manual check to ensure feedback is shown)
+        const geoInputs = panel.querySelectorAll('input[name^="f-geo-"]');
+        geoInputs.forEach(inp => {
+            if (inp.hasAttribute('data-required')) {
+                const isBlank = !inp.value || !inp.value.trim();
+                inp.classList.toggle('is-invalid', isBlank);
+                const feedback = inp.nextElementSibling;
+                if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.style.display = isBlank ? 'block' : 'none';
+                }
+                if (isBlank) stepValid = false;
+            }
+        });
+
+        // 3. Other Attachments
+        const attRows = document.querySelectorAll('#other-attachments-list .attachment-row');
+        attRows.forEach(row => {
+            const descEl = row.querySelector('input[type="text"]');
+            const previewEl = row.querySelector('[id$="-preview"]');
+            const zoneEl = row.querySelector('[id$="-zone"]');
+            if (descEl && previewEl && zoneEl) {
+                const hasDesc = descEl.value && descEl.value.trim() !== '';
+                const hasFile = previewEl.dataset.dataUri || previewEl.dataset.existingUrl;
+                if (hasDesc && !hasFile) {
+                    window.showToast?.("Please upload the file for '" + descEl.value + "'", "warning");
+                    zoneEl.style.setProperty('border-color', '#ef4444', 'important');
+                    stepValid = false;
+                } else {
+                    zoneEl.style.setProperty('border-color', '#cbd5e1', 'important');
+                }
+            }
+        });
     }
 
     return stepValid;

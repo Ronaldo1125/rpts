@@ -11,10 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('projects', function (Blueprint $table) {
-            if (!Schema::hasColumn('projects', 'funding_requirement')) {
-                $table->decimal('funding_requirement', 15, 2)->default(0)->after('status');
-            }
+        Schema::table('project_assessment_reports', function (Blueprint $table) {
+            $table->text('finalization_notes')->nullable()->after('is_sectoral');
         });
     }
 
@@ -23,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('projects', function (Blueprint $table) {
-            $table->dropColumn('funding_requirement');
+        Schema::table('project_assessment_reports', function (Blueprint $table) {
+            $table->dropColumn(['finalization_notes']);
         });
     }
 };

@@ -132,4 +132,9 @@ class CppSubmission extends Model implements HasMedia
     {
         return $this->hasOne(ProjectAssessmentReport::class, 'cpp_submission_id');
     }
+
+    public function comments_and_recommendations()
+    {
+        return $this->hasMany(CommentAndRecommendation::class, 'cpp_submission_id');
+    }
 }

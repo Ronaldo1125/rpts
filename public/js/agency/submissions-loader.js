@@ -351,77 +351,6 @@ export function initSubmissionsLoader() {
             return (val || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
-        document.querySelectorAll('.attachments-sub').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const title = btn.dataset.title || 'Untitled Project';
-                let attachments = [];
-                try {
-                    attachments = JSON.parse(btn.dataset.attachments || '[]');
-                } catch (err) {
-                    // Fallback to localforage if data-attachments is missing (for drafts)
-                    const id = btn.dataset.id;
-                    const all = await localforage.getItem('cpp_submissions') || [];
-                    const sub = all.find(s => s.id === id);
-                    if (sub) {
-                        attachments = Array.isArray(sub.formData?.['_attachments']) ? sub.formData['_attachments'].map(a => ({
-                            name: a.fileName,
-                            url: a.data,
-                            type: a.type || 'other',
-                            label: a.desc
-                        })) : [];
-                    }
-                }
-
-                const listEl = document.getElementById('attachments-modal-list');
-                const titleEl = document.getElementById('attachments-modal-project-title');
-                if (titleEl) titleEl.textContent = title;
-
-                if (listEl) {
-                    if (attachments.length === 0) {
-                        listEl.innerHTML = '<div class="text-center py-4 text-muted small"><i data-lucide="paperclip" width="32" class="mb-2 opacity-30"></i><p class="mb-0">No attachments found</p></div>';
-                    } else {
-                        listEl.innerHTML = `
-                            <div class="d-flex flex-column gap-2">
-                                ${attachments.map(a => {
-                                    const displayLabel = typeMap[a.type] || a.label || normalizeAttachmentType(a);
-                                    return `
-                                        <a href="${a.url || '#'}" target="_blank" rel="noopener noreferrer"
-                                           class="list-group-item list-group-item-action rounded-3 border d-block mb-2"
-                                           style="border-color:#e2e8f0 !important; transition: all 0.2s;">
-                                            <div class="d-flex align-items-center justify-content-between gap-3">
-                                                <div class="d-flex align-items-center gap-3">
-                                                    <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle" 
-                                                         style="width:40px; height:40px; background:rgba(21, 74, 154, 0.08); color:#154A9A;">
-                                                        <i data-lucide="file-text" width="18"></i>
-                                                    </div>
-                                                    <div>
-                                                        <p class="mb-1 fw-bold text-dark" style="font-size:0.92rem; line-height:1.2;">${escapeHtml(a.name || 'Unnamed attachment')}</p>
-                                                        <div class="d-flex flex-wrap gap-2">
-                                                            <span class="badge rounded-pill" style="background:#f1f5f9; color:#475569; font-size:0.68rem; font-weight:600; border:1px solid #e2e8f0;">
-                                                                ${escapeHtml(displayLabel)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <span class="btn btn-sm btn-outline-primary rounded-pill px-4 fw-bold" style="font-size:0.75rem;">Open</span>
-                                            </div>
-                                        </a>
-                                    `;
-                                }).join('')}
-                            </div>
-                        `;
-                    }
-                    if (window.lucide) window.lucide.createIcons();
-                }
-
-                const modalEl = document.getElementById('attachmentsModal');
-                if (modalEl && window.bootstrap?.Modal) {
-                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                }
-            });
-        });
-
         document.querySelectorAll('.par-feedback-sub').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -499,34 +428,6 @@ export function initSubmissionsLoader() {
             });
         });
 
-        document.querySelectorAll('.download-par-sub').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const parId = btn.dataset.id;
-                const allPars = await localforage.getItem('project_assessments') || [];
-                const par = allPars.find(p => p.id === parId);
-                
-                if (par && par.finalReportFile) {
-                    const file = par.finalReportFile;
-                    if (window.showSimpleAlert) {
-                        window.showSimpleAlert(`Starting download: ${file.name}`, 'info');
-                    }
-                    console.log('[DownloadPAR] File:', file);
-                    // Actual file data would be in file.data (Base64)
-                    if (file.data) {
-                        const link = document.createElement('a');
-                        link.href = file.data;
-                        link.download = file.name;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    }
-                } else {
-                    if (window.showSimpleAlert) window.showSimpleAlert('Final PAR document not found.', 'error');
-                }
-            });
-        });
-
         document.querySelectorAll('.history-sub').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -570,63 +471,6 @@ export function initSubmissionsLoader() {
         });
     }
 
-    function _showFeedbackModal(title, feedback) {
-        const existing = document.getElementById('agency-feedback-modal');
-        if (existing) {
-            const old = bootstrap.Modal.getInstance(existing);
-            if (old) old.dispose();
-            existing.remove();
-        }
-
-        const html = `
-        <div class="modal fade" id="agency-feedback-modal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow-lg" style="border-radius:20px; overflow:hidden;">
-                    <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #e11d48 0%, #fb7185 100%); color:#fff; padding:1.75rem 2rem;">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-white rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                                <i data-lucide="message-circle" width="20" style="color: #e11d48 !important;"></i>
-                            </div>
-                            <div>
-                                <h5 class="modal-title fw-bold mb-0" style="font-size:1.1rem; letter-spacing:-0.01em;">Technical Feedback</h5>
-                                <p class="mb-0 small opacity-75" style="font-size:0.75rem;">Staff observations and instructions</p>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body p-4 pt-5 px-lg-5">
-                        <div class="mb-5">
-                            <label class="text-muted small fw-bold text-uppercase mb-2 d-block" style="font-size:0.65rem; letter-spacing:0.08em;">Project Title</label>
-                            <h6 class="fw-bold mb-0 text-dark" style="font-size:1.05rem; line-height:1.4;">${title}</h6>
-                        </div>
-                        
-                        <div class="position-relative p-4 rounded-4" style="background: rgba(225, 29, 72, 0.03); border: 1px dashed rgba(225, 29, 72, 0.2);">
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <i data-lucide="file-text" width="16" style="color: #e11d48 !important;"></i>
-                                <span class="text-danger small fw-bold text-uppercase" style="font-size:0.7rem; letter-spacing:0.05em;">Feedback Instruction</span>
-                            </div>
-                            <div class="text-dark" style="white-space:pre-wrap; font-size:0.92rem; line-height:1.7; font-weight:450;">${feedback}</div>
-                        </div>
-                        
-                        <div class="mt-4 p-3 rounded-4 d-flex align-items-start gap-3" style="background: #fef2f2; border: 1px solid #fee2e2;">
-                           <i data-lucide="info" width="18" style="color: #e11d48 !important;" class="flex-shrink-0 mt-1"></i>
-                           <p class="mb-0 text-danger" style="font-size:0.8rem; line-height:1.5;">Please review the notes above carefully and update your submission accordingly to proceed with the next evaluation stage.</p>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-0 p-4 px-lg-5 pt-0">
-                        <button type="button" class="btn btn-light rounded-pill px-5 py-2 fw-semibold small border" data-bs-dismiss="modal">Dismiss</button>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-
-        document.body.insertAdjacentHTML('beforeend', html);
-        if (window.lucide) window.lucide.createIcons();
-        const modalEl = document.getElementById('agency-feedback-modal');
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-
     function _timeAgo(dateString) {
         if (!dateString) return '—';
         const date = new Date(dateString);
@@ -637,32 +481,6 @@ export function initSubmissionsLoader() {
         const hours = Math.floor(minutes / 60);
         if (hours < 24) return `${hours}h ago`;
         return date.toLocaleDateString();
-    }
-
-    const searchInput = document.getElementById('cipgSearchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#cipgTableBody tr');
-            rows.forEach(r => r.style.display = r.textContent.toLowerCase().includes(term) ? '' : 'none');
-        });
-    }
-
-    // New CPP Submission button — agency side
-    const handleNewCpp = () => {
-        sessionStorage.removeItem('cpp_edit_id');
-        sessionStorage.removeItem('cpp_view_id');
-        const cppContainer = document.getElementById('cpp-steps-container');
-        if (cppContainer) {
-            cppContainer.innerHTML = '';
-            delete cppContainer.dataset.loaded;
-        }
-        if (window.switchPage) window.switchPage('cpp-form');
-    };
-
-    const newCppBtn = document.getElementById('newCppBtn');
-    if (newCppBtn) {
-        newCppBtn.addEventListener('click', handleNewCpp);
     }
 
     renderTable();

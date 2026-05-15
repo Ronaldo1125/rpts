@@ -28,7 +28,7 @@ class CipgSubmissionController extends Controller
             });
         }
 
-        $submissions = $query->with(['sector', 'sub_sector', 'feedbacks'])->latest()->get();
+        $submissions = $query->with(['sector', 'sub_sector', 'feedbacks', 'assessment_report', 'comments_and_recommendations'])->latest()->get();
 
         return view('cipg_submissions.index_v2', compact('submissions'));
     }
@@ -36,7 +36,7 @@ class CipgSubmissionController extends Controller
     public function manage()
     {
         $user = Auth::user();
-        $query = CppSubmission::with(['sector', 'sub_sector', 'user.agency', 'feedbacks'])->latest();
+        $query = CppSubmission::with(['sector', 'sub_sector', 'user.agency', 'feedbacks', 'assessment_report', 'comments_and_recommendations'])->latest();
         
         // Admins/staff view — shows ALL submissions EXCEPT other people's drafts
         $query->where(function($q) use ($user) {
@@ -247,19 +247,28 @@ class CipgSubmissionController extends Controller
                 'lf-inputs-assumptions' => $s->logframe->lf_inputs_assumptions,
             ] : null,
             'endorsement' => $s->endorsement ? [
-                'f-sp-res' => $s->endorsement->sp_resolution_no,
-                'f-sp-date' => $s->endorsement->sp_date ? $s->endorsement->sp_date->format('Y-m-d') : '',
-                'f-sb-res' => $s->endorsement->sb_resolution_no,
-                'f-sb-date' => $s->endorsement->sb_date ? $s->endorsement->sb_date->format('Y-m-d') : '',
-                'f-letter-req' => $s->endorsement->letter_request_ref,
-                'f-letter-date' => $s->endorsement->letter_date ? $s->endorsement->letter_date->format('Y-m-d') : '',
-                'f-bor-res' => $s->endorsement->bor_bot_resolution_no,
-                'f-bor-date' => $s->endorsement->bor_date ? $s->endorsement->bor_date->format('Y-m-d') : '',
+                'f-sp-res'    => $s->endorsement->sp_resolution_no,
+                'f-sp-date'   => $s->endorsement->sp_resolution_date ? $s->endorsement->sp_resolution_date->format('Y-m-d') : '',
+                'f-sb-res'    => $s->endorsement->sb_resolution_no,
+                'f-sb-date'   => $s->endorsement->sb_resolution_date ? $s->endorsement->sb_resolution_date->format('Y-m-d') : '',
+                'f-letter-req'  => $s->endorsement->letter_request_ref,
+                'f-letter-date' => $s->endorsement->letter_transmittal_date ? $s->endorsement->letter_transmittal_date->format('Y-m-d') : '',
+                'f-bor-res'   => $s->endorsement->bor_bot_resolution_no,
+                'f-bor-date'  => $s->endorsement->bor_bot_resolution_date ? $s->endorsement->bor_bot_resolution_date->format('Y-m-d') : '',
             ] : null,
         ];
 
+        // Include existing media attachments so the edit form can restore upload zones
+        $data['attachments'] = $s->getMedia('attachments')->map(fn($m) => [
+            'name'  => $m->file_name,
+            'url'   => $m->getUrl(),
+            'type'  => $m->getCustomProperty('type'),
+            'label' => $m->getCustomProperty('label'),
+        ])->values()->toArray();
+
         return response()->json($data);
     }
+
 
     public function show($id)
     {
@@ -626,15 +635,31 @@ class CipgSubmissionController extends Controller
             // 8. Attachments
             if (!empty($data['attachments'])) {
                 foreach ($data['attachments'] as $att) {
-                    $submission->addMediaFromBase64($att['data'])
-                        ->usingFileName($att['name'])
-                        ->withCustomProperties([
-                            'type' => $att['type'] ?? 'other',
-                            'label' => $att['label'] ?? ''
-                        ])
-                        ->toMediaCollection('attachments');
+                    // If the client sent a new file (base64), save it.
+                    if (!empty($att['data'])) {
+                        $type = $att['type'] ?? 'other';
+
+                        // For single-file types, remove old version if it exists
+                        $singleFileTypes = ['env', 'sp', 'sb', 'ded', 'geo_photo', 'sig_prep', 'sig_noted', 'bor', 'letter', 'consult', 'spatial-cov', 'hgdg'];
+                        if (in_array($type, $singleFileTypes)) {
+                            $submission->getMedia('attachments')->filter(function ($media) use ($type) {
+                                return $media->getCustomProperty('type') === $type;
+                            })->each->delete();
+                        }
+
+                        $submission->addMediaFromBase64($att['data'])
+                            ->usingFileName($att['name'])
+                            ->withCustomProperties([
+                                'type'  => $type,
+                                'label' => $att['label'] ?? ''
+                            ])
+                            ->toMediaCollection('attachments');
+                    }
+                    // existing_url entries are intentionally ignored here — the media record
+                    // already exists in the 'attachments' collection for this submission.
                 }
             }
+
 
             DB::commit();
             return response()->json(['message' => 'Submission saved successfully', 'id' => $submission->id]);

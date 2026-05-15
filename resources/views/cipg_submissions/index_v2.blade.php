@@ -105,8 +105,22 @@
                                                 data-feedback="{{ $submission->feedbacks->last()->notes ?? 'No specific instructions provided.' }}"
                                                 ><i data-lucide="message-circle" class="me-2" width="14"></i>Feedback</a></li>
                                             @endif
-                                            @if($submission->status === 'For Revision')
-                                            <li><a class="dropdown-item small par-feedback-sub" href="#" data-id="{{ $submission->id }}"><i data-lucide="message-square" class="me-2" width="14"></i>Comments</a></li>
+                                            @php
+                                                $submittedComments = [];
+                                                if ($submission->status === 'For Revision' && $submission->comments_and_recommendations) {
+                                                    $submittedComments = $submission->comments_and_recommendations->filter(function ($comment) use ($submission) {
+                                                        return $comment->stage === $submission->stage && $comment->status === 'Submitted';
+                                                    })->values()->toArray();
+                                                }
+                                            @endphp
+                                            @if(count($submittedComments) > 0)
+                                            <li><a class="dropdown-item small db-par-feedback-sub" href="#"
+                                                   data-id="{{ $submission->id }}"
+                                                   data-title="{{ e($submission->project_title) }}"
+                                                   data-comments='@json($submittedComments)'>
+                                                   <i data-lucide="message-square" class="me-2" width="14"></i>Comments
+                                                </a>
+                                            </li>
                                             @endif
                                             @php
                                                 $attachments = $submission->getMedia('attachments')->map(function ($attachment) {
@@ -123,7 +137,20 @@
                                                 data-title="{{ e($submission->project_title) }}"
                                                 data-attachments='@json($attachments)'>
                                                 <i data-lucide="paperclip" class="me-2" width="14"></i>Attachments</a></li>
-                                            <li><a class="dropdown-item small download-par-sub" href="#" data-id="{{ $submission->id }}"><i data-lucide="file-down" class="me-2" width="14"></i>Download PAR</a></li>
+                                            @php
+                                                $par = $submission->assessment_report;
+                                                $parUrl = $par ? $par->getFirstMediaUrl('final_technical_reports') : null;
+                                            @endphp
+                                            @if($parUrl)
+                                            <li>
+                                                <a class="dropdown-item small" 
+                                                   href="{{ $parUrl }}" 
+                                                   target="_blank">
+                                                    <i data-lucide="file-down" class="me-2" width="14"></i>
+                                                    PAR Document
+                                                </a>
+                                            </li>
+                                            @endif
                                             <!--<li><a class="dropdown-item small history-sub" href="#" data-id="{{ $submission->id }}">
                                                 <i data-lucide="clock" class="me-2" width="14"></i>Version History
                                                 <span class="badge ms-1" style="background:#154A9A;color:#fff;font-size:0.65rem;border-radius:20px;padding:0.15em 0.5em;"></span>
@@ -235,7 +262,7 @@
     </div>
 
     <!-- Secretariat Comments Modal -->
-    <div class="modal fade" id="parFeedbackModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="commentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg" style="border-radius:18px; overflow:hidden;">
                 <div class="modal-header border-0 pb-0"
@@ -265,7 +292,18 @@
                     </div>
 
                     <div id="par-feedback-list-container" class="d-flex flex-column gap-3">
-                        <!-- Injected by JS -->
+                        <div class="p-3 border rounded-4 bg-light bg-opacity-50 mb-2">
+                                <div class="row align-items-start">
+                                    <div class="col-md-6 border-end">
+                                        <div class="text-uppercase fw-bold text-secondary mb-2" style="font-size:0.65rem; letter-spacing:0.05em;">Secretariat Findings</div>
+                                        <div class="text-dark small lh-base"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-uppercase fw-bold text-secondary mb-2" style="font-size:0.65rem; letter-spacing:0.05em;">Recommendations</div>
+                                        <div class="text-dark small lh-base"></div>
+                                    </div>
+                                </div>
+                            </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0" style="padding:1rem 1.75rem 1.5rem;">
@@ -315,8 +353,12 @@
                            <p class="mb-0 text-danger" style="font-size:0.8rem; line-height:1.5;">Please review the notes above carefully and update your submission accordingly to proceed with the next evaluation stage.</p>
                         </div>
                     </div>
-                    <div class="modal-footer border-0 p-4 px-lg-5 pt-0">
-                        <button type="button" class="btn btn-light rounded-pill px-5 py-2 fw-semibold small border" data-bs-dismiss="modal">Dismiss</button>
+                    <div class="modal-footer border-0 p-4 px-lg-5 pt-0 d-flex gap-2">
+                        <button type="button" class="btn btn-light rounded-pill px-4 py-2 fw-semibold small border" data-bs-dismiss="modal">Dismiss</button>
+                        <button type="button" class="btn btn-warning rounded-pill px-4 py-2 fw-bold border-0 edit-sub-from-agency-feedback shadow-sm"
+                                style="background:#e11d48; color: #fff; font-size:0.85rem;">
+                            <i data-lucide="edit-3" width="14" class="me-1"></i> Edit Submission
+                        </button>
                     </div>
                 </div>
             </div>
@@ -455,6 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const title = btn.getAttribute('data-title') || 'Untitled Project';
         const feedback = btn.getAttribute('data-feedback') || 'No feedback notes available.';
+        const subId = btn.getAttribute('data-id');
         
         const modalEl = document.getElementById('agency-feedback-modal');
         if (!modalEl) return;
@@ -463,9 +506,20 @@ document.addEventListener('DOMContentLoaded', function() {
         modalEl.querySelector('h6.text-dark').textContent = title;
         modalEl.querySelector('.text-dark[style*="white-space:pre-wrap"]').textContent = feedback;
 
+        // Setup Edit Button
+        const editBtn = modalEl.querySelector('.edit-sub-from-agency-feedback');
+        if (editBtn && subId) {
+            editBtn.onclick = () => {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) modalInstance.hide();
+                window.location.href = `/v2/cipg_submissions/${subId}/edit`;
+            };
+        }
+
         // Show Modal
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
+        if (window.lucide) window.lucide.createIcons({ target: modalEl });
     });
 
     document.body.addEventListener('click', function(e) {
@@ -487,6 +541,64 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!attachmentsModalEl) return;
         const modal = new bootstrap.Modal(attachmentsModalEl);
         modal.show();
+    });
+
+    document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('.db-par-feedback-sub');
+        if (!btn) return;
+        e.preventDefault();
+
+        const title = btn.getAttribute('data-title') || 'Untitled Project';
+        const subId = btn.getAttribute('data-id');
+        let comments = [];
+
+        try {
+            comments = JSON.parse(btn.getAttribute('data-comments') || '[]');
+        } catch (error) {
+            comments = [];
+        }
+
+        const modalEl = document.getElementById('commentModal');
+        if (!modalEl) return;
+
+        const titleEl = document.getElementById('par-feedback-modal-project-title');
+        const container = document.getElementById('par-feedback-list-container');
+
+        if (titleEl) titleEl.textContent = title;
+
+        if (container) {
+            if (comments.length === 0) {
+                container.innerHTML = '<p class="text-muted small">No specific findings listed.</p>';
+            } else {
+                container.innerHTML = comments.map(c => `
+                    <div class="p-3 border rounded-4 bg-light bg-opacity-50 mb-2">
+                        <div class="row align-items-start">
+                            <div class="col-md-6 border-end">
+                                <div class="text-uppercase fw-bold text-secondary mb-2" style="font-size:0.65rem; letter-spacing:0.05em;">Secretariat Findings</div>
+                                <div class="text-dark small lh-base">${escapeHtml(c.finding || '—')}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-uppercase fw-bold text-secondary mb-2" style="font-size:0.65rem; letter-spacing:0.05em;">Recommendations</div>
+                                <div class="text-dark small lh-base">${escapeHtml(c.recommendation || '—')}</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        const editBtn = modalEl.querySelector('.edit-sub-from-feedback');
+        if (editBtn) {
+            editBtn.onclick = () => {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) modalInstance.hide();
+                window.location.href = `/v2/cipg_submissions/${subId}/edit`;
+            };
+        }
+
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+        if (window.lucide) window.lucide.createIcons({ target: modalEl });
     });
 });
 </script>

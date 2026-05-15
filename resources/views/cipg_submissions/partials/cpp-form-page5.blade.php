@@ -7,7 +7,7 @@
 
     <!-- IX. Geotagged Photo -->
     <div class="section-heading">
-        <span class="section-num">IX</span> Geotagged Photo of Project Location or Location Map
+        <span class="section-num">IX</span> Geotagged Photo of Project Location or Location Map <span class="text-danger">*</span>
     </div>
 
     <p class="small text-muted mb-3">
