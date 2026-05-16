@@ -56,8 +56,8 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Total Projects</p>
-                            <h2 class="fw-bold mb-0 text-dark" id="dh-dash-proj-total">—</h2>
+                            <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Master Projects</p>
+                            <h2 class="fw-bold mb-0 text-dark">{{ number_format($totalMasterProjects ?? 0) }}</h2>
                         </div>
                         <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-primary">
                             <i data-lucide="layers" width="24" height="24"></i>
@@ -74,7 +74,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Total Submissions</p>
-                            <h2 class="fw-bold mb-0 text-dark" id="dh-dash-total-count">—</h2>
+                            <h2 class="fw-bold mb-0 text-dark">{{ number_format($totalSubmissions ?? 0) }}</h2>
                         </div>
                         <div class="bg-info bg-opacity-10 p-2 rounded-3 text-info">
                             <i data-lucide="inbox" width="24" height="24"></i>
@@ -91,7 +91,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">PAR Assessments</p>
-                            <h2 class="fw-bold mb-0 text-dark" id="dh-dash-par-count">—</h2>
+                            <h2 class="fw-bold mb-0 text-dark">{{ number_format($totalDivisionPars ?? 0) }}</h2>
                         </div>
                         <div class="bg-success bg-opacity-10 p-2 rounded-3 text-success">
                             <i data-lucide="file-text" width="24" height="24"></i>
@@ -108,7 +108,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Division Referrals</p>
-                            <h2 class="fw-bold mb-0 text-dark" id="dh-dash-referral-count">—</h2>
+                            <h2 class="fw-bold mb-0 text-dark">{{ number_format($totalDivisionReferrals ?? 0) }}</h2>
                         </div>
                         <div class="bg-warning bg-opacity-10 p-2 rounded-3 text-warning">
                             <i data-lucide="share-2" width="24" height="24"></i>
@@ -198,32 +198,9 @@
         </div>
     </div>
 
-    <div class="row g-4 mb-5">
-        <!-- C&R Records with Progress -->
-        <div class="col-md-4">
-            <div class="bg-white p-4 rounded-5 shadow-sm border h-100" style="cursor:pointer;" onclick="if(window.switchPage) window.switchPage('division-head-comments-recommendations')">
-                <div class="d-flex align-items-center gap-2 mb-4">
-                    <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-primary">
-                        <i data-lucide="message-circle" width="18" height="18"></i>
-                    </div>
-                    <h6 class="fw-bold mb-0 small text-uppercase letter-spacing-05">C&amp;R Records</h6>
-                </div>
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <span class="small text-muted">Total Records Filed</span>
-                    <span class="badge bg-primary bg-opacity-10 text-primary fw-bold" id="dh-dash-cr-count">0</span>
-                </div>
-                <div class="progress" style="height:8px;border-radius:4px;">
-                    <div class="progress-bar bg-primary" id="dh-cr-bar" role="progressbar" style="width:0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-                <div class="mt-3 small text-muted">Comments and recommendations submitted through the division evaluation cycle.</div>
-                <div class="mt-3">
-                    <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary small px-3">View Records →</span>
-                </div>
-            </div>
-        </div>
-
+    <div class="mb-5">
         <!-- Recent Referrals Table -->
-        <div class="col-md-8">
+        <div>
             <div class="bg-white p-4 rounded-5 shadow-sm border h-100">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div class="d-flex align-items-center gap-2">
@@ -336,6 +313,8 @@
 @section('scripts')
 <script>
     window.__ADMIN_DASHBOARD_SUBMISSIONS__ = @json($dashboardSubmissions ?? []);
+    window.__MASTER_PROJECT_STATUSES__ = @json($masterProjectStatuses ?? []);
+    window.__SUBMISSION_PIPELINE_COUNTS__ = @json($submissionPipelineCounts ?? []);
 </script>
 <script type="module">
     import { initDivisionHeadDashboard } from '/js/division-head/division-head-loader.js';

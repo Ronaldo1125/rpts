@@ -45,14 +45,17 @@ export async function initDivisionHeadDashboard() {
 
         const nonDrafts = submissions.filter(s => _getSubmissionStatus(s) !== 'Draft');
 
-        const ongoing    = submissions.filter(s => _getProjectStatus(s) === 'Ongoing').length;
-        const proposed   = submissions.filter(s => _getProjectStatus(s) === 'Proposed').length;
-        const completed  = submissions.filter(s => _getProjectStatus(s) === 'Completed').length;
-        const terminated = submissions.filter(s => _getProjectStatus(s) === 'Terminated').length;
-        const suspended  = submissions.filter(s => _getProjectStatus(s) === 'Suspended').length;
-        const dropped    = submissions.filter(s => _getProjectStatus(s) === 'Dropped').length;
+        const masterStatuses = window.__MASTER_PROJECT_STATUSES__ || {
+            ongoing: 0, proposed: 0, completed: 0, terminated: 0, suspended: 0, dropped: 0
+        };
 
-        setEl('dh-dash-proj-total',      submissions.length);
+        const ongoing    = masterStatuses.ongoing;
+        const proposed   = masterStatuses.proposed;
+        const completed  = masterStatuses.completed;
+        const terminated = masterStatuses.terminated;
+        const suspended  = masterStatuses.suspended;
+        const dropped    = masterStatuses.dropped;
+
         setEl('dh-dash-proj-ongoing',    ongoing);
         setEl('dh-dash-proj-proposed',   proposed);
         setEl('dh-dash-proj-completed',  completed);
@@ -61,41 +64,22 @@ export async function initDivisionHeadDashboard() {
         setEl('dh-dash-proj-dropped',    dropped);
 
         // ── CIPG Submission Overview ──
-        const submittedCount   = nonDrafts.filter(s => _getSubmissionStatus(s) === 'Submitted').length;
-        const revisionCount    = nonDrafts.filter(s => _getSubmissionStatus(s) === 'For Revision').length;
-        const resubmittedCount = nonDrafts.filter(s => _getSubmissionStatus(s) === 'Resubmitted').length;
-        const reviewCount      = nonDrafts.filter(s => _getSubmissionStatus(s) === 'Review').length;
-        const approvedCount    = nonDrafts.filter(s => _getSubmissionStatus(s) === 'Approved').length;
-
-        setEl('dh-dash-total-count', nonDrafts.length);
+        const pipeCounts = window.__SUBMISSION_PIPELINE_COUNTS__ || {
+            submitted: 0, for_revision: 0, resubmitted: 0, incomplete: 0, revised: 0, validated: 0, seccom: 0, rdc: 0, approved: 0
+        };
+        const submittedCount   = pipeCounts.submitted;
+        const revisionCount    = pipeCounts.for_revision;
+        const resubmittedCount = pipeCounts.resubmitted;
+        const incompleteCount  = pipeCounts.incomplete;
+        const revisedCount     = pipeCounts.revised;
+        const validatedCount   = pipeCounts.validated;
+        const seccomCount      = pipeCounts.seccom;
+        const rdcCount         = pipeCounts.rdc;
+        const approvedCount    = pipeCounts.approved;
 
         // ── Division Head Exclusive ──
         const pars = await localforage.getItem('project_assessments') || [];
-        setEl('dh-dash-par-count', pars.length);
-
-        // Fetch live referrals from backend
-        let referrals = [];
-        try {
-            const refRes = await fetch('/referrals', { headers: { 'Accept': 'application/json' } });
-            if (refRes.ok) {
-                const refJson = await refRes.json();
-                referrals = refJson.data.map(r => ({
-                    id: r.id,
-                    submissionId: r.submissionId,
-                    projectTitle: r.submissionTitle,
-                    agency: r.fromDivisionName || '—',
-                    referralDate: r.referredAt,
-                    status: r.status,
-                    assignedStaff: r.toUserId ? r.toUserName : null,
-                    referredToDivision: r.toDivisionName
-                }));
-            }
-        } catch (e) {
-            console.error('Failed to fetch referrals', e);
-            referrals = await localforage.getItem('project_referrals') || [];
-        }
-        
-        setEl('dh-dash-referral-count', referrals.filter(r => !r.assignedStaff).length);
+        // PAR count is now rendered directly by Blade
 
         const crs = await localforage.getItem('comments_recommendations') || [];
         setEl('dh-dash-cr-count', crs.length);
@@ -106,8 +90,6 @@ export async function initDivisionHeadDashboard() {
             const pct = Math.min(100, Math.round((crs.length / pars.length) * 100));
             crBar.style.width = pct + '%';
         }
-
-
 
         // ── CHART 1: Project Status Donut ──
         const statusCtx = document.getElementById('dh-status-chart');
@@ -150,16 +132,20 @@ export async function initDivisionHeadDashboard() {
             new ChartJS(subCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Submitted','For Revision','Resubmitted','Under Review','Approved'],
+                    labels: ['Submitted','For Revision','Incomplete','Revised','Resubmitted','Validated','SecCom','RDC','Approved'],
                     datasets: [{
                         label: 'Submissions',
-                        data: [submittedCount, revisionCount, resubmittedCount, reviewCount, approvedCount],
+                        data: [submittedCount, revisionCount, incompleteCount, revisedCount, resubmittedCount, validatedCount, seccomCount, rdcCount, approvedCount],
                         backgroundColor: [
                             'rgba(99,102,241,0.85)',
                             'rgba(245,158,11,0.85)',
+                            'rgba(244,63,94,0.85)',
+                            'rgba(147,51,234,0.85)',
                             'rgba(124,58,237,0.85)',
                             'rgba(14,165,233,0.85)',
-                            'rgba(16,185,129,0.85)'
+                            'rgba(236,72,153,0.85)',
+                            'rgba(20,184,166,0.85)',
+                            'rgba(34,197,94,0.85)'
                         ],
                         borderRadius: 8,
                         borderSkipped: false,

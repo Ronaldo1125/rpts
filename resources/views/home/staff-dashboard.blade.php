@@ -28,90 +28,170 @@
 
         @php
             $isPdipbd = auth()->user()->division && strtoupper(auth()->user()->division->name) === 'PDIPBD';
-            $kpiColClass = $isPdipbd ? 'col-xl-4' : 'col-xl-3';
         @endphp
 
-        <!-- ── TOP KPI CARDS ── -->
-        <div class="row g-4 mb-5">
-            <!-- Total Projects -->
-            <div class="col-12 col-sm-6 {{ $kpiColClass }}">
-                <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20" style="cursor:pointer;"
-                    onclick="if(window.switchPage) window.switchPage('manage-submissions')">
-                    <div class="card-accent-primary"></div>
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Total Projects
-                                </p>
-                                <h2 class="fw-bold mb-0 text-dark" id="staff-dash-proj-total">—</h2>
-                            </div>
-                            <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-primary">
-                                <i data-lucide="layers" width="24" height="24"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Total Submissions -->
-            <div class="col-12 col-sm-6 {{ $kpiColClass }}">
-                <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20" style="cursor:pointer;"
-                    onclick="if(window.switchPage) window.switchPage('manage-submissions')">
-                    <div class="card-accent-info"></div>
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Total
-                                    Submissions</p>
-                                <h2 class="fw-bold mb-0 text-dark" id="staff-dash-total-count">—</h2>
-                            </div>
-                            <div class="bg-info bg-opacity-10 p-2 rounded-3 text-info">
-                                <i data-lucide="inbox" width="24" height="24"></i>
+        @if($isPdipbd)
+            <!-- ── TOP KPI CARDS (PDIPBD / ADMIN VIEW) ── -->
+            <div class="row g-4 mb-5">
+                <!-- Master Projects -->
+                <div class="col-12 col-sm-6 col-xl">
+                    <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20" style="cursor:pointer;" onclick="if(window.switchPage) window.switchPage('manage-submissions')">
+                        <div class="card-accent-secondary"></div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Master Projects</p>
+                                    <h2 class="fw-bold mb-0 text-dark">{{ number_format($totalMasterProjects ?? 0) }}</h2>
+                                </div>
+                                <div class="bg-secondary bg-opacity-10 p-2.5 rounded-3 text-secondary">
+                                    <i data-lucide="database" width="24" height="24"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- My PAR Assessments -->
-            <div class="col-12 col-sm-6 {{ $kpiColClass }}">
-                <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20" style="cursor:pointer;"
-                    onclick="if(window.switchPage) window.switchPage('staff-project-assessment')">
-                    <div class="card-accent-success"></div>
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">My PAR
-                                    Assessments</p>
-                                <h2 class="fw-bold mb-0 text-dark" id="staff-dash-par-count">—</h2>
-                            </div>
-                            <div class="bg-success bg-opacity-10 p-2 rounded-3 text-success">
-                                <i data-lucide="file-text" width="24" height="24"></i>
+                <!-- Total Submissions -->
+                <div class="col-12 col-sm-6 col-xl">
+                    <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20" style="cursor:pointer;" onclick="if(window.switchPage) window.switchPage('manage-submissions')">
+                        <div class="card-accent-primary"></div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Total Submissions</p>
+                                    <h2 class="fw-bold mb-0 text-dark">{{ number_format($totalSubmissions ?? 0) }}</h2>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 p-2.5 rounded-3 text-primary">
+                                    <i data-lucide="file-text" width="24" height="24"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            @if(!$isPdipbd)
-                <!-- My Assignments (ID added for conditional hiding) -->
-                <div class="col-12 col-sm-6 col-xl-3" id="staff-assignments-kpi">
-                    <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20" style="cursor:pointer;"
-                        onclick="if(window.switchPage) window.switchPage('staff-referrals')">
+                <!-- Investment Pipeline -->
+                <div class="col-12 col-sm-6 col-xl">
+                    <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20">
+                        <div class="card-accent-success"></div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Investment Pipeline</p>
+                                    <h2 class="fw-bold mb-0 text-dark">{{ $totalMasterInvestment ?? '₱0.00' }}</h2>
+                                </div>
+                                <div class="bg-success bg-opacity-10 p-2.5 rounded-3 text-success">
+                                    <i data-lucide="pie-chart" width="24" height="24"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Ongoing Projects -->
+                <div class="col-12 col-sm-6 col-xl">
+                    <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20">
                         <div class="card-accent-warning"></div>
                         <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
-                                    <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">My Assignments
-                                    </p>
-                                    <h2 class="fw-bold mb-0 text-dark" id="staff-dash-referral-count">—</h2>
+                                    <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Ongoing Projects</p>
+                                    <h2 class="fw-bold mb-0 text-dark">{{ number_format($ongoingMasterProjects ?? 0) }}</h2>
                                 </div>
-                                <div class="bg-warning bg-opacity-10 p-2 rounded-3 text-warning">
-                                    <i data-lucide="share-2" width="24" height="24"></i>
+                                <div class="bg-warning bg-opacity-10 p-2.5 rounded-3 text-warning">
+                                    <i data-lucide="activity" width="24" height="24"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            @endif
-        </div>
+                <!-- Completed Projects -->
+                <div class="col-12 col-sm-6 col-xl">
+                    <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20">
+                        <div class="card-accent-info"></div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Completed Projects</p>
+                                    <h2 class="fw-bold mb-0 text-dark">{{ number_format($completedMasterProjects ?? 0) }}</h2>
+                                </div>
+                                <div class="bg-info bg-opacity-10 p-2.5 rounded-3 text-info">
+                                    <i data-lucide="check-square" width="24" height="24"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @else
+            <!-- ── TOP KPI CARDS (REGULAR STAFF PIPELINE) ── -->
+            <div class="row g-4 mb-5">
+                <!-- Master Projects -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20" style="cursor:pointer;" onclick="if(window.switchPage) window.switchPage('manage-submissions')">
+                        <div class="card-accent-secondary"></div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Master Projects</p>
+                                    <h2 class="fw-bold mb-0 text-dark">{{ number_format($totalMasterProjects ?? 0) }}</h2>
+                                </div>
+                                <div class="bg-secondary bg-opacity-10 p-2.5 rounded-3 text-secondary">
+                                    <i data-lucide="database" width="24" height="24"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Total Submissions -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20" style="cursor:pointer;" onclick="if(window.switchPage) window.switchPage('manage-submissions')">
+                        <div class="card-accent-primary"></div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Total Submissions</p>
+                                    <h2 class="fw-bold mb-0 text-dark">{{ number_format($totalSubmissions ?? 0) }}</h2>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 p-2.5 rounded-3 text-primary">
+                                    <i data-lucide="file-text" width="24" height="24"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pending Assignments -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20" style="cursor:pointer;" onclick="if(window.switchPage) window.switchPage('staff-referrals')">
+                        <div class="card-accent-warning"></div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Pending Assignments</p>
+                                    <h2 class="fw-bold mb-0 text-dark" id="staff-dash-referral-count">—</h2>
+                                </div>
+                                <div class="bg-warning bg-opacity-10 p-2 rounded-3 text-warning">
+                                    <i data-lucide="inbox" width="24" height="24"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Completed Assessments -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20" style="cursor:pointer;" onclick="if(window.switchPage) window.switchPage('staff-project-assessment')">
+                        <div class="card-accent-success"></div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">My PAR Assessments</p>
+                                    <h2 class="fw-bold mb-0 text-dark">{{ number_format($totalStaffPars ?? 0) }}</h2>
+                                </div>
+                                <div class="bg-success bg-opacity-10 p-2 rounded-3 text-success">
+                                    <i data-lucide="check-circle" width="24" height="24"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         @php
             $isPdipbd = auth()->user()->division && strtoupper(auth()->user()->division->name) === 'PDIPBD';
@@ -417,6 +497,8 @@
         window.__EVALUATED_REPORTS__ = @json($evaluatedReports ?? []);
         window.__REVIEWED_REPORTS__ = @json($reviewedReports ?? []);
         window.__ADMIN_DASHBOARD_EVALUATED_PARS__ = @json($evaluatedReports ?? []);
+        window.__MASTER_PROJECT_STATUSES__ = @json($masterProjectStatuses ?? []);
+        window.__SUBMISSION_PIPELINE_COUNTS__ = @json($submissionPipelineCounts ?? []);
     </script>
     <script type="module">
         import { initStaffDashboard } from '{{ asset('js/staff/staff-loader.js') }}';

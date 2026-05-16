@@ -951,4 +951,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script src="https://unpkg.com/html-docx-js@0.3.1/dist/html-docx.js"></script>
+<script type="module">
+    import { initParDocxExport } from '/js/admin/par-docx-export.js';
+    document.addEventListener('DOMContentLoaded', function() {
+        initParDocxExport();
+    });
+</script>
+
 @endsection

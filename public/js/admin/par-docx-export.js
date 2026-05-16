@@ -12,8 +12,6 @@
 export function initParDocxExport() {
     const btn = document.getElementById('btnDownloadParDocx');
     if (!btn) return;
-    const sidebarPath = (window.APP_CONFIG?.sidebarPath || '');
-    if (!sidebarPath.includes('pdipbd-staff-sidebar')) { btn.style.display = 'none'; return; }
 
     btn.addEventListener('click', async () => {
         if (!window.htmlDocx) { alert('DOCX library not loaded. Please hard-refresh (Ctrl+Shift+R).'); return; }
@@ -51,7 +49,7 @@ async function _generate() {
     }
 
     // 2) Logos (small — 45×45 px)
-    const [r1, r2] = await Promise.all([_b64('assets/images/rnp.png'), _b64('assets/images/rdc.png')]);
+    const [r1, r2] = await Promise.all([_b64('/assets/images/rnp.png'), _b64('/assets/images/rdc.png')]);
     const iR = r1 ? `<img src="${r1}" width="45" height="45">` : '';
     const iD = r2 ? `<img src="${r2}" width="45" height="45">` : '';
 

@@ -123,19 +123,21 @@ export async function initAdminDashboard() {
 
         console.log(`[AdminDashboard] Loaded ${allSubmissions.length} total, ${nonDrafts.length} non-drafts`);
 
-        // ── KPI counts ──
-        const reviewCount      = nonDrafts.filter(s => _getSubmissionStatus(s) === 'Review').length;
-        const revisionCount    = nonDrafts.filter(s => _getSubmissionStatus(s) === 'For Revision').length;
-        const resubmittedCount = nonDrafts.filter(s => _getSubmissionStatus(s) === 'Resubmitted' || _getSubmissionStatus(s) === 'Revised').length;
-        const approvedCount    = nonDrafts.filter(s => _getSubmissionStatus(s) === 'Approved').length;
+        // ── KPI counts (Executive Summary) ──
         const rdcApprovedCount = nonDrafts.filter(s => _getSubmissionStatus(s) === 'RDC Approved').length;
-        const rejectedCount    = nonDrafts.filter(s => _getSubmissionStatus(s) === 'Rejected').length;
 
-        setEl('admin-dash-proj-total',     allSubmissions.length);
-        setEl('admin-dash-sub-review',     reviewCount);
-        setEl('admin-dash-sub-approved',   approvedCount);
-        setEl('admin-dash-sub-rejected',   rejectedCount);
-        setEl('admin-dash-sub-revision',   revisionCount);
+        // Actionable items for Admin (Submitted but not yet referred)
+        const pendingActionCount = nonDrafts.filter(s => {
+            const st = _getSubmissionStatus(s);
+            const stage = s.stage || s.cppStage || s.projectStatus;
+            if (st === 'Submitted' && !s.referredToPdipb) return true;
+            if (st === 'Resubmitted' && stage === 'Completeness Test and Validation') return true;
+            return false;
+        }).length;
+
+        setEl('admin-dash-proj-total',     nonDrafts.length);
+        setEl('admin-dash-pending-action', pendingActionCount);
+        setEl('admin-dash-rdc-endorsed',   rdcApprovedCount);
         
         // Get evaluated/reviewed PARs from global variables or localforage
         const serverEvaluatedPars = Array.isArray(window.__ADMIN_DASHBOARD_EVALUATED_PARS__)

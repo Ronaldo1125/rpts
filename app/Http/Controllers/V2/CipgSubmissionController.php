@@ -18,7 +18,7 @@ class CipgSubmissionController extends Controller
         $user = Auth::user();
         $query = CppSubmission::query();
 
-        if (!$user->hasRole(['admin', 'pmed_staff', 'chief', 'pmed_chief'])) {
+        if (!$user->hasRole(['admin', 'administrator', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief'])) {
             $query->where('user_id', $user->id);
         } else {
             // Admins see everything EXCEPT drafts created by others
@@ -86,7 +86,7 @@ class CipgSubmissionController extends Controller
     public function destroy($id)
     {
         $submission = CppSubmission::findOrFail($id);
-        if (!Auth::user()->hasRole(['admin', 'pmed_staff', 'chief', 'pmed_chief']) && $submission->user_id !== Auth::id()) {
+        if (!Auth::user()->hasRole(['admin', 'administrator', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief']) && $submission->user_id !== Auth::id()) {
             abort(403);
         }
         $submission->delete();
@@ -113,7 +113,7 @@ class CipgSubmissionController extends Controller
         $user = Auth::user();
         $query = CppSubmission::query();
 
-        if (!$user->hasRole(['admin', 'pmed_staff', 'chief', 'pmed_chief'])) {
+        if (!$user->hasRole(['admin', 'administrator', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief'])) {
             $query->where('user_id', $user->id);
         } else {
             // Admins see everything EXCEPT drafts created by others
@@ -287,7 +287,7 @@ class CipgSubmissionController extends Controller
 
         $loc = $submission->locations->first();
 
-        if (!Auth::user()->hasRole(['admin', 'pmed_staff', 'chief', 'pmed_chief', 'staff', 'division_head']) && $submission->user_id !== Auth::id()) {
+        if (!Auth::user()->hasRole(['admin', 'administrator', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief', 'staff', 'division_head']) && $submission->user_id !== Auth::id()) {
             abort(403, 'Unauthorized');
         }
 

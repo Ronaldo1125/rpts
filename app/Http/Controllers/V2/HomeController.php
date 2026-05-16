@@ -72,6 +72,21 @@ class HomeController extends Controller
                 ];
             });
 
+        $totalMasterProjects = \App\Models\Project::count();
+        $totalMasterInvestmentRaw = \App\Models\Project::sum('funding_requirement');
+        
+        $totalMasterInvestment = '₱0.00';
+        if ($totalMasterInvestmentRaw >= 1000) {
+            // >= 1000 Millions = Billions
+            $totalMasterInvestment = '₱' . number_format($totalMasterInvestmentRaw / 1000, 2) . 'B';
+        } elseif ($totalMasterInvestmentRaw > 0) {
+            // < 1000 Millions = Millions
+            $totalMasterInvestment = '₱' . number_format($totalMasterInvestmentRaw, 2) . 'M';
+        }
+
+        $ongoingMasterProjects = \App\Models\Project::where('status', 'ongoing')->count();
+        $completedMasterProjects = \App\Models\Project::where('status', 'completed')->count();
+
         $dashboardSubmissions = CppSubmission::with(['user.agency', 'sector', 'sub_sector', 'referrals'])
             ->latest()
             ->get()
@@ -85,6 +100,7 @@ class HomeController extends Controller
                     'sub_sector' => optional($submission->sub_sector)->sub_sector_name ?? '—',
                     'status' => $submission->status,
                     'stage' => $submission->stage,
+                    'total_cost' => $submission->total_cost ?? 0,
                     'submittedAt' => optional($submission->submitted_at)->toIso8601String(),
                     'referredToPdipb' => $submission->referrals->where('resolved_at', null)
                         ->whereIn('status', ['For Revision Review', 'For Validation', 'For Appraisal'])
@@ -156,6 +172,7 @@ class HomeController extends Controller
         $dashboardEvaluationCount = $dashboardEvaluatedPars->count() + $dashboardReviewedPars->count();
 
         $seccomAnalytics = $this->getSecComAnalytics();
+        $divisionWorkload = $this->getDivisionAssessmentWorkload();
 
         return view('home.dashboards', compact(
             'dashboardSubmissions',
@@ -164,7 +181,12 @@ class HomeController extends Controller
             'dashboardReviewedPars',
             'dashboardInitialCount',
             'dashboardEvaluationCount',
-            'seccomAnalytics'
+            'seccomAnalytics',
+            'divisionWorkload',
+            'totalMasterProjects',
+            'totalMasterInvestment',
+            'ongoingMasterProjects',
+            'completedMasterProjects'
         ));
     }
 
@@ -300,8 +322,34 @@ class HomeController extends Controller
             });
 
         $seccomAnalytics = $this->getSecComAnalytics();
+        
+        $totalMasterProjects = \App\Models\Project::count();
+        $totalSubmissions = \App\Models\CppSubmission::count();
+        
+        $totalStaffPars = \App\Models\ProjectAssessmentReport::where('assessor_id', $user->id)->count();
+            
+        $masterProjectStatuses = [
+            'ongoing' => \App\Models\Project::where('status', 'ongoing')->count(),
+            'proposed' => \App\Models\Project::where('status', 'proposed')->count(),
+            'completed' => \App\Models\Project::where('status', 'completed')->count(),
+            'terminated' => \App\Models\Project::where('status', 'terminated')->count(),
+            'suspended' => \App\Models\Project::where('status', 'suspended')->count(),
+            'dropped' => \App\Models\Project::where('status', 'dropped')->count(),
+        ];
+        
+        $submissionPipelineCounts = [
+            'submitted' => \App\Models\CppSubmission::where('status', 'Submitted')->count(),
+            'for_revision' => \App\Models\CppSubmission::where('status', 'For Revision')->count(),
+            'incomplete' => \App\Models\CppSubmission::where('status', 'Incomplete')->count(),
+            'revised' => \App\Models\CppSubmission::where('status', 'Revised')->count(),
+            'resubmitted' => \App\Models\CppSubmission::where('status', 'Resubmitted')->count(),
+            'validated' => \App\Models\CppSubmission::where('status', 'Validated')->count(),
+            'seccom' => \App\Models\CppSubmission::whereIn('status', ['Sectoral Presentation', 'SecCom Presentation'])->count(),
+            'rdc' => \App\Models\CppSubmission::where('status', 'RDC Presentation')->count(),
+            'approved' => \App\Models\CppSubmission::whereIn('status', ['Approved', 'RDC Approved'])->count(),
+        ];
 
-        return view('home.staff-dashboard', compact('dashboardSubmissions', 'dashboardPdipbStaff', 'myAssignments', 'evaluatedReports', 'reviewedReports', 'seccomAnalytics'));
+        return view('home.staff-dashboard', compact('dashboardSubmissions', 'dashboardPdipbStaff', 'myAssignments', 'evaluatedReports', 'reviewedReports', 'seccomAnalytics', 'totalMasterProjects', 'totalSubmissions', 'totalStaffPars', 'masterProjectStatuses', 'submissionPipelineCounts'));
     }
 
     public function chief()
@@ -333,6 +381,11 @@ class HomeController extends Controller
             ->latest()
             ->take(10)
             ->get();
+            
+        $totalDivisionReferrals = \App\Models\Referral::where('to_division_id', $division->id)
+            ->whereNull('to_user_id')
+            ->whereNotIn('status', ['Resolved', 'Completed'])
+            ->count();
 
         $assessedReports = \App\Models\ProjectAssessmentReport::with(['submission.user.agency', 'assessor'])
             ->where('status', 'Assessed')
@@ -341,8 +394,36 @@ class HomeController extends Controller
             })
             ->latest()
             ->get();
+            
+        $totalDivisionPars = \App\Models\ProjectAssessmentReport::whereHas('assessor', function($q) use ($division) {
+            $q->where('division_id', $division->id);
+        })->count();
 
-        return view('home.division-head-dashboard', compact('dashboardSubmissions', 'divisionReferrals', 'assessedReports'));
+        $totalMasterProjects = \App\Models\Project::count();
+        $totalSubmissions = \App\Models\CppSubmission::count();
+        
+        $masterProjectStatuses = [
+            'ongoing' => \App\Models\Project::where('status', 'ongoing')->count(),
+            'proposed' => \App\Models\Project::where('status', 'proposed')->count(),
+            'completed' => \App\Models\Project::where('status', 'completed')->count(),
+            'terminated' => \App\Models\Project::where('status', 'terminated')->count(),
+            'suspended' => \App\Models\Project::where('status', 'suspended')->count(),
+            'dropped' => \App\Models\Project::where('status', 'dropped')->count(),
+        ];
+        
+        $submissionPipelineCounts = [
+            'submitted' => \App\Models\CppSubmission::where('status', 'Submitted')->count(),
+            'for_revision' => \App\Models\CppSubmission::where('status', 'For Revision')->count(),
+            'incomplete' => \App\Models\CppSubmission::where('status', 'Incomplete')->count(),
+            'revised' => \App\Models\CppSubmission::where('status', 'Revised')->count(),
+            'resubmitted' => \App\Models\CppSubmission::where('status', 'Resubmitted')->count(),
+            'validated' => \App\Models\CppSubmission::where('status', 'Validated')->count(),
+            'seccom' => \App\Models\CppSubmission::whereIn('status', ['Sectoral Presentation', 'SecCom Presentation'])->count(),
+            'rdc' => \App\Models\CppSubmission::where('status', 'RDC Presentation')->count(),
+            'approved' => \App\Models\CppSubmission::whereIn('status', ['Approved', 'RDC Approved'])->count(),
+        ];
+
+        return view('home.division-head-dashboard', compact('dashboardSubmissions', 'divisionReferrals', 'totalDivisionReferrals', 'assessedReports', 'totalDivisionPars', 'totalMasterProjects', 'totalSubmissions', 'masterProjectStatuses', 'submissionPipelineCounts'));
     }
 
     private function getSecComAnalytics()
@@ -376,6 +457,43 @@ class HomeController extends Controller
         }
 
         return $seccomAnalytics;
+    }
+
+    private function getDivisionAssessmentWorkload()
+    {
+        $divisions = \App\Models\Division::whereIn('name', ['PFPD', 'PMED', 'DRD'])->get();
+        
+        $workload = [
+            'PFPD' => ['total' => 0, 'completed' => 0, 'pending' => 0, 'percentage' => 0, 'color' => '#154A9A', 'textClass' => 'text-primary'],
+            'PMED' => ['total' => 0, 'completed' => 0, 'pending' => 0, 'percentage' => 0, 'color' => '#60a5fa', 'textClass' => 'text-info'],
+            'DRD'  => ['total' => 0, 'completed' => 0, 'pending' => 0, 'percentage' => 0, 'color' => '#34d399', 'textClass' => 'text-success']
+        ];
+        
+        foreach ($divisions as $div) {
+            $name = strtoupper($div->name);
+            if (!isset($workload[$name])) continue;
+            
+            // Count pending referrals for appraisal assigned to this division
+            $pendingReferrals = \App\Models\Referral::where('to_division_id', $div->id)
+                ->where('stage', 'Project Appraisal')
+                ->whereNull('resolved_at')
+                ->count();
+                
+            // Count completed PARs by assessors in this division
+            $completedPars = \App\Models\ProjectAssessmentReport::whereHas('assessor', function($q) use ($div) {
+                $q->where('division_id', $div->id);
+            })->count();
+            
+            $total = $pendingReferrals + $completedPars;
+            $completed = $completedPars;
+            
+            $workload[$name]['total'] = $total;
+            $workload[$name]['completed'] = $completed;
+            $workload[$name]['pending'] = $pendingReferrals;
+            $workload[$name]['percentage'] = $total > 0 ? round(($completed / $total) * 100) : 0;
+        }
+        
+        return $workload;
     }
 }
 

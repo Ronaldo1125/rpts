@@ -1,6 +1,6 @@
 <!-- Admin View -->
 <div class="admin-rdc-container">
-    <div class="row g-4 mb-4">
+    <!--<div class="row g-4 mb-4">
         <div class="col-md-4">
             <div class="bg-white p-4 rounded-4 shadow-sm border h-100 text-center">
                 <span class="small fw-bold d-block mb-3">RDIP DECISION FUNNEL</span>
@@ -26,6 +26,7 @@
             </div>
         </div>
     </div>
+    -->
     <div class="bg-white p-4 rounded-4 shadow-sm border animate-popup">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h6 class="fw-bold mb-0 small text-uppercase letter-spacing-05 d-flex align-items-center gap-2">

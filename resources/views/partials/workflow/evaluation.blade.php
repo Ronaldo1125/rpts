@@ -3,18 +3,23 @@
         <div class="bg-white p-4 rounded-4 shadow-sm border mb-3">
             <span class="small fw-bold d-block mb-4">DIVISION ASSESSMENT WORKLOAD</span>
             <div class="d-flex flex-column gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold" style="width:24px; height:24px; font-size:0.6rem;">PFPD</div>
-                    <div class="flex-grow-1"><div class="progress" style="height:6px;"><div class="progress-bar" style="width:85%; background:#154A9A"></div></div></div>
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-info fw-bold" style="width:24px; height:24px; font-size:0.6rem;">PMED</div>
-                    <div class="flex-grow-1"><div class="progress" style="height:6px;"><div class="progress-bar" style="width:60%; background:#60a5fa"></div></div></div>
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-success fw-bold" style="width:24px; height:24px; font-size:0.6rem;">DRD</div>
-                    <div class="flex-grow-1"><div class="progress" style="height:6px;"><div class="progress-bar" style="width:95%; background:#34d399"></div></div></div>
-                </div>
+                @foreach(['PFPD', 'PMED', 'DRD'] as $divName)
+                    @php 
+                        $workload = $divisionWorkload[$divName] ?? ['total' => 0, 'completed' => 0, 'pending' => 0, 'percentage' => 0, 'color' => '#ccc', 'textClass' => 'text-muted'];
+                    @endphp
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center {{ $workload['textClass'] }} fw-bold" style="width:24px; height:24px; font-size:0.6rem;">{{ $divName }}</div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small text-muted" style="font-size: 0.7rem;">Completed: <strong class="text-dark">{{ $workload['completed'] }}</strong> / {{ $workload['total'] }}</span>
+                                <span class="small text-muted fw-bold" style="font-size: 0.7rem;">{{ $workload['percentage'] }}%</span>
+                            </div>
+                            <div class="progress" style="height:6px;">
+                                <div class="progress-bar" style="width:{{ $workload['percentage'] }}%; background:{{ $workload['color'] }}" title="{{ $workload['pending'] }} Pending"></div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>

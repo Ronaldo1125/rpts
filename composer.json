@@ -13,6 +13,7 @@
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
         "maatwebsite/excel": "^3.1",
+        "phpoffice/phpword": "*",
         "proengsoft/laravel-jsvalidation": "^4.10",
         "realrashid/sweet-alert": "^7.3",
         "spatie/laravel-activitylog": "^4.10",
