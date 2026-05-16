@@ -31,23 +31,20 @@ export async function initStaffDashboard() {
             pdipbCteSection.style.display = 'block';
             initPdipbCteLoader('dashboard-cte-tbody');
         }
-        if (pdipbParSection) {
-            pdipbParSection.style.display = 'block';
-            const revisionSection = document.getElementById('pdipb-dashboard-revision-section');
-            const sectoralSection = document.getElementById('pdipb-dashboard-sectoral-presentation-section');
-            if (revisionSection) revisionSection.style.display = 'block';
-            if (sectoralSection) sectoralSection.style.display = 'block';
-            const rdcSection = document.getElementById('pdipb-dashboard-rdc-presentation-section');
-            if (rdcSection) rdcSection.style.display = 'block';
-            
-            initPdipbParLoader(
-                'evalTableBody',
-                'dashboard-reviewed-par-tbody',
-                'dashboard-revision-tbody',
-                'dashboard-sectoral-presentation-tbody',
-                'dashboard-rdc-presentation-tbody'
-            );
-        }
+        const revisionSection = document.getElementById('pdipb-dashboard-revision-section');
+        const sectoralSection = document.getElementById('pdipb-dashboard-sectoral-presentation-section');
+        const rdcSection = document.getElementById('pdipb-dashboard-rdc-presentation-section');
+        if (revisionSection) revisionSection.style.display = 'block';
+        if (sectoralSection) sectoralSection.style.display = 'block';
+        if (rdcSection) rdcSection.style.display = 'block';
+        
+        initPdipbParLoader(
+            'evalTableBody',
+            'dashboard-reviewed-par-tbody',
+            'dashboard-revision-tbody',
+            'dashboard-sectoral-presentation-tbody',
+            'dashboard-rdc-presentation-tbody'
+        );
 
         // Hide Recent Assignments specifically for PDIPBD staff as requested
         const assignmentsKpi = document.getElementById('staff-assignments-kpi');
@@ -111,16 +108,18 @@ export async function initStaffDashboard() {
                 const rdcPresCount   = nonDrafts.filter(s => _getSubmissionStatus(s).includes('RDC Presentation')).length;
                 const approvedCount  = nonDrafts.filter(s => _getSubmissionStatus(s).includes('Approved')).length;
 
-                setEl('staff-dash-initial-count',  initialCount);
+                // initial-count is handled by pdipb-cte-loader
                 setEl('staff-dash-referred-count', referredCount);
-                const evaluatedReports = Array.isArray(window.__EVALUATED_REPORTS__) ? window.__EVALUATED_REPORTS__ : [];
-                const reviewedReports = Array.isArray(window.__REVIEWED_REPORTS__) ? window.__REVIEWED_REPORTS__ : [];
-                setEl('staff-dash-eval-count',     evaluatedReports.length + reviewedReports.length);
-                setEl('staff-dash-findings-count', findingsCount);
-                setEl('staff-dash-revised-count',  revisedCount);
-                setEl('staff-dash-sectoral-count', sectoralCount);
-                setEl('staff-dash-rdc-pres-count', rdcPresCount);
-                setEl('staff-dash-approved-count', approvedCount);
+                // eval-count, revised-count, sectoral-count, rdc-pres-count are handled by pdipb-par-loader
+
+                // Approved count logic for staff
+                const myApprovedRows = nonDrafts.filter(s => {
+                    if (!_getSubmissionStatus(s).includes('Approved')) return false;
+                    const refs = Array.isArray(s.referrals) ? s.referrals : [];
+                    return refs.some(r => String(r.to_user_id) === String(currentUser.id) || 
+                                           (r.to_user_email || '').toLowerCase() === userEmail);
+                });
+                setEl('staff-dash-approved-count', myApprovedRows.length);
             } catch(e) { console.error('[StaffDashboard-Pipeline]', e); }
 
             // Open Submission stage by default

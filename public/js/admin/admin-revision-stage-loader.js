@@ -11,20 +11,49 @@ export async function initRevisionStage() {
 
     // ── Load Data ───────────────────────────────────────────────────────────
     async function _render() {
-        const allSubmissions = (window.__ADMIN_DASHBOARD_SUBMISSIONS__ && window.__ADMIN_DASHBOARD_SUBMISSIONS__.length > 0)
-            ? window.__ADMIN_DASHBOARD_SUBMISSIONS__
-            : await localforage.getItem('cpp_submissions') || [];
+        const localSubs = await localforage.getItem('cpp_submissions') || [];
+        const serverSubs = Array.isArray(window.__ADMIN_DASHBOARD_SUBMISSIONS__) ? window.__ADMIN_DASHBOARD_SUBMISSIONS__ : [];
+        let allSubmissions = localSubs;
+
+        if (serverSubs.length > 0) {
+            const merged = new Map();
+            serverSubs.forEach(s => merged.set(String(s.id), s));
+            localSubs.forEach(s => {
+                if (merged.has(String(s.id))) {
+                    merged.set(String(s.id), s);
+                }
+            });
+            allSubmissions = Array.from(merged.values());
+        }
             
-        const allPars = (window.__ADMIN_DASHBOARD_EVALUATED_PARS__ && window.__ADMIN_DASHBOARD_EVALUATED_PARS__.length > 0)
-            ? window.__ADMIN_DASHBOARD_EVALUATED_PARS__
-            : await localforage.getItem('project_assessments') || [];
-        
+        const localPars = await localforage.getItem('project_assessments') || [];
+        const serverPars = Array.isArray(window.__ADMIN_DASHBOARD_EVALUATED_PARS__) ? window.__ADMIN_DASHBOARD_EVALUATED_PARS__ : [];
+        let allPars = localPars;
+
+        if (serverPars.length > 0) {
+            const mergedPars = new Map();
+            serverPars.forEach(p => mergedPars.set(String(p.id || p.parId), p));
+            localPars.forEach(p => mergedPars.set(String(p.id || p.parId), p));
+            allPars = Array.from(mergedPars.values());
+        }
+
+        const localReferrals = await localforage.getItem('project_referrals') || [];
+
         // Filter for "Resubmitted" or "Revised"
         const rows = allSubmissions.filter(s => {
             const st = (s.submissionStatus || s.status || '').toLowerCase();
             const isRevised = st === 'revised';
-            // Only show if it's revised and NOT yet referred to PDIPBD
-            return isRevised && !s.referredToPdipb;
+            
+            // Only show if it's revised and NOT yet explicitly referred to PDIPBD locally
+            if (s.referredToPdipb) return false;
+
+            // Double check against referrals to ensure instant removal
+            const alreadyReferred = localReferrals.some(ref => 
+                (ref.stage === 'For Revision Review' || ref.stage === 'Project Appraisal' || ref.stage === 'Revised Submission Referral') &&
+                (String(ref.submissionId) === String(s.id) || String(ref.cteId) === String(s.id))
+            );
+
+            return isRevised && !alreadyReferred;
         });
 
         if (countBadge) countBadge.textContent = rows.length;
@@ -198,34 +227,8 @@ export async function initRevisionStage() {
             }
 
             const allSubs = await localforage.getItem('cpp_submissions') || [];
-            const idx = allSubs.findIndex(s => s.id === sid);
+            const idx = allSubs.findIndex(s => s.id == sid);
             
-            // Persist to Server
-            try {
-                const response = await fetch('/referrals', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify({
-                        cipg_submission_id: sid,
-                        to_user_id: staffId,
-                        notes: notes
-                    })
-                });
-                
-                const result = await response.json();
-                if (!result.success) {
-                    alert('Failed to save referral: ' + (result.message || 'Unknown error'));
-                    return;
-                }
-            } catch (err) {
-                console.error('Error persisting referral:', err);
-                alert('An error occurred while communicating with the server.');
-                return;
-            }
-
             if (idx >= 0) {
                 allSubs[idx].referredToPdipb = true;
                 allSubs[idx].assignedStaffId = staffId;
@@ -237,7 +240,7 @@ export async function initRevisionStage() {
                 // Also update the associated Project Assessment Report (PAR)
                 const assessments = await localforage.getItem('project_assessments') || [];
                 // Find PAR connected to this submission (cppId/submissionId)
-                const parIdx = assessments.findIndex(p => p.connectedCteId === allSubs[idx].cteId || p.connectedCteId === sid);
+                const parIdx = assessments.findIndex(p => p.connectedCteId == allSubs[idx].cteId || p.connectedCteId == sid);
                 if (parIdx >= 0) {
                     assessments[parIdx].isReferredToPdipbd = true;
                     assessments[parIdx].referredToPdipbdDate = new Date().toISOString();
@@ -251,9 +254,60 @@ export async function initRevisionStage() {
                 }
             }
 
+            // Also save a referral record locally using the same structure as other referral loaders
+            try {
+                const currentUser = (window.__CURRENT_USER__ || {});
+                const referrals = await localforage.getItem('project_referrals') || [];
+                const newLocalRef = {
+                    id: `REF-${Date.now()}`,
+                    parId: null,
+                    cteId: sid,
+                    submissionId: sid,
+                    submissionTitle: title,
+                    projectTitle: title,
+                    agency: agency,
+                    fromUserName: currentUser.email || currentUser.name || 'Admin',
+                    fromDivisionName: currentUser.division || 'Admin',
+                    referredToDivision: 'PDIPBD',
+                    referralDate: new Date().toISOString(),
+                    status: 'Assigned',
+                    stage: 'For Revision Review',
+                    toUserName: staffName || '',
+                    toUserId: staffId || null,
+                    notes: notes || ''
+                };
+                referrals.unshift(newLocalRef);
+                await localforage.setItem('project_referrals', referrals);
+            } catch (e) {
+                console.error('Failed to save local referral', e);
+            }
+
             modal.hide();
             if (window.showSimpleAlert) window.showSimpleAlert('Revised submission referred to PDIPB.', 'success');
             _render();
+
+            // Persist to Server in background
+            try {
+                const response = await fetch('/referrals', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                    },
+                    body: JSON.stringify({
+                        cipg_submission_id: sid,
+                        to_user_id: staffId,
+                        notes: notes
+                    })
+                });
+                
+                const result = await response.json();
+                if (!result.success) {
+                    console.error('Failed to save referral: ' + (result.message || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error('Error persisting referral:', err);
+            }
         };
     }
 

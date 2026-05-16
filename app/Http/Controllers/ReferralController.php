@@ -19,10 +19,17 @@ class ReferralController extends Controller
             $query = Referral::with(['submission', 'referrer.roles', 'fromDivision', 'assignedStaff.roles', 'toDivision']);
 
             if ($user && !$user->hasRole('administrator')) {
-                $division = $user->division;
-                if ($division) {
-                    $query->where('to_division_id', $division->id)
-                          ->where('status', '!=', 'Referred to Staff');
+                $isDivisionHead = $user->hasRole('division_chief') || $user->hasRole('chief') || $user->hasRole('division_head');
+                $isStaff = $user->hasRole('staff');
+
+                if ($isDivisionHead && $user->division_id) {
+                    $query->where('to_division_id', $user->division_id);
+                } elseif ($isStaff) {
+                    $query->where('to_user_id', $user->id);
+                } else {
+                    $query->whereHas('submission', function($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                    });
                 }
             }
 
@@ -52,10 +59,17 @@ class ReferralController extends Controller
         $query = Referral::with(['submission', 'referrer.roles', 'fromDivision', 'assignedStaff.roles', 'toDivision']);
 
         if ($user && !$user->hasRole('administrator')) {
-            $division = $user->division;
-            if ($division) {
-                $query->where('to_division_id', $division->id)
-                      ->where('status', '!=', 'Referred to Staff');
+            $isDivisionHead = $user->hasRole('division_chief') || $user->hasRole('chief') || $user->hasRole('division_head');
+            $isStaff = $user->hasRole('staff');
+
+            if ($isDivisionHead && $user->division_id) {
+                $query->where('to_division_id', $user->division_id);
+            } elseif ($isStaff) {
+                $query->where('to_user_id', $user->id);
+            } else {
+                $query->whereHas('submission', function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
             }
         }
 

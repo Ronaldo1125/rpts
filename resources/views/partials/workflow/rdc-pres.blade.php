@@ -64,6 +64,33 @@
 
 <!-- Staff View -->
 <div class="pdipb-rdc-container" style="display: none;">
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="bg-white p-4 rounded-4 shadow-sm border h-100 text-center">
+                <span class="small fw-bold d-block mb-3">RDIP DECISION FUNNEL</span>
+                <div class="funnel-container d-flex flex-column align-items-center gap-1">
+                    <div style="width:100%; height:25px; background:#154A9A; border-radius:15px 15px 2px 2px;"></div>
+                    <div style="width:85%; height:25px; background:#3b82f6; border-radius:2px;"></div>
+                    <div style="width:65%; height:25px; background:#f97316; border-radius:2px;"></div>
+                    <div style="width:40%; height:25px; background:#10b981; border-radius:2px 2px 15px 15px;"></div>
+                </div>
+                <div class="mt-3 small text-muted">Final Approval Funnel (RDIP)</div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="bg-white p-4 rounded-4 shadow-sm border mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-primary px-3">READY FOR RDC: 24</span>
+                    <span class="badge bg-danger px-3">DEFERRED: 11</span>
+                </div>
+                <div class="p-3 bg-light rounded text-muted small">
+                    <div class="d-flex justify-content-between border-bottom pb-1 mb-1"><span>Priority Projects</span><span class="fw-bold text-dark">18</span></div>
+                    <div class="d-flex justify-content-between"><span>RDC Agenda Items</span><span class="fw-bold text-dark">6</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="bg-white p-0 rounded-5 shadow-sm border overflow-hidden">
         <div class="px-4 py-4 border-bottom d-flex justify-content-between align-items-center" style="background: rgba(153, 27, 27, 0.05);">
             <div class="d-flex align-items-center gap-2">

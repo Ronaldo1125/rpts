@@ -44,10 +44,13 @@ window.initReferredStage = async function () {
         
         let subs = await localforage.getItem('cpp_submissions') || [];
         const serverSubs = Array.isArray(window.__ADMIN_DASHBOARD_SUBMISSIONS__) ? window.__ADMIN_DASHBOARD_SUBMISSIONS__ : [];
+        // Merge: Local updates in localforage must prioritize over stale server-side data
         if (serverSubs.length > 0) {
             const merged = new Map();
-            subs.forEach(s => merged.set(String(s.id || ''), s));
+            // Load server data first
             serverSubs.forEach(s => merged.set(String(s.id || ''), s));
+            // Overwrite with local updates (optimistic UI changes)
+            subs.forEach(s => merged.set(String(s.id || ''), s));
             subs = Array.from(merged.values());
         }
 
@@ -57,9 +60,12 @@ window.initReferredStage = async function () {
         const pmedCount = referred.filter(r => r.referredToDivision === 'PMED').length;
         const drdCount  = referred.filter(r => r.referredToDivision === 'DRD').length;
 
-        // Pending = purely based on CIPG submission status being 'Validated'
-        // (if it's already referred to a division, its stage is moved to 'Project Appraisal')
-        const pendingSubs = subs.filter(s => s.status === 'Validated' && s.stage !== 'Project Appraisal');
+        // Pending = based on CIPG submission status being 'Validated'
+        // We also check 'all' (project_referrals) to see if it was just referred locally
+        const pendingSubs = subs.filter(s => {
+            const isReferredLocally = all.some(r => String(r.submissionId || r.cteId) === String(s.id) && r.status === 'Referred');
+            return s.status === 'Validated' && s.stage !== 'Project Appraisal' && !isReferredLocally;
+        });
 
         // Map submissions to the table row structure expected
         let rows = pendingSubs.map(s => {

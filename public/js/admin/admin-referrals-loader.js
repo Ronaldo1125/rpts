@@ -182,8 +182,10 @@ export async function initAdminReferralsLoader() {
             if (modal) modal.hide();
             referralForm.reset();
             
-            // Re-render immediately
+            // Re-render ALL affected tables immediately (localforage already updated above)
             renderTable();
+            if (window.initTestAndEvaluationLoader) window.initTestAndEvaluationLoader();
+            if (window.initAdminCipgTable) window.initAdminCipgTable();
 
             // Then try to persist to server
             try {

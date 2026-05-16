@@ -15,67 +15,6 @@
             <h2 class="fw-bold mb-0">Project Referrals</h2>
             <p class="text-muted small mb-0">List of projects referred from Completeness Test for PAR Assessment</p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary-rpts text-white px-4 py-2 fw-semibold rounded-pill" id="newReferralBtn">
-                <i data-lucide="plus-circle" class="me-2" width="16"></i> New Referral
-            </button>
-        </div>
-    </div>
-
-    <!-- New Referral Modal -->
-    <div class="modal fade" id="newReferralModal" tabindex="-1" aria-labelledby="newReferralModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-20 overflow-hidden">
-                <div class="modal-accent-primary"></div>
-                <div class="modal-header border-0 pb-0 pt-4 px-4">
-                    <h5 class="modal-title fw-bold" id="newReferralModalLabel">Create New Project Referral</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <form id="newReferralForm">
-                        <div class="row g-4">
-                            <!-- Project Selection -->
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-secondary">A. Select Validated Project</label>
-                                <select class="form-select bg-light border-0 py-2 rounded-12" name="projectSelect" id="referralProjectSelect" required>
-                                    <option value="">-- Choose from Completeness Test Results --</option>
-                                    <!-- Dynamic Options from CTE -->
-                                </select>
-                                <div class="form-text mt-1 small">Only projects with "Final" validation status are listed here.</div>
-                            </div>
-
-                            <!-- Sender Info (Now Automated) -->
-                            <div class="col-12 pt-1">
-                                <p class="text-muted small italic px-1"><i data-lucide="info" width="14" class="me-1"></i> Referrer identity will be automatically recorded as the currently logged-in user.</p>
-                            </div>
-
-                            <!-- Recipient Info -->
-                            <div class="col-md-6 pt-2">
-                                <label class="form-label small fw-bold text-secondary">C. Refer To (Division)</label>
-                                <select class="form-select bg-light border-0 py-2 rounded-12" name="to_division_id" required>
-                                    <option value="">-- Select Recipient Division --</option>
-                                    <option value="2">PMED</option>
-                                    <option value="3">PFPD</option>
-                                    <option value="4">DRD</option>
-                                </select>
-                            </div>
-
-                            <!-- Notes -->
-                            <div class="col-12 pt-2">
-                                <label class="form-label small fw-bold text-secondary">D. Additional Instructions/Notes</label>
-                                <textarea class="form-control bg-light border-0 rounded-12" name="referralNotes" rows="3" placeholder="Provide context or specific areas of concern for the PAR assessment..."></textarea>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-0 pb-4 px-4">
-                    <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary-rpts text-white px-5 rounded-pill" id="submitReferralBtn">
-                        <i data-lucide="send" class="me-2" width="16"></i> Create Referral
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Assign Staff Modal -->

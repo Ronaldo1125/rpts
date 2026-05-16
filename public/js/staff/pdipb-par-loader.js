@@ -17,10 +17,7 @@ export async function initPdipbParLoader(
     const sectoralTbody = document.getElementById(sectoralTbodyId);
     const rdcTbody = document.getElementById(rdcTbodyId);
 
-    if (!pendingTbody && !reviewedTbody && !revisionTbody && !sectoralTbody && !rdcTbody) {
-        // Still run the other parts if available
-        if (!revisionTbody && !sectoralTbody && !rdcTbody) return;
-    }
+    // Proceed even if tbodys are null because we need to calculate and set the KPI badges on initial load.
 
     // ── Load & Render ─────────────────────────────────────────────────────────
     async function render() {
@@ -382,4 +379,70 @@ export async function initPdipbParLoader(
     }
 
     render();
+}
+
+export async function initPdipbApprovedLoader() {
+    const tbody = document.getElementById('rdcApprovedTableBody');
+    const countBadge = document.getElementById('rdc-approved-list-count');
+    if (!tbody) {
+        setTimeout(() => initPdipbApprovedLoader(), 200);
+        return;
+    }
+
+    const subs = (window.__ADMIN_DASHBOARD_SUBMISSIONS__ && window.__ADMIN_DASHBOARD_SUBMISSIONS__.length > 0)
+        ? window.__ADMIN_DASHBOARD_SUBMISSIONS__
+        : await window.localforage.getItem('cpp_submissions') || [];
+        
+    function _getSubmissionStatus(s) {
+        return s.status || s.submissionStatus || s.cppStatus || s.projectStatus || 'Draft';
+    }
+
+    const currentUser = window.__CURRENT_USER__ || {};
+    const userEmail = (currentUser.email || '').toLowerCase();
+    
+    const myApprovedRows = subs.filter(s => {
+        if (!_getSubmissionStatus(s).includes('Approved')) return false;
+        
+        const refs = Array.isArray(s.referrals) ? s.referrals : [];
+        const isAssigned = refs.some(r => String(r.to_user_id) === String(currentUser.id) || 
+                               (r.to_user_email || '').toLowerCase() === userEmail);
+                               
+        return isAssigned;
+    });
+
+    if (countBadge) countBadge.textContent = myApprovedRows.length;
+    if (myApprovedRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted small">No RDC Approved submissions are currently assigned to you.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = myApprovedRows.map(s => {
+        const title  = s.title || s.formData?.['f-title'] || 'Untitled';
+        const agency = s.agency || s.formData?.['f-agency'] || '—';
+        const stage  = s.stage || s.cppStage || s.projectStatus || 'RDC';
+        const status = _getSubmissionStatus(s);
+        const updated = s.updatedAt || s.submittedAt ? new Date(s.updatedAt || s.submittedAt).toLocaleDateString() : '—';
+        return `
+            <tr data-sid="${s.id || ''}">
+                <td class="fw-medium small py-3 ps-4" style="max-width:280px;">${title}</td>
+                <td class="small text-muted py-3">${window.getAgencyAbbreviation ? window.getAgencyAbbreviation(agency) : agency}</td>
+                <td class="small py-3">${stage}</td>
+                <td class="small py-3"><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 small">${status}</span></td>
+                <td class="small text-muted py-3 pe-4">${updated}</td>
+            </tr>`;
+    }).join('');
+
+    if (window.lucide) window.lucide.createIcons();
+
+    const searchInput = document.getElementById('rdcApprovedSearchInput');
+    if (searchInput) {
+        const fresh = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(fresh, searchInput);
+        fresh.addEventListener('input', e => {
+            const term = e.target.value.toLowerCase();
+            tbody.querySelectorAll('tr').forEach(r => {
+                r.style.display = r.textContent.toLowerCase().includes(term) ? '' : 'none';
+            });
+        });
+    }
 }

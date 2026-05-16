@@ -278,12 +278,24 @@ export async function initDivisionHeadDashboard() {
                             await localforage.setItem('project_referrals', allRefs);
                         }
 
+                        // Manually remove the row from the DOM since it's a Blade-rendered table
+                        const assignBtn = document.querySelector(`.dash-assign-btn[data-id="${rid}"]`);
+                        if (assignBtn) {
+                            const tr = assignBtn.closest('tr');
+                            if (tr) tr.remove();
+
+                            const tbody = document.getElementById('dh-dash-referrals-tbody');
+                            if (tbody && tbody.querySelectorAll('tr').length === 0) {
+                                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted small">No active referrals for your division</td></tr>`;
+                            }
+                        }
+
                         const modalEl = document.getElementById('dhAssignStaffModal');
                         bootstrap.Modal.getInstance(modalEl)?.hide();
                         
                         if (window.showSimpleAlert) window.showSimpleAlert('Staff assigned successfully.', 'success');
                         
-                        // Refresh dashboard to show updated data
+                        // Update counts via re-initialization
                         initDivisionHeadDashboard();
                     } else {
                         const err = await res.json();

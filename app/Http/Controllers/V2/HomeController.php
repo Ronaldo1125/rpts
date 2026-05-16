@@ -155,13 +155,16 @@ class HomeController extends Controller
 
         $dashboardEvaluationCount = $dashboardEvaluatedPars->count() + $dashboardReviewedPars->count();
 
+        $seccomAnalytics = $this->getSecComAnalytics();
+
         return view('home.dashboards', compact(
             'dashboardSubmissions',
             'dashboardPdipbStaff',
             'dashboardEvaluatedPars',
             'dashboardReviewedPars',
             'dashboardInitialCount',
-            'dashboardEvaluationCount'
+            'dashboardEvaluationCount',
+            'seccomAnalytics'
         ));
     }
 
@@ -296,7 +299,9 @@ class HomeController extends Controller
                 ];
             });
 
-        return view('home.staff-dashboard', compact('dashboardSubmissions', 'dashboardPdipbStaff', 'myAssignments', 'evaluatedReports', 'reviewedReports'));
+        $seccomAnalytics = $this->getSecComAnalytics();
+
+        return view('home.staff-dashboard', compact('dashboardSubmissions', 'dashboardPdipbStaff', 'myAssignments', 'evaluatedReports', 'reviewedReports', 'seccomAnalytics'));
     }
 
     public function chief()
@@ -338,6 +343,39 @@ class HomeController extends Controller
             ->get();
 
         return view('home.division-head-dashboard', compact('dashboardSubmissions', 'divisionReferrals', 'assessedReports'));
+    }
+
+    private function getSecComAnalytics()
+    {
+        $seccomAnalytics = [
+            'edc' => 0, // economic
+            'idd' => 0, // infrastructure
+            'dac' => 0, // development administration
+            'sdc' => 0, // social
+        ];
+
+        $submissions = CppSubmission::with('sector')
+            ->where(function($query) {
+                $query->where('stage', 'like', '%sectoral%')
+                      ->orWhere('status', 'like', '%sectoral%');
+            })
+            ->whereNotIn('status', ['For Revision', 'Revised', 'Resubmitted'])
+            ->get();
+
+        foreach ($submissions as $sub) {
+            $sectorName = strtolower(optional($sub->sector)->sector_name ?? '');
+            if (strpos($sectorName, 'economic') !== false || strpos($sectorName, 'environment') !== false) {
+                $seccomAnalytics['edc']++;
+            } elseif (strpos($sectorName, 'infra') !== false || strpos($sectorName, 'physical') !== false) {
+                $seccomAnalytics['idd']++;
+            } elseif (strpos($sectorName, 'devt') !== false || strpos($sectorName, 'admin') !== false || strpos($sectorName, 'insti') !== false) {
+                $seccomAnalytics['dac']++;
+            } elseif (strpos($sectorName, 'social') !== false) {
+                $seccomAnalytics['sdc']++;
+            }
+        }
+
+        return $seccomAnalytics;
     }
 }
 

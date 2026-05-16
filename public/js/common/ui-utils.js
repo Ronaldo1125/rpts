@@ -409,8 +409,14 @@ window.toggleStepDetails = function (event, id) {
             });
         }
         if (id === 'approved') {
-            if (typeof window.initRdcApprovedStage === 'function') {
-                window.initRdcApprovedStage();
+            if (isPdipbdStaff) {
+                import('../staff/pdipb-par-loader.js').then(m => {
+                    if (m.initPdipbApprovedLoader) m.initPdipbApprovedLoader();
+                });
+            } else {
+                if (typeof window.initRdcApprovedStage === 'function') {
+                    window.initRdcApprovedStage();
+                }
             }
         }
     }, 100);

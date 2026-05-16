@@ -69,18 +69,31 @@ export async function initAdminDashboard() {
         }
 
         async function _getAdminSubmissions() {
-            // If the server injected the variable (even as an empty array), it is
-            // authoritative — always prefer it over the stale localforage cache.
-            const serverDefined = Array.isArray(window.__ADMIN_DASHBOARD_SUBMISSIONS__);
-            if (serverDefined) {
-                const serverSubmissions = window.__ADMIN_DASHBOARD_SUBMISSIONS__;
-                // Keep localforage in sync so offline / non-server-injected pages stay fresh.
-                await localforage.setItem('cpp_submissions', serverSubmissions);
-                return serverSubmissions;
+            const local = await localforage.getItem('cpp_submissions') || [];
+            const serverSubmissions = Array.isArray(window.__ADMIN_DASHBOARD_SUBMISSIONS__) 
+                ? window.__ADMIN_DASHBOARD_SUBMISSIONS__ 
+                : [];
+
+            if (serverSubmissions.length > 0) {
+                // Merge: prioritizes local changes (like optimistic referral updates) 
+                // over static server-injected data until the page is fully refreshed.
+                const merged = new Map();
+                serverSubmissions.forEach(s => merged.set(String(s.id), s));
+                local.forEach(s => {
+                    // Only merge if the record exists in server data (avoid orphaned drafts)
+                    // and keep local version because it contains the new 'referred' flags
+                    if (merged.has(String(s.id))) {
+                        merged.set(String(s.id), s);
+                    }
+                });
+                const finalSubmissions = Array.from(merged.values());
+                
+                // Keep localforage in sync (optional, but good for persistence)
+                // await localforage.setItem('cpp_submissions', finalSubmissions); 
+                return finalSubmissions;
             }
 
-            // Fallback: page was served without server-injected data (e.g. pure SPA nav).
-            return await localforage.getItem('cpp_submissions') || [];
+            return local;
         }
 
         async function _getPdipbStaff() {
@@ -700,6 +713,31 @@ export async function initAdminDashboard() {
                         await localforage.setItem('cpp_submissions', allSubs);
                     }
 
+                    // Save referral to project_referrals so all table filters pick it up immediately
+                    // Each table's filter checks specific stage+status values:
+                    //   Sectoral:        stage='sectoral committee', status='sectoral presentation review'
+                    //   RDC Pres:        stage='rdc',                status='rdc presentation review'
+                    //   Submissions/CTE: just checks submissionId
+                    const _stageMap = {
+                        'sectoral':   { stage: 'sectoral committee',    status: 'sectoral presentation review' },
+                        'rdc-pres':   { stage: 'rdc',                   status: 'rdc presentation review' },
+                        'submission': { stage: 'Completeness Test',     status: 'Pending PAR' },
+                    };
+                    const _refStageInfo = _stageMap[referralStage] || { stage: referralStage, status: 'Assigned' };
+                    const _existingRefs = await localforage.getItem('project_referrals') || [];
+                    _existingRefs.unshift({
+                        id: `REF-LOCAL-${Date.now()}`,
+                        submissionId: sid,
+                        cteId: sid,
+                        stage: _refStageInfo.stage,
+                        status: _refStageInfo.status,
+                        toUserId: staffSel.value,
+                        toUserName: staffName,
+                        referralDate: new Date().toISOString(),
+                        notes: notes
+                    });
+                    await localforage.setItem('project_referrals', _existingRefs);
+
                     const modalEl = document.getElementById('referPdipbModal');
                     bootstrap.Modal.getOrCreateInstance(modalEl)?.hide();
 
@@ -710,7 +748,7 @@ export async function initAdminDashboard() {
                         );
                     }
 
-                    // Refresh table views
+                    // Refresh ALL table views now that localforage is consistent
                     renderCipgTable('all');
                     if (window.initAdminSectoralStage) window.initAdminSectoralStage();
                     if (window.initRdcPresentationStage) window.initRdcPresentationStage();

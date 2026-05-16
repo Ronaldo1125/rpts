@@ -22,16 +22,36 @@ class ProjectAssessmentReportController extends Controller
             'assessor',
         ]);
 
-        // Admins see all PARs; other users see only those assigned to them or created by them
+        // Admins see all PARs; other users see only those assigned to them, created by them, or in their division
         if (! $user->can('admin_management-view')) {
-            $query->where(function ($q) use ($user) {
-                $q->where('assessor_id', $user->id)
-                    ->orWhereHas('submission', function ($sq) use ($user) {
-                        $sq->where('user_id', $user->id);
-                    })
-                    ->orWhereHas('submission.referrals', function ($rq) use ($user) {
-                        $rq->where('to_user_id', $user->id);
+            $isDivisionHead = $user->hasRole('division_chief') || $user->hasRole('chief') || $user->hasRole('division_head');
+            
+            $query->where(function ($q) use ($user, $isDivisionHead) {
+                // 1. Where the user is the creator of the submission
+                $q->whereHas('submission', function ($sq) use ($user) {
+                    $sq->where('user_id', $user->id);
+                });
+
+                // 2. Where the user is assigned as an actor in the PAR
+                $q->orWhere('assessor_id', $user->id)
+                  ->orWhere('evaluator_id', $user->id)
+                  ->orWhere('checker_id', $user->id)
+                  ->orWhere('concluder_id', $user->id);
+
+                // 3. Where the user is the target of a referral for this submission
+                $q->orWhereHas('submission.referrals', function ($rq) use ($user, $isDivisionHead) {
+                    $rq->where('to_user_id', $user->id);
+                    if ($isDivisionHead && $user->division_id) {
+                        $rq->orWhere('to_division_id', $user->division_id);
+                    }
+                });
+
+                // 4. For Division Chiefs: Where the assessor is in their division
+                if ($isDivisionHead && $user->division_id) {
+                    $q->orWhereHas('assessor', function ($aq) use ($user) {
+                        $aq->where('division_id', $user->division_id);
                     });
+                }
             });
         }
 
@@ -199,7 +219,7 @@ class ProjectAssessmentReportController extends Controller
             return response()->json(['success' => true, 'message' => 'Project Assessment Report saved successfully.', 'id' => $report->id]);
         }
 
-        return redirect()->route('project-assessment-reports.index')->with('success', 'Project Assessment Report saved successfully.');
+        return redirect()->route('staff.dashboard')->with('success', 'Project Assessment Report saved successfully.');
     }
 
     /**
@@ -480,7 +500,8 @@ class ProjectAssessmentReportController extends Controller
             return response()->json(['success' => true, 'message' => 'Project Assessment Report updated successfully.']);
         }
 
-        return redirect()->route('project-assessment-reports.index')->with('success', 'Project Assessment Report updated successfully.');
+        $redirectRoute = in_array($requestedStatus, ['Final', 'Assessed', 'Reviewed', 'Evaluated']) ? 'home' : 'project-assessment-reports.index';
+        return redirect()->route($redirectRoute)->with('success', 'Project Assessment Report updated successfully.');
     }
 
     /**

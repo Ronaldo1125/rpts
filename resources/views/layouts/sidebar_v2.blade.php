@@ -43,7 +43,10 @@
                 </a>
             </div>
 
-            <a href="{{ route('v2.cipg_submissions.index') }}" class="nav-link {{ Request::is('v2.cipg_submissions.index*') ? 'active' : '' }} d-flex align-items-center gap-2 mb-2 rounded-xl px-2 py-2 text-secondary hover-primary"
+            @php
+                $isSubmitProjectActive = Request::is('v2/cipg_submissions') || Request::is('v2/cipg_submissions/create') || Request::is('v2/cipg_submissions/*/edit');
+            @endphp
+            <a href="{{ route('v2.cipg_submissions.index') }}" class="nav-link {{ $isSubmitProjectActive ? 'active' : '' }} d-flex align-items-center gap-2 mb-2 rounded-xl px-2 py-2 text-secondary hover-primary"
                 data-page="submissions">
                 <i data-lucide="send" width="18"></i>
                 <span class="fw-semibold">Submit Project</span>
@@ -52,7 +55,10 @@
 
             @can('cipg_submission-view')
                 @if(!auth()->user()->hasRole('implementing_agency'))
-                    <a href="{{ route('v2.cipg_submissions.manage') }}" class="nav-link d-flex align-items-center gap-2 mb-2 rounded-xl px-2 py-2"
+                    @php
+                        $isManageProjectsActive = Request::is('v2/cipg_submissions/manage');
+                    @endphp
+                    <a href="{{ route('v2.cipg_submissions.manage') }}" class="nav-link {{ $isManageProjectsActive ? 'active' : '' }} d-flex align-items-center gap-2 mb-2 rounded-xl px-2 py-2 text-secondary hover-primary"
                         data-page="manage-submissions">
                         <i data-lucide="list-checks" width="18"></i>
                         <span class="fw-semibold">Manage Projects for RDIP Inclusion</span>
@@ -81,21 +87,24 @@
                     </ul>
                 </div>
 
+            @php
+                $isRdcActive = Request::is('referrals*') || Request::is('project-assessment-reports*');
+            @endphp
             <div class="nav-item mb-1">
-                <a class="nav-link d-flex align-items-center gap-2 rounded-xl px-2 py-2 text-secondary hover-primary collapsed"
-                    href="#rdc-review-validation-submenu" data-bs-toggle="collapse" role="button" aria-expanded="false"
+                <a class="nav-link d-flex align-items-center gap-2 rounded-xl px-2 py-2 {{ $isRdcActive ? '' : 'collapsed' }} text-secondary hover-primary"
+                    href="#rdc-review-validation-submenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ $isRdcActive ? 'true' : 'false' }}"
                     aria-controls="rdc-review-validation-submenu">
                     <i data-lucide="clipboard-list" width="18"></i>
                     <span class="fw-semibold" style="font-size: 0.9rem;">RDC Review & Validation</span>
                     <i data-lucide="chevron-right" class="ms-auto arrow-icon" width="14"></i>
                 </a>
-                <div class="collapse" id="rdc-review-validation-submenu" data-bs-parent=".nav-menu">
+                <div class="collapse {{ $isRdcActive ? 'show' : '' }}" id="rdc-review-validation-submenu" data-bs-parent=".nav-menu">
                     <ul class="nav flex-column submenu-list ps-3">
                         <li class="nav-item">
-                            <a href="{{ route('referrals.index') }}" class="nav-link submenu-link" data-page="admin-referrals">Referrals</a>
+                            <a href="{{ route('referrals.index') }}" class="nav-link submenu-link {{ Request::is('referrals*') ? 'active' : '' }}" data-page="admin-referrals">Referrals</a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('project-assessment-reports.index') }}" class="nav-link submenu-link" data-page="admin-project-assessment">Project Assessment Report</a>
+                            <a href="{{ route('project-assessment-reports.index') }}" class="nav-link submenu-link {{ Request::is('project-assessment-reports*') ? 'active' : '' }}" data-page="admin-project-assessment">Project Assessment Report</a>
                         </li>
                     </ul>
                 </div>

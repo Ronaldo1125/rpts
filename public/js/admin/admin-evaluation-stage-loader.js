@@ -27,10 +27,13 @@ window.initEvaluationStage = async function () {
         const localEvaluatedPars = await localforage.getItem('project_assessments') || [];
 
         // Combine and deduplicate by ID
+        // Merge PAR data: Local updates (optimistic UI) MUST prioritize over stale server data
         const allParsMap = new Map();
-        localEvaluatedPars.forEach(p => allParsMap.set(String(p.id || p.parId), p));
+        // Load server data first
         serverEvaluatedPars.forEach(p => allParsMap.set(String(p.id || p.parId), p));
         serverReviewedPars.forEach(p => allParsMap.set(String(p.id || p.parId), p));
+        // Overwrite with local updates (tracking refers)
+        localEvaluatedPars.forEach(p => allParsMap.set(String(p.id || p.parId), p));
         let allPars = Array.from(allParsMap.values());
 
         // Get local referrals to check which PARs have already been referred
@@ -47,18 +50,24 @@ window.initEvaluationStage = async function () {
             // ADMIN VIEW:
             // 1. Pending Referral (Status Evaluated and not referred)
             pendingPars = allPars.filter(p => {
-                if (p.status !== 'Evaluated') return false;
+                const status = (p.status || '').toLowerCase();
+                if (status !== 'evaluated' && status !== 'referred to pdipbd') return false;
+                
+                // If explicitly flagged as referred locally
                 if (p.isReferredToPdipbd) return false;
 
-                const alreadyReferred = localReferrals.some(ref =>
-                    ref.stage === 'Project Appraisal' &&
-                    (String(ref.parId) === String(p.id) || String(ref.submissionId) === String(p.id))
-                );
+                // Double check against project_referrals store
+                const alreadyReferred = localReferrals.some(ref => {
+                    const isParReferral = ref.stage === 'Project Appraisal' || ref.stage === 'Evaluated PAR Referral';
+                    const matchesId = String(ref.parId) === String(p.id || p.parId) || 
+                                    String(ref.submissionId) === String(p.id || p.parId);
+                    return isParReferral && matchesId;
+                });
                 return !alreadyReferred;
             });
 
             // 2. Reviewed (Ready for Finalization)
-            reviewedPars = allPars.filter(p => p.status === 'Reviewed');
+            reviewedPars = allPars.filter(p => (p.status || '').toLowerCase() === 'reviewed');
         } else if (isPdipbdStaff) {
             // STAFF VIEW: Show only PARs referred to PDIPBD
             pendingPars = allPars.filter(p => {
@@ -261,7 +270,7 @@ window.initEvaluationStage = async function () {
         const modal = new bootstrap.Modal(document.getElementById('referParToPdipbModal'));
         modal.show();
 
-            document.getElementById('confirmReferParBtn').onclick = async () => {
+        document.getElementById('confirmReferParBtn').onclick = async () => {
             const staffId = document.getElementById('referParPdipbStaff').value;
             const staffName = document.getElementById('referParPdipbStaff').selectedOptions[0]?.dataset.name;
             const notes = document.getElementById('referParPdipbNotes').value;
@@ -271,113 +280,115 @@ window.initEvaluationStage = async function () {
                 return;
             }
 
-                const assessments = await localforage.getItem('project_assessments') || [];
-                const idx = assessments.findIndex(p => p.id === parId);
-                let linkedSubmissionId = null;
-                if (idx >= 0) {
-                    // assessments[idx].status = 'Referred to PDIPBD'; // User requested NOT to change status
-                    assessments[idx].isReferredToPdipbd = true;
-                    assessments[idx].referredToPdipbdDate = new Date().toISOString();
-                    assessments[idx].pdipbdAssignedStaffId = staffId;
-                    assessments[idx].pdipbdAssignedStaffName = staffName;
-                    assessments[idx].pdipbdNotes = notes;
-                    // try to capture connected submission id if present on PAR record
-                    linkedSubmissionId = assessments[idx].connectedCteId || assessments[idx].submissionId || assessments[idx].cppSubmissionId || null;
-                    await localforage.setItem('project_assessments', assessments);
+            const assessments = await localforage.getItem('project_assessments') || [];
+            // Use == to handle string vs number comparison
+            const idx = assessments.findIndex(p => p.id == parId || p.parId == parId);
+            let linkedSubmissionId = null;
+            if (idx >= 0) {
+                assessments[idx].isReferredToPdipbd = true;
+                assessments[idx].referredToPdipbdDate = new Date().toISOString();
+                assessments[idx].pdipbdAssignedStaffId = staffId;
+                assessments[idx].pdipbdAssignedStaffName = staffName;
+                assessments[idx].pdipbdNotes = notes;
+                linkedSubmissionId = assessments[idx].connectedCteId || assessments[idx].submissionId || assessments[idx].cppSubmissionId || null;
+                await localforage.setItem('project_assessments', assessments);
+            }
+
+            // Also save a referral record locally using the same structure as other referral loaders
+            let newLocalRef = {};
+            try {
+                const currentUser = (window.__CURRENT_USER__ || {});
+                const referrals = await localforage.getItem('project_referrals') || [];
+                newLocalRef = {
+                    id: `REF-${Date.now()}`,
+                    parId: parId,
+                    cteId: linkedSubmissionId || parId,
+                    submissionId: linkedSubmissionId || parId,
+                    submissionTitle: title,
+                    projectTitle: title,
+                    agency: agency || (assessments[idx] && (assessments[idx].proponent || assessments[idx].agency)) || '—',
+                    fromUserName: currentUser.email || currentUser.name || 'Admin',
+                    fromDivisionName: currentUser.division || 'Admin',
+                    referredToDivision: 'PDIPBD',
+                    referralDate: new Date().toISOString(),
+                    status: 'Assigned',
+                    stage: 'Project Appraisal',
+                    toUserName: staffName || '',
+                    toUserId: staffId || null,
+                    notes: notes || ''
+                };
+
+                referrals.unshift(newLocalRef);
+                await localforage.setItem('project_referrals', referrals);
+            } catch (e) {
+                console.error('Failed to save local referral', e);
+            }
+
+            // Close modal and refresh table IMMEDIATELY (Optimistic UI)
+            modal.hide();
+            render(document.getElementById('evalSearchInput')?.value || '');
+
+            // Finally POST referral to server in the background
+            try {
+                let submissionIdToSend = linkedSubmissionId || null;
+
+                if (!submissionIdToSend) {
+                    // Try to find a matching cpp_submission locally by title or project_title
+                    const cppSubs = await localforage.getItem('cpp_submissions') || [];
+                    const t = (title || '').toLowerCase().trim();
+                    const found = cppSubs.find(s => {
+                        const sTitle = (s.project_title || s.title || (s.formData && s.formData.projectTitle) || '').toLowerCase();
+                        return t && sTitle && sTitle.includes(t);
+                    });
+                    if (found) submissionIdToSend = found.id;
                 }
 
-                // Also save a referral record locally using the same structure as other referral loaders
-                try {
-                    const currentUser = (window.__CURRENT_USER__ || {});
-                    const referrals = await (localforage.getItem('project_referrals') || []);
-                    const newLocalRef = {
-                        id: `REF-${Date.now()}`,
-                        parId: parId,
-                        cteId: linkedSubmissionId || parId,
-                        submissionId: linkedSubmissionId || parId,
-                        submissionTitle: title,
-                        projectTitle: title,
-                        agency: agency || (assessments[idx] && (assessments[idx].proponent || assessments[idx].agency)) || '—',
-                        fromUserName: currentUser.email || currentUser.name || 'Admin',
-                        fromDivisionName: currentUser.division || 'Admin',
-                        referredToDivision: 'PDIPBD',
-                        referralDate: new Date().toISOString(),
-                        status: 'Assigned',
-                        stage: 'Project Appraisal',
-                        toUserName: staffName || '',
-                        toUserId: staffId || null,
-                        notes: notes || ''
+                if (!submissionIdToSend) {
+                    const msg = 'The selected cipg submission id is invalid; referral saved locally only.';
+                    if (window.showSimpleAlert) window.showSimpleAlert(msg, 'warning'); else alert(msg);
+                    console.warn('Skipping server POST: no submission id found for PAR', parId, title);
+                } else {
+                    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                    const payload = {
+                        cipg_submission_id: submissionIdToSend,
+                        to_user_id: staffId,
+                        notes: notes
                     };
 
-                    referrals.unshift(newLocalRef);
-                    await localforage.setItem('project_referrals', referrals);
-                } catch (e) {
-                    console.error('Failed to save local referral', e);
-                }
-                    // Also POST referral to server so it is persisted in DB — but only if we can resolve a cpp submission id
-                    try {
-                        let submissionIdToSend = linkedSubmissionId || null;
+                    const resp = await fetch('/referrals', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrf
+                        },
+                        body: JSON.stringify(payload)
+                    });
 
-                        if (!submissionIdToSend) {
-                            // Try to find a matching cpp_submission locally by title or project_title
-                            const cppSubs = await localforage.getItem('cpp_submissions') || [];
-                            const t = (title || '').toLowerCase().trim();
-                            const found = cppSubs.find(s => {
-                                const sTitle = (s.project_title || s.title || (s.formData && s.formData.projectTitle) || '').toLowerCase();
-                                return t && sTitle && sTitle.includes(t);
-                            });
-                            if (found) submissionIdToSend = found.id;
-                        }
-
-                        if (!submissionIdToSend) {
-                            const msg = 'The selected cipg submission id is invalid; referral saved locally only.';
-                            if (window.showSimpleAlert) window.showSimpleAlert(msg, 'warning'); else alert(msg);
-                            console.warn('Skipping server POST: no submission id found for PAR', parId, title);
-                        } else {
-                            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-                            const payload = {
-                                cipg_submission_id: submissionIdToSend,
-                                to_user_id: staffId,
-                                notes: notes
-                            };
-
-                            const resp = await fetch('/referrals', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'X-CSRF-TOKEN': csrf
-                                },
-                                body: JSON.stringify(payload)
-                            });
-
-                            const result = await resp.json().catch(() => ({}));
-                            if (!resp.ok || !result.success) {
-                                const msg = result.message || 'Failed to create referral on server.';
-                                if (window.showSimpleAlert) window.showSimpleAlert(msg, 'error'); else alert(msg);
-                            } else {
-                                // Merge server response into local referral (update temp id with server id)
-                                try {
-                                    const referrals = await localforage.getItem('project_referrals') || [];
-                                    const idx = referrals.findIndex(r => r.id === newLocalRef.id);
-                                    if (idx >= 0 && result.id) {
-                                        referrals[idx].id = String(result.id);
-                                        await localforage.setItem('project_referrals', referrals);
-                                    }
-                                } catch (e) {
-                                    console.error('Failed to update local referral id', e);
-                                }
-
-                                if (window.showSimpleAlert) window.showSimpleAlert('PAR successfully referred to PDIPBD.', 'success');
+                    const result = await resp.json().catch(() => ({}));
+                    if (!resp.ok || !result.success) {
+                        const msg = result.message || 'Failed to create referral on server.';
+                        if (window.showSimpleAlert) window.showSimpleAlert(msg, 'error'); else alert(msg);
+                    } else {
+                        // Merge server response into local referral (update temp id with server id)
+                        try {
+                            const referrals = await localforage.getItem('project_referrals') || [];
+                            const idx = referrals.findIndex(r => r.id === newLocalRef.id);
+                            if (idx >= 0 && result.id) {
+                                referrals[idx].id = String(result.id);
+                                await localforage.setItem('project_referrals', referrals);
                             }
+                        } catch (e) {
+                            console.error('Failed to update local referral id', e);
                         }
-                    } catch (err) {
-                        console.error('Referral POST failed', err);
-                        if (window.showSimpleAlert) window.showSimpleAlert('Failed to persist referral on server.', 'error');
-                    }
 
-                    modal.hide();
-                    render();
+                        if (window.showSimpleAlert) window.showSimpleAlert('PAR successfully referred to PDIPBD.', 'success');
+                    }
+                }
+            } catch (err) {
+                console.error('Referral POST failed', err);
+                if (window.showSimpleAlert) window.showSimpleAlert('Failed to persist referral on server.', 'error');
+            }
         };
     }
 
