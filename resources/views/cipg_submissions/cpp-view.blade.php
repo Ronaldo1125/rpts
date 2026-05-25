@@ -409,48 +409,59 @@
 
     <div id="cpp-view-container">
         <!-- Render from JS original layout -->
-        <div id="printable-cpp" class="animate__animated animate__fadeIn" style="max-width:950px; margin: 0 auto; color:#000; font-family:'Times New Roman', serif;">
+        <div id="printable-cpp" class="animate__animated animate__fadeIn" style="max-width:950px; margin: 0 auto; color:#000; font-family: Arial, Helvetica, sans-serif;">
             
             <!-- PAGE 1: SECTIONS I, II, III -->
             <div class="page-container" style="background:#fff; padding:3rem; box-shadow:0 0 40px rgba(0,0,0,0.1); margin-bottom:2rem; position:relative; min-height:1050px;">
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width:60px; height:60px; border:1px solid #e2e8f0; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:5px; background:#fff;">
-                            <img src="{{ asset('assets/images/rdc.png') }}" style="max-width:100%; max-height:100%;" alt="RDC Logo" onerror="this.style.display='none'">
+                        <div style="width:55px; height:55px; display:flex; align-items:center; justify-content:center;">
+                            <img src="{{ asset('assets/images/rnp.png') }}" style="max-width:100%; max-height:100%; object-fit:contain;" alt="RNP Logo" onerror="this.style.display='none'">
                         </div>
-                        <div style="width:60px; height:60px; border:1px solid #e2e8f0; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:5px; background:#fff;">
-                            <img src="{{ asset('assets/images/rnp.png') }}" style="max-width:100%; max-height:100%;" alt="RNP Logo" onerror="this.style.display='none'">
+                        <div style="width:55px; height:55px; display:flex; align-items:center; justify-content:center;">
+                            <img src="{{ asset('assets/images/rdc.png') }}" style="max-width:100%; max-height:100%; object-fit:contain;" alt="RDC Logo" onerror="this.style.display='none'">
                         </div>
                         <div>
-                            <p class="mb-0 fw-bold" style="font-size:0.75rem;">REPUBLIC OF THE PHILIPPINES</p>
-                            <p class="mb-0 fw-bold" style="font-size:0.75rem; color:#108543;">REGIONAL DEVELOPMENT COUNCIL</p>
-                            <p class="mb-0 fw-bold" style="font-size:0.75rem; color:#154A9A;">BICOL REGION</p>
+                            <p class="mb-0 fw-bold" style="font-size:0.8rem; color:#1e293b; letter-spacing:0.3px;">REPUBLIC OF THE PHILIPPINES</p>
+                            <p class="mb-0 fw-bold" style="font-size:0.8rem; color:#154A9A; letter-spacing:0.3px;">REGIONAL DEVELOPMENT COUNCIL</p>
+                            <p class="mb-0 fw-bold" style="font-size:0.8rem; color:#154A9A; letter-spacing:0.3px;">BICOL REGION</p>
                         </div>
                     </div>
-                    <div class="text-end" style="font-size:0.6rem; color:#475569; line-height:1.4;">
-                        <p class="mb-0">FM-PDI-01 | CPP Form | Revision No. 01</p>
-                        <p class="mb-0">Effectivity Date: August 1, 2025</p>
-                        <p class="mb-0 mt-3 fw-bold" style="font-size:0.7rem;">Annex C</p>
-                        <p class="mb-0 mt-1">Submission ID: <span class="text-dark fw-bold">{{ $submission->id }}</span></p>
+                    <div class="text-end" style="font-size:0.65rem; color:#475569; line-height:1.4;">
+                        <p class="mb-0">FM-PDI-01 | CPP Form | Revision No. 00</p>
+                        <p class="mb-0">Effectivity Date: August 1, 2023</p>
+                        <p class="mb-0 mt-3 fw-bold" style="font-size:0.75rem; color:#000;">Annex C</p>
                     </div>
                 </div>
 
-                <div style="background:#154A9A; color:#fff; text-align:center; font-weight:bold; padding:6px; margin-top:20px;">
+                <div class="text-end mt-2 pe-2">
+                    <span class="fw-bold" style="font-size:0.75rem; color:#000;">Version Control No.: {{ $submission->id }}-{{ $submission->created_at ? $submission->created_at->format('Y') : date('Y') }}</span>
+                </div>
+
+                <div style="background:#154A9A; color:#fff; text-align:center; font-weight:bold; padding:6px; margin-top:8px; font-size:0.9rem; letter-spacing:0.5px;">
                     COMPREHENSIVE PROJECT PROFILE
                 </div>
 
-                <div class="row g-0 border-top border-bottom border-dark mt-2">
-                    <div class="col-12 border-bottom border-dark p-2 d-flex align-items-center gap-2">
-                        <span class="fw-bold" style="font-size:0.7rem; width:50px;">Agency:</span>
-                        <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:4px; flex-grow:1; font-weight:bold;">{!! $g('f-agency') !!}</div>
+                <div class="row g-3 mt-3 mb-4">
+                    <div class="col-7 d-flex align-items-start gap-2">
+                        <span class="fw-bold mt-1" style="font-size:0.75rem; width:60px; color:#000;">Agency:</span>
+                        <div style="border:1px solid #000; font-size:0.75rem; min-height:48px; padding:6px 8px; flex-grow:1; font-weight:bold; background:#fff; line-height:1.3; color:#000;">
+                            {!! $g('f-agency') !!}
+                        </div>
                     </div>
-                    <div class="col-6 border-end border-dark p-2 d-flex align-items-center gap-2">
-                        <span class="fw-bold" style="font-size:0.7rem; width:45px;">Sector:</span>
-                        <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:4px; flex-grow:1;">{{ $submission->sector->sector_name ?? $g('f-sector') }}</div>
-                    </div>
-                    <div class="col-6 p-2 d-flex align-items-center gap-2">
-                        <span class="fw-bold" style="font-size:0.7rem; width:65px;">Sub-Sector:</span>
-                        <div style="border:1px solid #000; font-size:0.82rem; min-height:20px; padding-left:4px; flex-grow:1;">{!! $g('f-sub-sector') !!}</div>
+                    <div class="col-5 d-flex flex-column gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold" style="font-size:0.75rem; width:75px; color:#000;">Sector:</span>
+                            <div style="border:1px solid #000; font-size:0.75rem; min-height:24px; padding:2px 6px; flex-grow:1; background:#fff; display:flex; align-items:center; color:#000;">
+                                {{ $submission->sector->sector_name ?? $g('f-sector') }}
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold" style="font-size:0.75rem; width:75px; color:#000;">Sub-Sector:</span>
+                            <div style="border:1px solid #000; font-size:0.75rem; min-height:24px; padding:2px 6px; flex-grow:1; background:#fff; display:flex; align-items:center; color:#000;">
+                                {{ $submission->sub_sector->subsector_name ?? $g('f-sub-sector') }}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -564,7 +575,7 @@
                     </table>
                 </div>
 
-                <div style="position:absolute; bottom:15px; right:30px; font-size:0.6rem; color:#64748b;">Page 1 of 3</div>
+                <div class="cpp-page-number" style="position:absolute; bottom:15px; right:30px; font-size:0.6rem; color:#64748b;">Page 1 of 5</div>
             </div>
 
             <!-- PAGE 2: SECTIONS IV, V, VI, VII -->
@@ -694,7 +705,7 @@
                     </div>
                 </div>
 
-                <div style="position:absolute; bottom:15px; right:30px; font-size:0.6rem; color:#64748b;">Page 2 of 3</div>
+                <div class="cpp-page-number" style="position:absolute; bottom:15px; right:30px; font-size:0.6rem; color:#64748b;">Page 2 of 5</div>
             </div>
 
             <!-- PAGE 3: SECTIONS VII(cont), VIII, IX, X, Signatures -->
@@ -748,26 +759,31 @@
                     </table>
                 </div>
 
+                <div class="cpp-page-number" style="position:absolute; bottom:15px; right:30px; font-size:0.6rem; color:#64748b;">Page 3 of 5</div>
+            </div>
+
+            <!-- PAGE 4: SECTIONS IX, X -->
+            <div class="page-container" style="background:#fff; padding:3rem; box-shadow:0 0 40px rgba(0,0,0,0.1); margin-bottom:2rem; position:relative; min-height:1050px;">
                 <div class="row g-4 mb-5">
-                    <div class="col-6">
+                    <div class="col-12">
                         <div style="font-weight:bold; font-size:0.85rem; margin-bottom:5px;">IX. GEOTAGGED PHOTO / MAP</div>
-                        <div style="min-height:180px; background:#f8fafc; border:1px dashed #000; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding: 5px;">
+                        <div style="min-height:350px; background:#f8fafc; border:1px dashed #000; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding: 10px;">
                             @if($gSig('geo-photo-data') || ($d['geo-photo-url'] ?? null))
-                                <img src="{{ $gSig('geo-photo-data') ?: $d['geo-photo-url'] }}" style="max-width:100%; max-height:170px; object-fit:contain;">
+                                <img src="{{ $gSig('geo-photo-data') ?: $d['geo-photo-url'] }}" style="max-width:100%; max-height:340px; object-fit:contain;">
                             @else
-                                <i data-lucide="map" width="30" class="mb-1 text-muted"></i>
-                                <span class="text-muted" style="font-size:0.6rem;">No Photo Provided</span>
+                                <i data-lucide="map" width="40" class="mb-2 text-muted"></i>
+                                <span class="text-muted" style="font-size:0.75rem;">No Photo Provided</span>
                             @endif
                         </div>
                     </div>
-                    <div class="col-6">
+                    <div class="col-12">
                         <div style="font-weight:bold; font-size:0.85rem; margin-bottom:5px;">X. GEOLOCATION COORDINATES</div>
                         <div class="row g-2">
-                            <div class="col-12 border p-2" style="background:#fdfdfd;">
+                            <div class="col-6 border p-2" style="background:#fdfdfd;">
                                 <span style="font-size:0.7rem; display:block; font-weight:bold;">Beginning:</span>
                                 <div style="font-size:0.75rem; font-family:monospace; padding-left:10px;">{!! $g('f-geo-start-lat') !!}, {!! $g('f-geo-start-lng') !!}</div>
                             </div>
-                            <div class="col-12 border p-2 mt-2" style="background:#fdfdfd;">
+                            <div class="col-6 border p-2" style="background:#fdfdfd;">
                                 <span style="font-size:0.7rem; display:block; font-weight:bold;">End:</span>
                                 <div style="font-size:0.75rem; font-family:monospace; padding-left:10px;">{!! $g('f-geo-end-lat') ?: 'N/A' !!}, {!! $g('f-geo-end-lng') ?: 'N/A' !!}</div>
                             </div>
@@ -775,7 +791,12 @@
                     </div>
                 </div>
 
-                <div class="mt-4 pt-4 border-top">
+                <div class="cpp-page-number" style="position:absolute; bottom:15px; right:30px; font-size:0.6rem; color:#64748b;">Page 4 of 5</div>
+            </div>
+
+            <!-- PAGE 5: Signatures -->
+            <div class="page-container" style="background:#fff; padding:3rem; box-shadow:0 0 40px rgba(0,0,0,0.1); margin-bottom:2rem; position:relative; min-height:1050px;">
+                <div class="mt-2 pt-2 border-top">
                     <div class="row gx-5">
                         <div class="col-6">
                             <div style="background:#154A9A; color:#fff; padding:3px 12px; font-size:0.75rem; font-weight:bold;">Prepared by:</div>
@@ -806,7 +827,7 @@
                     </div>
                 </div>
 
-                <div style="position:absolute; bottom:15px; right:30px; font-size:0.6rem; color:#64748b;">Page 3 of 3 — Viewed via RPTS Portals</div>
+                <div class="cpp-page-number" style="position:absolute; bottom:15px; right:30px; font-size:0.6rem; color:#64748b;">Page 5 of 5 — Viewed via RPTS Portals</div>
             </div>
 
         </div>
@@ -815,9 +836,9 @@
 
 <style>
     @media print {
-        @page { margin: 0.5in; size: letter portrait; }
+        @page { margin: 0.4in; size: letter portrait; }
         body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
-        .no-print, .btn-back-dash, #sidebarMenu, .topnav-container, .navbar { display: none !important; }
+        .no-print, .btn-back-dash, #sidebarMenu, .topnav-container, .navbar, #footer-container, footer, .landing-footer { display: none !important; }
         #cpp-view { padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
         #printable-cpp { 
             padding: 0 !important; 
@@ -828,11 +849,24 @@
             background: #fff !important;
             font-size: 11pt !important;
         }
+        .page-container {
+            padding: 0 !important;
+            margin-bottom: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            min-height: auto !important;
+            position: static !important;
+            box-sizing: border-box !important;
+            page-break-after: auto !important;
+        }
+        .cpp-page-number {
+            display: none !important;
+        }
         .card { border: none !important; box-shadow: none !important; }
         /* Ensure tables look clean in print */
         .table { border-collapse: collapse !important; width: 100% !important; }
         .table td, .table th { border: 1px solid #000 !important; padding: 4px 8px !important; }
-        .bg-light { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; }
+        .bg-light { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
 </style>
 @endsection

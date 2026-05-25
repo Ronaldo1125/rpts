@@ -55,6 +55,9 @@ class ReferralController extends Controller
         }
 
         // Otherwise render the view with referrals data
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+
         $user = $request->user();
         $query = Referral::with(['submission', 'referrer.roles', 'fromDivision', 'assignedStaff.roles', 'toDivision']);
 
@@ -73,7 +76,14 @@ class ReferralController extends Controller
             }
         }
 
-        $referrals = $query->latest('referred_at')->latest('id')->get();
+        if ($search) {
+            $query->whereHas('submission', function ($q) use ($search) {
+                $q->where('project_title', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $referrals = $query->latest('referred_at')->latest('id')->paginate($perPage)->onEachSide(1);
+        $referrals->appends(['per_page' => $perPage, 'search' => $search]);
 
         return view('referrals.index', ['referrals' => $referrals]);
     }
@@ -184,12 +194,12 @@ class ReferralController extends Controller
         }
 
         // Rule 2: Referral After Validation: Admin -> Division
-        if (in_array($currentStage, ['completeness test and evaluation', 'completeness test and validation']) && $currentStatus === 'validated' && $isAdmin && $to_division_id && !$to_user_id) {
+        if (in_array($currentStage, ['completeness test and evaluation', 'completeness test and validation', 'project appraisal']) && $currentStatus === 'validated' && $isAdmin && $to_division_id && !$to_user_id) {
             $referral = Referral::create([
                 'cipg_submission_id' => $submission->id,
                 'from_user_id' => $user->id,
                 'from_division_id' => $user->division_id,
-                'to_user_id' => null,
+                'to_user_id' => null, 
                 'to_division_id' => $to_division_id,
                 'stage' => 'Project Appraisal',
                 'status' => 'Referred to Division',
@@ -324,6 +334,7 @@ class ReferralController extends Controller
                 $existingReferral = Referral::where('par_id', $evaluatedPar->id)
                     ->where('stage', 'Project Appraisal')
                     ->where('to_division_id', $to_division_id)
+                    ->where('status', '!=', 'Rejected')
                     ->first();
 
                 if ($existingReferral) {
@@ -583,5 +594,61 @@ class ReferralController extends Controller
         return redirect()->route('staff.dashboard')
             ->with('success', 'Comments submitted. "' . $submission->project_title . '" has been returned for revision.');
     }
-}
 
+    /**
+     * PDIPBD Staff — Reject a referral from any workflow stage.
+     * Contexts: par | revised | sectoral | rdc
+     */
+    public function reject(Request $request, $submissionId)
+    {
+        $request->validate([
+            'context' => 'required|string|in:par,revised,sectoral,rdc,cte,division',
+            'notes'   => 'nullable|string|max:1000',
+        ]);
+
+        $submission = CppSubmission::findOrFail($submissionId);
+        $context    = $request->input('context');
+        $notes      = $request->input('notes', '');
+
+        // Find the active referral for the given context
+        $baseQuery = Referral::where('cipg_submission_id', $submissionId)->whereNull('resolved_at')->latest();
+
+        switch ($context) {
+            case 'par':
+                $referral = (clone $baseQuery)->where('stage', 'Project Appraisal')->first();
+                break;
+            case 'revised':
+                $referral = (clone $baseQuery)->where('status', 'For Revision Review')->first();
+                break;
+            case 'sectoral':
+                $referral = (clone $baseQuery)->where('status', 'Sectoral Presentation Review')->first();
+                break;
+            case 'rdc':
+                $referral = (clone $baseQuery)->where('status', 'RDC Presentation Review')->first();
+                break;
+            case 'cte':
+                $referral = (clone $baseQuery)->whereIn('stage', ['Completeness Test and Validation', 'Completeness Test'])->first();
+                break;
+            case 'division':
+                $referral = (clone $baseQuery)->where('status', 'Referred to Division')->first();
+                break;
+            default:
+                $referral = null;
+        }
+
+        if ($referral) {
+            $rejecterName = auth()->check() ? auth()->user()->name : 'Staff';
+            $existingNotes = $referral->notes ? $referral->notes . "\n" : '';
+            $referral->update([
+                'status'      => 'Rejected',
+                'resolved_at' => now(),
+                'notes'       => trim($existingNotes . '[Rejected by ' . $rejecterName . '] ' . $notes),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Referral rejected. \"{$submission->project_title}\" has been returned for revision.",
+        ]);
+    }
+}

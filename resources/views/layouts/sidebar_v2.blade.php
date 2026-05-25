@@ -66,6 +66,7 @@
                 @endif
             @endcan
 
+            @can('project-view')
                 @php
                     $isProjectsActive = Request::is('projects*') || Request::is('v2/projects*') || Request::is('components*') || Request::is('v2/components*');
                 @endphp
@@ -86,7 +87,9 @@
                         </li>
                     </ul>
                 </div>
+            @endcan
 
+            @can('rdc_review_validation-view')
             @php
                 $isRdcActive = Request::is('referrals*') || Request::is('project-assessment-reports*');
             @endphp
@@ -109,6 +112,7 @@
                     </ul>
                 </div>
             </div>
+            @endcan
 
             @can('admin_management-view')
                 @php

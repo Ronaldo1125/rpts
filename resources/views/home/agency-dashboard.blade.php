@@ -9,47 +9,83 @@
 
     <!-- Top Hero KPIs (Minimized Cards) -->
     <div class="row g-4 mb-5">
-        <div class="col-sm-6 col-md-3">
-            <div class="p-4 bg-white rounded-4 shadow-sm border h-100 d-flex align-items-center gap-4 transition hover-shadow">
-                <div class="flex-shrink-0 bg-primary bg-opacity-10 p-3 rounded-4 text-primary">
-                    <i data-lucide="layers" width="32" height="32"></i>
-                </div>
-                <div>
-                    <h3 class="fw-bold mb-0 text-dark" id="total-projects-count">0</h3>
-                    <p class="text-muted mb-0 small fw-bold text-uppercase opacity-75">Total Projects</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-md-3">
-            <div class="p-4 bg-white rounded-4 shadow-sm border h-100 d-flex align-items-center gap-4 transition hover-shadow">
-                <div class="flex-shrink-0 bg-success bg-opacity-10 p-3 rounded-4 text-success">
-                    <i data-lucide="send" width="32" height="32"></i>
-                </div>
-                <div>
-                    <h3 class="fw-bold mb-0 text-dark" id="submitted-count">0</h3>
-                    <p class="text-muted mb-0 small fw-bold text-uppercase opacity-75">Submitted</p>
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20">
+                <div class="card-accent-primary"></div>
+                <div class="card-body p-3 p-xl-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05" style="font-size:0.65rem;">Total Projects</p>
+                            <h3 class="fw-bold mb-0 text-dark" id="total-projects-count">0</h3>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-2.5 rounded-3 text-primary">
+                            <i data-lucide="layers" width="24" height="24"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-md-3">
-            <div class="p-4 bg-white rounded-4 shadow-sm border h-100 d-flex align-items-center gap-4 transition hover-shadow">
-                <div class="flex-shrink-0 bg-secondary bg-opacity-10 p-3 rounded-4 text-secondary">
-                    <i data-lucide="edit-3" width="32" height="32"></i>
-                </div>
-                <div>
-                    <h3 class="fw-bold mb-0 text-dark" id="drafts-count">0</h3>
-                    <p class="text-muted mb-0 small fw-bold text-uppercase opacity-75">Drafts</p>
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20">
+                <div class="card-accent-success"></div>
+                <div class="card-body p-3 p-xl-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05" style="font-size:0.65rem;">Submitted</p>
+                            <h3 class="fw-bold mb-0 text-dark" id="submitted-count">0</h3>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-2.5 rounded-3 text-success">
+                            <i data-lucide="send" width="24" height="24"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-md-3">
-            <div class="p-4 bg-white rounded-4 shadow-sm border h-100 d-flex align-items-center gap-4 transition hover-shadow">
-                <div class="flex-shrink-0 bg-warning bg-opacity-10 p-3 rounded-4 text-warning">
-                    <i data-lucide="refresh-cw" width="32" height="32"></i>
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20">
+                <div class="card-accent-secondary"></div>
+                <div class="card-body p-3 p-xl-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05" style="font-size:0.65rem;">Drafts</p>
+                            <h3 class="fw-bold mb-0 text-dark" id="drafts-count">0</h3>
+                        </div>
+                        <div class="bg-secondary bg-opacity-10 p-2.5 rounded-3 text-secondary">
+                            <i data-lucide="edit-3" width="24" height="24"></i>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="fw-bold mb-0 text-dark" id="revision-count">0</h3>
-                    <p class="text-muted mb-0 small fw-bold text-uppercase opacity-75">For Revision</p>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20">
+                <div class="card-accent-danger"></div>
+                <div class="card-body p-3 p-xl-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05" style="font-size:0.65rem;">Incomplete</p>
+                            <h3 class="fw-bold mb-0 text-dark" id="incomplete-count">0</h3>
+                        </div>
+                        <div class="bg-danger bg-opacity-10 p-2.5 rounded-3 text-danger">
+                            <i data-lucide="alert-circle" width="24" height="24"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20">
+                <div class="card-accent-warning"></div>
+                <div class="card-body p-3 p-xl-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05" style="font-size:0.65rem;">For Revision</p>
+                            <h3 class="fw-bold mb-0 text-dark" id="revision-count">0</h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-2.5 rounded-3 text-warning">
+                            <i data-lucide="refresh-cw" width="24" height="24"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -174,4 +210,16 @@
     .hover-scale:hover { transform: scale(1.03); }
     .border-dashed { border-style: dashed !important; }
 </style>
+@endsection
+
+@section('scripts')
+<script type="module">
+    import { initAgencyDashboardLoader } from '{{ asset('js/agency/agency-dashboard-loader.js') }}';
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof initAgencyDashboardLoader === 'function') {
+            initAgencyDashboardLoader();
+        }
+    });
+</script>
 @endsection

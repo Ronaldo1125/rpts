@@ -7,7 +7,25 @@ export function initAgencyDashboardLoader() {
 
     async function updateDashboardCounts() {
         try {
-            const submissions = await localforage.getItem('cpp_submissions') || [];
+            let submissions = await localforage.getItem('cpp_submissions') || [];
+            
+            // Fetch fresh data if needed, or simply always fetch to keep dashboard accurate
+            try {
+                const response = await fetch('/v2/cipg_submissions/fetch');
+                if (response.ok) {
+                    const serverSubs = await response.json();
+                    
+                    // Merge local true drafts
+                    const trueDrafts = submissions.filter(s => String(s.id).startsWith('DRAFT-') || String(s.id).startsWith('CPP-Draft-'));
+                    submissions = [...serverSubs, ...trueDrafts];
+                    
+                    // Update cache for other pages
+                    await localforage.setItem('cpp_submissions', submissions);
+                }
+            } catch(e) {
+                console.warn('Failed to fetch fresh submissions, using cache', e);
+            }
+
             _allSubmissions = submissions;
 
             function _isWorkflowStatus(val) {
@@ -36,7 +54,8 @@ export function initAgencyDashboardLoader() {
             const totalCount    = submissions.length;
             const draftsCount   = submissions.filter(s => _getSubmissionStatus(s) === 'Draft').length;
             const revisionCount = submissions.filter(s => _getSubmissionStatus(s) === 'For Revision').length;
-            const submittedCount = submissions.filter(s => !['Draft','For Revision'].includes(_getSubmissionStatus(s))).length;
+            const incompleteCount = submissions.filter(s => _getSubmissionStatus(s) === 'Incomplete').length;
+            const submittedCount = submissions.filter(s => !['Draft','For Revision','Incomplete'].includes(_getSubmissionStatus(s))).length;
 
             // Stats for chart — individual status buckets
             const cntOngoing    = submissions.filter(s => _getProjectStatus(s) === 'Ongoing').length;
@@ -79,6 +98,7 @@ export function initAgencyDashboardLoader() {
             setEl('total-projects-count', totalCount);
             setEl('drafts-count',         draftsCount);
             setEl('revision-count',       revisionCount);
+            setEl('incomplete-count',     incompleteCount);
             setEl('submitted-count',      submittedCount);
 
             // Pipeline total badge

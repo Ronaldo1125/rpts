@@ -7,20 +7,22 @@
       <div>
         <h2 class="fw-bold mb-0">Manage Projects</h2>
       </div>
-      <div class="d-flex gap-2">
-        <a href="{{ route('v2.projects.create')}}"
-          class="btn btn-primary create-project-btn text-white px-4 py-2 fw-medium rounded-pill"
-          style="background-color: #154A9A; border-color: #154A9A;">
-          <i data-lucide="plus" class="me-1" width="18"></i> Create Project
-        </a>
-      </div>
+      @can('project-create')
+        <div class="d-flex gap-2">
+          <a href="{{ route('v2.projects.create')}}"
+            class="btn btn-primary create-project-btn text-white px-4 py-2 fw-medium rounded-pill"
+            style="background-color: #154A9A; border-color: #154A9A;">
+            <i data-lucide="plus" class="me-1" width="18"></i> Create Project
+          </a>
+        </div>
+      @endcan
     </div>
 
     <div class="card border-0 shadow-sm">
       <div class="card-body">
         @include('partials.table-header')
 
-        <div class="table-responsive">
+        <div class="table-responsive" style="overflow: visible;">
           <table class="table align-middle custom-project-table">
             <thead>
               <tr>
@@ -70,12 +72,14 @@
                   </td>
                   <td class="text-end">
                     <div class="dropdown">
-                      <button class="btn btn-link text-dark p-0 border-0" type="button" data-bs-toggle="dropdown">
+                      <button class="btn btn-link text-dark p-0 border-0" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport">
                         <i data-lucide="more-vertical" style="width: 20px; height: 20px;"></i>
                       </button>
                       <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item small" href="{{ route('v2.projects.show', $project->id) }}"><i
-                              data-lucide="eye" class="me-2" style="width: 14px; height: 14px;"></i> View</a></li>
+                        @can('project-view')
+                          <li><a class="dropdown-item small" href="{{ route('v2.projects.show', $project->id) }}"><i
+                                data-lucide="eye" class="me-2" style="width: 14px; height: 14px;"></i> View</a></li>
+                        @endcan
                         @can('project-edit')
                           <li><a class="dropdown-item small" href="{{ route('v2.projects.edit', $project->id) }}"><i
                                 data-lucide="edit-2" class="me-2" style="width: 14px; height: 14px;"></i> Edit</a></li>

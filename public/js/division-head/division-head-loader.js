@@ -224,6 +224,90 @@ export async function initDivisionHeadDashboard() {
                         if (modalEl) new bootstrap.Modal(modalEl).show();
                     };
                 });
+
+                referralTbody.querySelectorAll('.dash-reject-btn').forEach(btn => {
+                    if (btn._wiredReject) return;
+                    btn._wiredReject = true;
+                    btn.onclick = async (e) => {
+                        e.preventDefault();
+                        const subId = btn.dataset.subId;
+                        const title = btn.dataset.title;
+
+                        const modalId = `reject-modal-${subId}`;
+                        let modal = document.getElementById(modalId);
+                        if (modal) modal.remove();
+
+                        modal = document.createElement('div');
+                        modal.id = modalId;
+                        modal.className = 'position-fixed w-100 h-100 top-0 left-0 d-flex align-items-center justify-content-center';
+                        modal.style.background = 'rgba(0,0,0,0.5)';
+                        modal.style.zIndex = '9999';
+                        modal.innerHTML = `
+                        <div class="bg-white rounded-4 shadow-lg overflow-hidden" style="width: 400px; max-width: 90vw;">
+                          <div class="p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                              <div class="bg-danger bg-opacity-10 p-2 rounded-3">
+                                <i data-lucide="x-circle" width="20" style="color:#dc2626;"></i>
+                              </div>
+                              <div>
+                                <h6 class="fw-bold mb-0 text-dark">Reject — Division Referral</h6>
+                                <p class="text-muted small mb-0" style="font-size:0.75rem;">"${title}"</p>
+                              </div>
+                            </div>
+                            <div class="alert alert-warning border-0 rounded-3 small py-2 px-3 mb-3" style="background:#fffbeb;color:#92400e;">
+                              This will mark the referral as <strong>Rejected</strong> and return the submission.
+                            </div>
+                            <label class="small fw-semibold text-secondary text-uppercase mb-1" style="font-size:0.65rem;letter-spacing:0.05em;">Reason for Rejection (optional)</label>
+                            <textarea id="reject-reason-input" class="form-control border-0 bg-light rounded-3 mb-3" rows="3" placeholder="Enter reason or leave blank..."></textarea>
+                            <div class="d-flex gap-2 justify-content-end">
+                              <button id="reject-cancel-btn" class="btn btn-light rounded-pill px-4 fw-semibold small">Cancel</button>
+                              <button id="reject-confirm-btn" class="btn btn-danger rounded-pill px-4 fw-bold small">Confirm Rejection</button>
+                            </div>
+                          </div>
+                        </div>`;
+                        document.body.appendChild(modal);
+                        if (window.lucide) window.lucide.createIcons({ nodes: [modal] });
+
+                        modal.querySelector('#reject-cancel-btn').onclick = () => modal.remove();
+                        modal.querySelector('#reject-confirm-btn').onclick = async () => {
+                            const notes = modal.querySelector('#reject-reason-input').value.trim();
+                            const confirmBtn = modal.querySelector('#reject-confirm-btn');
+                            confirmBtn.disabled = true;
+                            confirmBtn.textContent = 'Rejecting...';
+
+                            try {
+                                const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                                const res = await fetch(`/referrals/reject/${subId}`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                                    body: JSON.stringify({ context: 'division', notes }),
+                                });
+                                const data = await res.json();
+                                modal.remove();
+                                if (data.success) {
+                                    if (window.showSimpleAlert) window.showSimpleAlert(data.message, 'success');
+                                    const row = btn.closest('tr');
+                                    if (row) { 
+                                        row.style.opacity = '0'; 
+                                        row.style.transition = 'opacity 0.3s'; 
+                                        setTimeout(() => {
+                                            row.remove();
+                                            const tbodyCheck = document.getElementById('dh-dash-referrals-tbody');
+                                            if (tbodyCheck && tbodyCheck.querySelectorAll('tr').length === 0) {
+                                                tbodyCheck.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted small">No active referrals for your division</td></tr>`;
+                                            }
+                                        }, 300); 
+                                    }
+                                } else {
+                                    if (window.showSimpleAlert) window.showSimpleAlert(data.message || 'Failed to reject referral.', 'danger');
+                                }
+                            } catch (err) {
+                                modal.remove();
+                                if (window.showSimpleAlert) window.showSimpleAlert('An error occurred. Please try again.', 'danger');
+                            }
+                        };
+                    };
+                });
             };
             wireAssignButtons();
         }

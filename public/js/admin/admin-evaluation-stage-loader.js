@@ -61,7 +61,7 @@ window.initEvaluationStage = async function () {
                     const isParReferral = ref.stage === 'Project Appraisal' || ref.stage === 'Evaluated PAR Referral';
                     const matchesId = String(ref.parId) === String(p.id || p.parId) || 
                                     String(ref.submissionId) === String(p.id || p.parId);
-                    return isParReferral && matchesId;
+                    return isParReferral && matchesId && ref.status !== 'Rejected';
                 });
                 return !alreadyReferred;
             });
@@ -88,12 +88,14 @@ window.initEvaluationStage = async function () {
 
             return {
                 id: p.id || p.parId,
+                submissionId: p.submissionId || p.connectedCteId || (p.submission ? p.submission.id : null) || p.id || p.parId,
                 title: title,
                 agency: agency,
                 division: division,
                 status: p.status,
                 date: dateStr,
-                type: p.status === 'Reviewed' ? 'reviewed' : 'evaluated'
+                type: p.status === 'Reviewed' ? 'reviewed' : 'evaluated',
+                referrals: p.referrals || []
             };
         };
 
@@ -123,19 +125,46 @@ window.initEvaluationStage = async function () {
         if (pendingRows.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="text-center py-5 text-muted small">No evaluated reports found.</td></tr>`;
         } else {
-            tbody.innerHTML = pendingRows.map(r => `
-                <tr>
-                    <td class="ps-4 py-3 fw-medium small" style="max-width:300px;">${r.title}</td>
-                    <td class="small text-muted">${r.agency || '—'}</td>
-                    <td>${_divBadge(r.division)}</td>
-                    <td class="text-center pe-4">
-                        ${isPdipbdStaff ? 
-                            `<a href="/project-assessment-reports/${r.id}/edit" class="btn btn-sm btn-light rounded-pill px-3 fw-bold shadow-sm" style="color:#154A9A; border:none; font-size:0.7rem;">View</a>` :
-                            `<button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold refer-pdipbd-btn shadow-sm" data-id="${r.id}" data-title="${r.title}" data-agency="${r.agency}" style="background:linear-gradient(135deg,#154A9A,#1e6fd9); border:none;"><i data-lucide="send" width="13" class="me-1"></i> Refer to PDIPBD</button>`
-                        }
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = pendingRows.map(r => {
+                const sReferrals = Array.isArray(r.referrals) ? r.referrals : [];
+                const rejectedRef = sReferrals.find(ref => ref.status === 'Rejected') || 
+                                    localReferrals.find(ref => ref.status === 'Rejected' && (String(ref.parId) === String(r.id) || String(ref.submissionId) === String(r.id)));
+                let titleText = '';
+                if (rejectedRef) {
+                    let rejecterName = rejectedRef.to_user_name || rejectedRef.toUserName || 'Staff';
+                    let rawNotes = rejectedRef.notes || '';
+                    const match = rawNotes.match(/\[Rejected(?: by (.*?))?\]/);
+                    if (match) {
+                        if (match[1]) rejecterName = match[1].trim();
+                        rawNotes = rawNotes.replace(match[0], '').trim();
+                    }
+                    const rejectionNotes = rawNotes || 'No reason provided.';
+                    titleText = `Rejected by ${rejecterName}: ${rejectionNotes.replace(/"/g, '&quot;')}`;
+                }
+                const rejectionIcon = rejectedRef
+                    ? `<span class="rejection-info-icon me-2"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="${titleText}"
+                            style="cursor:pointer;color:#f59e0b;vertical-align:middle;"
+                        ><i data-lucide="info" width="14" height="14"></i></span>`
+                    : '';
+
+                return `
+                    <tr>
+                        <td class="ps-4 py-3 fw-medium small" style="max-width:300px;">${r.title}</td>
+                        <td class="small text-muted">${r.agency || '—'}</td>
+                        <td>${_divBadge(r.division)}</td>
+                        <td class="text-end pe-4">
+                            ${isPdipbdStaff ? 
+                                `<a href="/project-assessment-reports/${r.id}/edit" class="btn btn-sm btn-light rounded-pill px-3 fw-bold shadow-sm me-1" style="color:#154A9A; border:none; font-size:0.7rem;">View</a>
+                                 <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold shadow-sm par-reject-btn" data-sub-id="${r.submissionId}" data-par-id="${r.id}" data-title="${r.title.replace(/"/g, '&quot;')}" style="font-size:0.7rem;">Reject</button>` :
+                                `${rejectionIcon}<button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold refer-pdipbd-btn shadow-sm" data-id="${r.id}" data-title="${r.title.replace(/"/g, '&quot;')}" data-agency="${(r.agency || '').replace(/"/g, '&quot;')}" style="background:linear-gradient(135deg,#154A9A,#1e6fd9); border:none;"><i data-lucide="send" width="13" class="me-1"></i> Refer to PDIPBD</button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         // Populate Reviewed Table (Admins only)
@@ -166,6 +195,15 @@ window.initEvaluationStage = async function () {
         }
 
         if (window.lucide) window.lucide.createIcons();
+        
+        // Initialize Bootstrap tooltips for rejection info icons
+        tbody.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+            if (window.bootstrap?.Tooltip) {
+                bootstrap.Tooltip.getInstance(el)?.dispose();
+                new bootstrap.Tooltip(el, { trigger: 'hover', html: false });
+            }
+        });
+
         _attachHandlers();
     }
 
@@ -201,6 +239,96 @@ window.initEvaluationStage = async function () {
                 _showParReferralModal(id, title, agency);
             };
         });
+
+        tbody.querySelectorAll('.par-reject-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                _showRejectModal(btn.dataset.subId, btn.dataset.parId, btn.dataset.title, btn);
+            };
+        });
+    }
+
+    function _showRejectModal(subId, parId, title, triggerBtn) {
+        const existingModal = document.getElementById('referral-reject-modal');
+        if (existingModal) existingModal.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'referral-reject-modal';
+        modal.innerHTML = `
+        <div style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;">
+          <div class="bg-white rounded-4 shadow-lg p-4" style="width:100%;max-width:480px;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <div class="bg-danger bg-opacity-10 p-2 rounded-3">
+                <i data-lucide="x-circle" width="20" style="color:#dc2626;"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-0 text-dark">Reject — PAR Assessment</h6>
+                <p class="text-muted small mb-0" style="font-size:0.75rem;">"${title}"</p>
+              </div>
+            </div>
+            <div class="alert alert-warning border-0 rounded-3 small py-2 px-3 mb-3" style="background:#fffbeb;color:#92400e;">
+              This will mark the referral as <strong>Rejected</strong> and return the report for referral again.
+            </div>
+            <label class="small fw-semibold text-secondary text-uppercase mb-1" style="font-size:0.65rem;letter-spacing:0.05em;">Reason for Rejection (optional)</label>
+            <textarea id="reject-reason-input" class="form-control border-0 bg-light rounded-3 mb-3" rows="3" placeholder="Enter reason or leave blank..."></textarea>
+            <div class="d-flex gap-2 justify-content-end">
+              <button id="reject-cancel-btn" class="btn btn-light rounded-pill px-4 fw-semibold small">Cancel</button>
+              <button id="reject-confirm-btn" class="btn btn-danger rounded-pill px-4 fw-bold small">Confirm Rejection</button>
+            </div>
+          </div>
+        </div>`;
+        document.body.appendChild(modal);
+        if (window.lucide) window.lucide.createIcons({ nodes: [modal] });
+
+        modal.querySelector('#reject-cancel-btn').onclick = () => modal.remove();
+        modal.querySelector('#reject-confirm-btn').onclick = async () => {
+            const notes = modal.querySelector('#reject-reason-input').value.trim();
+            const confirmBtn = modal.querySelector('#reject-confirm-btn');
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Rejecting...';
+
+            try {
+                // Update localforage first
+                const assessments = await localforage.getItem('project_assessments') || [];
+                const idx = assessments.findIndex(p => String(p.id) === String(parId) || String(p.parId) === String(parId));
+                if (idx >= 0) {
+                    assessments[idx].isReferredToPdipbd = false;
+                    await localforage.setItem('project_assessments', assessments);
+                }
+
+                const localReferrals = await localforage.getItem('project_referrals') || [];
+                const refIdx = localReferrals.findIndex(ref => (String(ref.parId) === String(parId) || String(ref.submissionId) === String(subId)) && ref.status !== 'Rejected');
+                if (refIdx >= 0) {
+                    localReferrals[refIdx].status = 'Rejected';
+                    localReferrals[refIdx].notes = notes ? `[Rejected by Staff] ${notes}` : '[Rejected by Staff]';
+                    await localforage.setItem('project_referrals', localReferrals);
+                }
+
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                const res = await fetch(`/referrals/reject/${subId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                    body: JSON.stringify({ context: 'par', notes }),
+                });
+                const data = await res.json();
+                modal.remove();
+                if (data.success) {
+                    if (window.showSimpleAlert) window.showSimpleAlert(data.message, 'success');
+                    const row = triggerBtn.closest('tr');
+                    if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
+                    const badge = document.getElementById('staff-dash-eval-count');
+                    if (badge) {
+                        const current = parseInt(badge.textContent, 10) || 0;
+                        badge.textContent = Math.max(0, current - 1);
+                    }
+                } else {
+                    if (window.showSimpleAlert) window.showSimpleAlert(data.message || 'Failed to reject referral.', 'danger');
+                }
+            } catch (err) {
+                modal.remove();
+                if (window.showSimpleAlert) window.showSimpleAlert('An error occurred. Please try again.', 'danger');
+            }
+        };
     }
 
     async function _showParReferralModal(parId, title, agency) {

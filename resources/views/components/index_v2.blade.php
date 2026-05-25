@@ -6,18 +6,20 @@
         <div>
             <h2 class="fw-bold mb-0">Component Projects</h2>
         </div>
-        <div>
+        @can('project-create')
+          <div>
             <a href="{{ route('v2.components.create', ['component_id' => 0]) }}" class="btn btn-primary text-white px-4 py-2 fw-medium rounded-pill" style="background-color: #154A9A; border-color: #154A9A;">
                 <i data-lucide="plus" class="me-1" width="18"></i> Create Component
             </a>
-        </div>
+          </div>
+        @endcan
     </div>
 
     <div class="card border-0 shadow-sm">
         <div class="card-body">
             @include('partials.table-header')
 
-            <div class="table-responsive">
+            <div class="table-responsive" style="overflow: visible;">
                 <table class="table align-middle custom-project-table">
                     <thead>
                         <tr>
@@ -71,15 +73,23 @@
                                 </td>
                                 <td class="text-end">
                                     <div class="dropdown">
-                                        <button class="btn btn-link text-dark p-0 border-0" type="button" data-bs-toggle="dropdown">
+                                        <button class="btn btn-link text-dark p-0 border-0" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport">
                                             <i data-lucide="more-vertical" style="width: 20px; height: 20px;"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                            <li><a class="dropdown-item small" href="{{ route('v2.components.showSubProject', ['component_id' => $project->component_project_id, 'id' => $project->id]) }}"><i data-lucide="eye" class="me-2" width="14"></i> View</a></li>
-                                            <li><a class="dropdown-item small" href="{{ route('v2.components.create', ['component_id' => $project->component_project_id]) }}"><i data-lucide="plus" class="me-2" width="14"></i> Add Sub-Project</a></li>
-                                            <li><a class="dropdown-item small" href="{{ route('v2.components.editSubProject', ['component_id' => $project->component_project_id, 'id' => $project->id]) }}"><i data-lucide="edit-3" class="me-2" width="14"></i> Edit</a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item small text-danger" href="javascript:void(0)" onclick="event.preventDefault(); if(confirm('Delete this sub-project?')) document.getElementById('delete-sub-{{ $project->id }}').submit();"><i data-lucide="trash-2" class="me-2" width="14"></i> Delete</a></li>
+                                            @can('project-view')
+                                              <li><a class="dropdown-item small" href="{{ route('v2.components.showSubProject', ['component_id' => $project->component_project_id, 'id' => $project->id]) }}"><i data-lucide="eye" class="me-2" width="14"></i> View</a></li>
+                                            @endcan
+                                            @can('project-create')
+                                              <li><a class="dropdown-item small" href="{{ route('v2.components.create', ['component_id' => $project->component_project_id]) }}"><i data-lucide="plus" class="me-2" width="14"></i> Add Sub-Project</a></li>
+                                            @endcan
+                                            @can('project-edit')
+                                              <li><a class="dropdown-item small" href="{{ route('v2.components.editSubProject', ['component_id' => $project->component_project_id, 'id' => $project->id]) }}"><i data-lucide="edit-3" class="me-2" width="14"></i> Edit</a></li>
+                                            @endcan
+                                            @can('project-delete')
+                                              <li><hr class="dropdown-divider"></li>
+                                              <li><a class="dropdown-item small text-danger" href="javascript:void(0)" onclick="event.preventDefault(); if(confirm('Delete this sub-project?')) document.getElementById('delete-sub-{{ $project->id }}').submit();"><i data-lucide="trash-2" class="me-2" width="14"></i> Delete</a></li>
+                                            @endcan
                                         </ul>
                                     </div>
                                     <form id="delete-sub-{{ $project->id }}" action="{{ route('v2.components.subProjectDestroy', ['component_id' => $project->component_project_id, 'id' => $project->id]) }}" method="POST" class="d-none">

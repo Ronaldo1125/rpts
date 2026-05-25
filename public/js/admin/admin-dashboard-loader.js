@@ -131,7 +131,7 @@ export async function initAdminDashboard() {
             const st = _getSubmissionStatus(s);
             const stage = s.stage || s.cppStage || s.projectStatus;
             if (st === 'Submitted' && !s.referredToPdipb) return true;
-            if (st === 'Resubmitted' && stage === 'Completeness Test and Validation') return true;
+            if (st === 'Resubmitted' && stage === 'Completeness Test and Validation' && !s.referredToPdipb) return true;
             return false;
         }).length;
 
@@ -159,20 +159,43 @@ export async function initAdminDashboard() {
             const st = _getSubmissionStatus(s);
             const stage = s.stage || s.cppStage || s.projectStatus;
             if (st === 'Submitted' && !s.referredToPdipb) return true;
-            if (st === 'Resubmitted' && stage === 'Completeness Test and Validation') return true;
+            if (st === 'Resubmitted' && stage === 'Completeness Test and Validation' && !s.referredToPdipb) return true;
             return false;
         }).length;
         setEl('admin-dash-initial-count',  initialCount);
         
+        const allReferrals = await localforage.getItem('project_referrals') || [];
+
         // Referred count: match the table KPI for pending validated submissions
         const referredCount = nonDrafts.filter(s => {
-            const status = _getSubmissionStatus(s);
-            const stage = s.stage || s.cppStage || s.projectStatus;
-            return status === 'Validated' && stage !== 'Project Appraisal';
+            const status = (_getSubmissionStatus(s) || '').toLowerCase();
+            const stage = (s.stage || s.cppStage || s.projectStatus || '').toLowerCase();
+
+            if (status !== 'validated') return false;
+
+            const isReferredLocally = allReferrals.some(r => String(r.submissionId || r.cteId) === String(s.id) && r.status === 'Referred');
+            if (isReferredLocally) return false;
+            
+            const sReferrals = Array.isArray(s.referrals) ? s.referrals : [];
+            const allRefsForSub = [...sReferrals, ...allReferrals.filter(r => String(r.submissionId || r.cteId) === String(s.id))];
+            
+            const divRefs = allRefsForSub.filter(r => {
+                const rStage = (r.stage || '').toLowerCase();
+                const rStatus = (r.status || '').toLowerCase();
+                return rStage === 'project appraisal' || rStatus === 'referred to division' || rStatus === 'referred';
+            });
+            
+            const hasActiveDivRef = divRefs.some(r => (r.status || '').toLowerCase() !== 'rejected');
+            if (hasActiveDivRef) return false;
+            
+            const hasRejectedDivRef = divRefs.some(r => (r.status || '').toLowerCase() === 'rejected');
+            if (hasRejectedDivRef) return true;
+
+            if (stage === 'project appraisal') return false;
+
+            return true;
         }).length;
         setEl('admin-dash-referred-count', referredCount);
-
-        const allReferrals = await localforage.getItem('project_referrals') || [];
         
         const sectoralCount = nonDrafts.filter(s => {
             const stage = _normalizeStatus(s.stage || s.cppStage);
@@ -255,7 +278,7 @@ export async function initAdminDashboard() {
                 const st = _getSubmissionStatus(s);
                 const stage = s.stage || s.cppStage || s.projectStatus;
                 if (st === 'Submitted' && !s.referredToPdipb) return true;
-                if (st === 'Resubmitted' && stage === 'Completeness Test and Validation') return true;
+                if (st === 'Resubmitted' && stage === 'Completeness Test and Validation' && !s.referredToPdipb) return true;
                 return false;
             });
 
@@ -299,13 +322,38 @@ export async function initAdminDashboard() {
                 const sid    = s.id || '';
                 const st     = _getSubmissionStatus(s);
 
+                const sReferrals = Array.isArray(s.referrals) ? s.referrals : [];
+                const rejectedRef = sReferrals.find(r => r.status === 'Rejected') || 
+                                    allReferrals.find(r => r.status === 'Rejected' && (String(r.submissionId) === String(s.id) || String(r.cteId) === String(s.id)));
+                let titleText = '';
+                if (rejectedRef) {
+                    let rejecterName = rejectedRef.to_user_name || rejectedRef.toUserName || 'Staff';
+                    let rawNotes = rejectedRef.notes || '';
+                    const match = rawNotes.match(/\[Rejected(?: by (.*?))?\]/);
+                    if (match) {
+                        if (match[1]) rejecterName = match[1].trim();
+                        rawNotes = rawNotes.replace(match[0], '').trim();
+                    }
+                    const rejectionNotes = rawNotes || 'No reason provided.';
+                    titleText = `Rejected by ${rejecterName}: ${rejectionNotes.replace(/"/g, '&quot;')}`;
+                }
+                const rejectionIcon = rejectedRef
+                    ? `<span class="rejection-info-icon me-2"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="${titleText}"
+                            style="cursor:pointer;color:#f59e0b;vertical-align:middle;"
+                        ><i data-lucide="info" width="14" height="14"></i></span>`
+                    : '';
+
                 return `<tr data-sid="${sid}">
                     <td class="fw-medium small py-3 ps-4" style="max-width:300px;">${title}</td>
                     <td class="small text-muted py-3">${abbr}</td>
                     ${showSector ? `<td class="py-3">${_secBadge(sec)}</td>` : ''}
                     <td class="small text-muted py-3">${sub}</td>
                     <td class="py-3"><span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 small">${st}</span></td>
-                    <td class="text-center py-3 pe-4">
+                    <td class="text-end py-3 pe-4">
+                        ${rejectionIcon}
                         <button class="btn btn-sm rounded-pill fw-semibold px-3 cipg-refer-btn"
                             data-sid="${sid}"
                             data-title="${title.replace(/"/g, '&quot;')}"
@@ -318,6 +366,14 @@ export async function initAdminDashboard() {
             }).join('');
 
             if (window.lucide) window.lucide.createIcons();
+            
+            // Initialize Bootstrap tooltips for rejection info icons
+            tbody.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                if (window.bootstrap?.Tooltip) {
+                    bootstrap.Tooltip.getInstance(el)?.dispose();
+                    new bootstrap.Tooltip(el, { trigger: 'hover', html: false });
+                }
+            });
 
             // ── Wire "Refer" buttons → open referPdipbModal ──────────────────
             tbody.querySelectorAll('.cipg-refer-btn').forEach(btn => {
@@ -424,6 +480,30 @@ export async function initAdminDashboard() {
                 const status = _getSubmissionStatus(s);
                 const sid    = s.id || '';
 
+                const sReferrals = Array.isArray(s.referrals) ? s.referrals : [];
+                const rejectedRef = sReferrals.find(r => r.status === 'Rejected') || 
+                                    allReferrals.find(r => r.status === 'Rejected' && (String(r.submissionId) === String(s.id) || String(r.cteId) === String(s.id)));
+                let titleText = '';
+                if (rejectedRef) {
+                    let rejecterName = rejectedRef.to_user_name || rejectedRef.toUserName || 'Staff';
+                    let rawNotes = rejectedRef.notes || '';
+                    const match = rawNotes.match(/\[Rejected(?: by (.*?))?\]/);
+                    if (match) {
+                        if (match[1]) rejecterName = match[1].trim();
+                        rawNotes = rawNotes.replace(match[0], '').trim();
+                    }
+                    const rejectionNotes = rawNotes || 'No reason provided.';
+                    titleText = `Rejected by ${rejecterName}: ${rejectionNotes.replace(/"/g, '&quot;')}`;
+                }
+                const rejectionIcon = rejectedRef
+                    ? `<span class="rejection-info-icon me-2"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="${titleText}"
+                            style="cursor:pointer;color:#f59e0b;vertical-align:middle;"
+                        ><i data-lucide="info" width="14" height="14"></i></span>`
+                    : '';
+
                 return `
                     <tr data-sid="${sid}">
                         <td class="fw-medium small py-3 ps-4" style="max-width:280px;">${title}</td>
@@ -431,6 +511,7 @@ export async function initAdminDashboard() {
                         <td class="small py-3">${sector}</td>
                         <td class="py-3"><span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 small">${status}</span></td>
                         <td class="text-center py-3 pe-4">
+                            ${rejectionIcon}
                             <button class="btn btn-sm rounded-pill fw-semibold px-3 sectoral-refer-btn"
                                 data-sid="${sid}"
                                 data-title="${title.replace(/"/g, '&quot;')}"
@@ -443,6 +524,14 @@ export async function initAdminDashboard() {
             }).join('');
 
             if (window.lucide) window.lucide.createIcons();
+            
+            // Initialize Bootstrap tooltips for rejection info icons
+            tbody.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                if (window.bootstrap?.Tooltip) {
+                    bootstrap.Tooltip.getInstance(el)?.dispose();
+                    new bootstrap.Tooltip(el, { trigger: 'hover', html: false });
+                }
+            });
 
             tbody.querySelectorAll('.sectoral-refer-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
@@ -533,6 +622,31 @@ export async function initAdminDashboard() {
                 const stage  = s.stage || s.cppStage || s.projectStatus || 'RDC';
                 const status = 'RDC Presentation';
                 const updated = s.updatedAt ? new Date(s.updatedAt).toLocaleDateString() : '—';
+
+                const sReferrals = Array.isArray(s.referrals) ? s.referrals : [];
+                const rejectedRef = sReferrals.find(r => r.status === 'Rejected') || 
+                                    allReferrals.find(r => r.status === 'Rejected' && (String(r.submissionId) === String(s.id) || String(r.cteId) === String(s.id)));
+                let titleText = '';
+                if (rejectedRef) {
+                    let rejecterName = rejectedRef.to_user_name || rejectedRef.toUserName || 'Staff';
+                    let rawNotes = rejectedRef.notes || '';
+                    const match = rawNotes.match(/\[Rejected(?: by (.*?))?\]/);
+                    if (match) {
+                        if (match[1]) rejecterName = match[1].trim();
+                        rawNotes = rawNotes.replace(match[0], '').trim();
+                    }
+                    const rejectionNotes = rawNotes || 'No reason provided.';
+                    titleText = `Rejected by ${rejecterName}: ${rejectionNotes.replace(/"/g, '&quot;')}`;
+                }
+                const rejectionIcon = rejectedRef
+                    ? `<span class="rejection-info-icon me-2"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="${titleText}"
+                            style="cursor:pointer;color:#f59e0b;vertical-align:middle;"
+                        ><i data-lucide="info" width="14" height="14"></i></span>`
+                    : '';
+
                 return `
                     <tr data-sid="${s.id || ''}">
                         <td class="fw-medium small py-3 ps-4" style="max-width:280px;">${title}</td>
@@ -541,6 +655,7 @@ export async function initAdminDashboard() {
                         <td class="small py-3"><span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 small">${status}</span></td>
                         <td class="small text-muted py-3">${updated}</td>
                         <td class="text-center py-3 pe-4">
+                            ${rejectionIcon}
                             <button class="btn btn-sm rounded-pill fw-semibold px-3 rdc-presentation-refer-btn"
                                 data-sid="${s.id || ''}"
                                 data-title="${(title||'').replace(/"/g, '&quot;')}"
@@ -553,6 +668,14 @@ export async function initAdminDashboard() {
             }).join('');
 
             if (window.lucide) window.lucide.createIcons();
+            
+            // Initialize Bootstrap tooltips for rejection info icons
+            tbody.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                if (window.bootstrap?.Tooltip) {
+                    bootstrap.Tooltip.getInstance(el)?.dispose();
+                    new bootstrap.Tooltip(el, { trigger: 'hover', html: false });
+                }
+            });
 
             tbody.querySelectorAll('.rdc-presentation-refer-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {

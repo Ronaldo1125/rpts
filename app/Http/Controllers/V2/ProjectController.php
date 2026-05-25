@@ -77,8 +77,13 @@ class ProjectController extends Controller
         $query = Project::with('agency')
             ->whereNull('component_project_id');
 
-        if (!Auth::user()->hasRole('administrator')) {
-            $query->where('user_id', auth()->id());
+        $user = Auth::user();
+        if (!$user->hasRole(['administrator', 'admin', 'staff', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief', 'division_head'])) {
+            if ($user->hasRole(['agency', 'implementing_agency'])) {
+                $query->where('agency_id', $user->agency_id);
+            } else {
+                $query->where('user_id', $user->id);
+            }
         }
 
         if ($search) {
@@ -164,9 +169,12 @@ class ProjectController extends Controller
     {
         $project = Project::where('id', '=', $id)->first();
 
-        if (!Auth::user()->hasRole('administrator')) {
-            if ($project->user->isNot(Auth::user())) {
-                abort(403);
+        $user = Auth::user();
+        if (!$user->hasRole(['administrator', 'admin', 'staff', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief', 'division_head'])) {
+            if ($user->hasRole(['agency', 'implementing_agency'])) {
+                if ($project->agency_id != $user->agency_id) abort(403);
+            } else {
+                if ($project->user_id !== $user->id) abort(403);
             }
         }
 
@@ -195,9 +203,12 @@ class ProjectController extends Controller
 
         $project = Project::where('id', '=', $id)->first();
 
-        if (!Auth::user()->hasRole('administrator')) {
-            if ($project->user->isNot(Auth::user())) {
-                abort(403);
+        $user = Auth::user();
+        if (!$user->hasRole(['administrator', 'admin', 'staff', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief', 'division_head'])) {
+            if ($user->hasRole(['agency', 'implementing_agency'])) {
+                if ($project->agency_id != $user->agency_id) abort(403);
+            } else {
+                if ($project->user_id !== $user->id) abort(403);
             }
         }
 
@@ -291,9 +302,12 @@ class ProjectController extends Controller
 
         $project = Project::findOrFail($id);
 
-        if (!Auth::user()->hasRole('administrator')) {
-            if ($project->user->isNot(Auth::user())) {
-                abort(403);
+        $user = Auth::user();
+        if (!$user->hasRole(['administrator', 'admin', 'staff', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief', 'division_head'])) {
+            if ($user->hasRole(['agency', 'implementing_agency'])) {
+                if ($project->agency_id != $user->agency_id) abort(403);
+            } else {
+                if ($project->user_id !== $user->id) abort(403);
             }
         }
 

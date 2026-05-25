@@ -4,9 +4,11 @@
     <div class="card-body p-0">
         <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light-subtle rounded-top">
             <h6 class="fw-bold smaller text-dark mb-0">Sub-Projects</h6>
+            @can('project-create')
             <a href="{{ route('v2.components.create', ['component_id' => $component_project->id]) }}" class="text-primary smaller text-decoration-none fw-bold">
                 <i data-lucide="plus" width="12"></i> Add
             </a>
+            @endcan
         </div>
         <div class="list-group list-group-flush">
             @forelse($component_project->project as $p)
@@ -24,14 +26,20 @@
                             <i data-lucide="more-horizontal" width="14"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            @can('project-view')
                             <li><a class="dropdown-item small" href="{{ route('v2.components.showSubProject', ['component_id' => $component_project->id, 'id' => $p->id]) }}"><i data-lucide="eye" class="me-2" width="14"></i> View</a></li>
+                            @endcan
+                            @can('project-edit')
                             <li><a class="dropdown-item small" href="{{ route('v2.components.editSubProject', ['component_id' => $component_project->id, 'id' => $p->id]) }}"><i data-lucide="edit-3" class="me-2" width="14"></i> Edit</a></li>
+                            @endcan
+                            @can('project-delete')
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <button type="button" class="dropdown-item small text-danger delete-sub-project-btn" data-id="{{ $p->id }}">
                                     <i data-lucide="trash-2" class="me-2" width="14"></i> Delete
                                 </button>
                             </li>
+                            @endcan
                         </ul>
                     </div>
                 </div>

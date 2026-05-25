@@ -18,14 +18,14 @@
     </div>
 
     <div class="row g-4 mb-5">
-        <!-- Master Projects -->
+        <!-- RDIP Projects -->
         <div class="col-12 col-sm-6 col-xl">
             <div class="card border-0 shadow-sm h-100 overflow-hidden rounded-20">
                 <div class="card-accent-secondary"></div>
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Master Projects</p>
+                            <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">RDIP Projects</p>
                             <h2 class="fw-bold mb-0 text-dark">{{ number_format($totalMasterProjects ?? 0) }}</h2>
                         </div>
                         <div class="bg-secondary bg-opacity-10 p-2.5 rounded-3 text-secondary">
@@ -131,7 +131,7 @@
                         <span class="step-label">Referral to Division</span>
                         <div class="step-meta">
                             <i data-lucide="bar-chart-3" width="12" height="12"></i>
-                            <span class="step-count" id="admin-dash-referred-count">38</span>
+                            <span class="step-count" id="admin-dash-referred-count">{{ $dashboardReferredCount ?? 0 }}</span>
                         </div>
                     </div>
                 </div>

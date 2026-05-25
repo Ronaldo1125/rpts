@@ -212,6 +212,13 @@ export async function initPdipbParLoader(
                             style="color:#154A9A; border:none; font-size:0.7rem;">
                             View
                         </button>
+                        <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold referral-reject-btn"
+                            data-sub-id="${s.id}"
+                            data-context="sectoral"
+                            data-title="${(s.title || s.formData?.['f-title'] || 'Untitled').replace(/"/g, '&quot;')}"
+                            style="font-size:0.7rem;">
+                            Reject
+                        </button>
                 </td>
             </tr>`;
         }).join('');
@@ -243,6 +250,13 @@ export async function initPdipbParLoader(
                             data-id="${s.id}"
                             style="color:#7f1d1d; border:none; font-size:0.7rem;">
                             View
+                        </button>
+                        <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold referral-reject-btn"
+                            data-sub-id="${s.id}"
+                            data-context="rdc"
+                            data-title="${(s.title || s.formData?.['f-title'] || 'Untitled').replace(/"/g, '&quot;')}"
+                            style="font-size:0.7rem;">
+                            Reject
                         </button>
                 </td>
             </tr>`;
@@ -277,6 +291,13 @@ export async function initPdipbParLoader(
                             data-id="${s.id}"
                             style="color:#154A9A; border:none; font-size:0.7rem;">
                             View
+                        </button>
+                        <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold referral-reject-btn"
+                            data-sub-id="${s.id}"
+                            data-context="revised"
+                            data-title="${(s.title || s.formData?.['f-title'] || 'Untitled').replace(/"/g, '&quot;')}"
+                            style="font-size:0.7rem;">
+                            Reject
                         </button>
                 </td>
             </tr>`;
@@ -321,6 +342,13 @@ export async function initPdipbParLoader(
                             style="color:#154A9A; border:none; font-size:0.7rem;">
                             View
                         </button>
+                        <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold referral-reject-btn"
+                            data-sub-id="${p.cpp_submission_id || ''}"
+                            data-context="par"
+                            data-title="${title.replace(/"/g, '&quot;')}"
+                            style="font-size:0.7rem;">
+                            Reject
+                        </button>
                         ${(() => {
                             const attachments = Array.isArray(p.submission?.media || p.media) ? (p.submission?.media || p.media).map(m => ({
                                 name: m.file_name,
@@ -345,7 +373,6 @@ export async function initPdipbParLoader(
             btn.addEventListener('click', e => {
                 e.preventDefault();
                 sessionStorage.setItem('par_edit_id', btn.dataset.id);
-                // Opened from Technical/Reviewed PAR queues: hide agency-submit in comments modal.
                 sessionStorage.setItem('pdipb_hide_submit_comments', '1');
                 if (window.switchPage) window.switchPage('project-assessment-report-form');
             });
@@ -355,8 +382,6 @@ export async function initPdipbParLoader(
             btn.addEventListener('click', e => {
                 e.preventDefault();
                 const sid = btn.dataset.id;
-                // Redirect to the cpp-view page for the revised submission
-                // Pass view_context parameter to show PDIPBD staff buttons
                 window.location.href = `/v2/cipg_submissions/${sid}/show`;
             });
         });
@@ -376,6 +401,98 @@ export async function initPdipbParLoader(
                 window.location.href = `/v2/cipg_submissions/${sid}/show`;
             });
         });
+
+        // ── Reject handler for all four stages ───────────────────────────────
+        document.querySelectorAll('.referral-reject-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                const subId   = btn.dataset.subId;
+                const context = btn.dataset.context;
+                const title   = btn.dataset.title || 'this submission';
+                _showRejectModal(subId, context, title, btn);
+            });
+        });
+    }
+
+    function _showRejectModal(subId, context, title, triggerBtn) {
+        const existingModal = document.getElementById('referral-reject-modal');
+        if (existingModal) existingModal.remove();
+
+        const contextLabels = { par: 'PAR Assessment', revised: 'Revised Submission', sectoral: 'SecCom Presentation', rdc: 'RDC Presentation' };
+        const label = contextLabels[context] || context;
+
+        const modal = document.createElement('div');
+        modal.id = 'referral-reject-modal';
+        modal.innerHTML = `
+        <div style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;">
+          <div class="bg-white rounded-4 shadow-lg p-4" style="width:100%;max-width:480px;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <div class="bg-danger bg-opacity-10 p-2 rounded-3">
+                <i data-lucide="x-circle" width="20" style="color:#dc2626;"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-0 text-dark">Reject — ${label}</h6>
+                <p class="text-muted small mb-0" style="font-size:0.75rem;">"${title}"</p>
+              </div>
+            </div>
+            <div class="alert alert-warning border-0 rounded-3 small py-2 px-3 mb-3" style="background:#fffbeb;color:#92400e;">
+              This will mark the referral as <strong>Rejected</strong> and return the submission for referral again.
+            </div>
+            <label class="small fw-semibold text-secondary text-uppercase mb-1" style="font-size:0.65rem;letter-spacing:0.05em;">Reason for Rejection (optional)</label>
+            <textarea id="reject-reason-input" class="form-control border-0 bg-light rounded-3 mb-3" rows="3" placeholder="Enter reason or leave blank..."></textarea>
+            <div class="d-flex gap-2 justify-content-end">
+              <button id="reject-cancel-btn" class="btn btn-light rounded-pill px-4 fw-semibold small">Cancel</button>
+              <button id="reject-confirm-btn" class="btn btn-danger rounded-pill px-4 fw-bold small">Confirm Rejection</button>
+            </div>
+          </div>
+        </div>`;
+        document.body.appendChild(modal);
+        if (window.lucide) window.lucide.createIcons({ nodes: [modal] });
+
+        modal.querySelector('#reject-cancel-btn').onclick = () => modal.remove();
+        modal.querySelector('#reject-confirm-btn').onclick = async () => {
+            const notes = modal.querySelector('#reject-reason-input').value.trim();
+            const confirmBtn = modal.querySelector('#reject-confirm-btn');
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Rejecting...';
+
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                const res = await fetch(`/referrals/reject/${subId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                    body: JSON.stringify({ context, notes }),
+                });
+                const data = await res.json();
+                modal.remove();
+                if (data.success) {
+                    if (window.showSimpleAlert) window.showSimpleAlert(data.message, 'success');
+                    // Remove the row from the table with a fade animation
+                    const row = triggerBtn.closest('tr');
+                    if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
+                    // Decrement the KPI badge for the relevant workflow stage
+                    const badgeIdMap = {
+                        par:      'staff-dash-eval-count',
+                        revised:  'staff-dash-revised-count',
+                        sectoral: 'staff-dash-sectoral-count',
+                        rdc:      'staff-dash-rdc-pres-count',
+                    };
+                    const badgeId = badgeIdMap[context];
+                    if (badgeId) {
+                        const badge = document.getElementById(badgeId);
+                        if (badge) {
+                            const current = parseInt(badge.textContent, 10) || 0;
+                            badge.textContent = Math.max(0, current - 1);
+                        }
+                    }
+                } else {
+                    if (window.showSimpleAlert) window.showSimpleAlert(data.message || 'Failed to reject referral.', 'danger');
+                }
+            } catch (err) {
+                modal.remove();
+                if (window.showSimpleAlert) window.showSimpleAlert('An error occurred. Please try again.', 'danger');
+            }
+        };
     }
 
     render();

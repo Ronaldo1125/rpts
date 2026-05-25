@@ -108,7 +108,7 @@
                 <div class="modal-body px-4 pb-4">
                     <div class="d-flex align-items-center gap-4">
                         <div class="rounded-pill overflow-hidden border shadow-sm square-120 flex-shrink-0">
-                            <img src="https://api.dicebear.com/7.x/initials/svg?seed=EC" class="w-100 h-100 object-fit-cover" alt="Profile Preview">
+                            <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ Auth::user()->name }}" class="w-100 h-100 object-fit-cover" alt="Profile Preview">
                         </div>
                         <div class="flex-grow-1">
                             <div class="input-group">

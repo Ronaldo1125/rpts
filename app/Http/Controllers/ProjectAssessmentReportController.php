@@ -13,8 +13,11 @@ class ProjectAssessmentReportController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+
         $user = Auth::user();
 
         $query = ProjectAssessmentReport::with([
@@ -55,9 +58,16 @@ class ProjectAssessmentReportController extends Controller
             });
         }
 
-        $reports = $query->orderBy('created_at', 'desc')->get();
+        if ($search) {
+            $query->whereHas('submission', function ($q) use ($search) {
+                $q->where('project_title', 'LIKE', "%{$search}%");
+            });
+        }
 
-        if (request()->expectsJson()) {
+        $reports = $query->orderBy('created_at', 'desc')->paginate($perPage)->onEachSide(1);
+        $reports->appends(['per_page' => $perPage, 'search' => $search]);
+
+        if ($request->expectsJson()) {
             return response()->json(['success' => true, 'data' => $reports]);
         }
 

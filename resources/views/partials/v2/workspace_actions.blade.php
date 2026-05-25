@@ -1,4 +1,8 @@
 <!-- Workspace Actions Card -->
+@if(
+    auth()->user()->can('project-update') ||
+    auth()->user()->can('project-delete')
+)
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-body p-3">
         <h6 class="fw-bold smaller text-dark mb-3">Workspace Actions</h6>
@@ -28,3 +32,4 @@
         @endif
     </div>
 </div>
+@endif

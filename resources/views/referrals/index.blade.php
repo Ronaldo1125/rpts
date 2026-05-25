@@ -51,24 +51,7 @@
 
     <div class="card border-0 shadow-sm rounded-16">
         <div class="card-body d-flex flex-column" style="min-height: 400px; padding: 1.5rem 1.25rem 0.5rem 1.25rem;">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 px-2">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="text-secondary small">Show</span>
-                    <select class="form-select form-select-sm border-0 bg-light entries-select" id="referralEntriesSelect">
-                        <option>10</option>
-                        <option>25</option>
-                        <option>50</option>
-                    </select>
-                    <span class="text-secondary small">entries</span>
-                </div>
-
-                <div class="d-flex align-items-center gap-2">
-                    <span class="text-secondary small fw-bold">Search:</span>
-                    <div class="input-group input-group-sm search-input-group" id="referralSearchGroup">
-                        <input type="text" class="form-control rounded-pill bg-light border-0 px-3" id="referralSearchInput" placeholder="Search referrals...">
-                    </div>
-                </div>
-            </div>
+            @include('partials.table-header')
 
             <div class="table-responsive table-overflow-visible">
                 <table class="table table-hover align-middle">
@@ -142,6 +125,7 @@
                                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
                                             @if(auth()->user()?->hasAnyRole(['division_head', 'chief']))
                                                 <li><a class="dropdown-item py-2 assign-staff-btn" href="#" data-id="{{ $ref->id }}" data-division="{{ $ref->referred_to_division }}"><i data-lucide="user-plus" width="14" class="me-2"></i>Assign Staff</a></li>
+                                                <li><a class="dropdown-item py-2 text-danger reject-referral-btn" href="#" data-sub-id="{{ $ref->cpp_submission_id ?? $ref->cipg_submission_id ?? '' }}" data-context="division" data-title="{{ str_replace('"', '&quot;', $ref->project_title) }}"><i data-lucide="x-circle" width="14" class="me-2"></i>Reject</a></li>
                                             @endif
                                             @if($ref->status === 'Pending PAR')
                                                 <li><a class="dropdown-item py-2 text-primary start-par-dynamic" href="#" data-title="{{ $ref->project_title }}" data-agency="{{ $ref->agency }}" data-cte-id="{{ $ref->cpp_submission_id ?? '' }}"><i data-lucide="file-edit" width="14" class="me-2"></i>Start PAR</a></li>
@@ -161,16 +145,7 @@
                 </table>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mt-auto py-3">
-                <span id="referral-count" class="text-muted small">Showing {{ $referrals->count() }} of {{ $referrals->count() }} entries</span>
-                <nav>
-                    <ul class="custom-pagination mb-0">
-                        <li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
-                    </ul>
-                </nav>
-            </div>
+            @include('partials.table-pagination', ['paginator' => $referrals])
         </div>
     </div>
 </section>
@@ -393,6 +368,89 @@
                 if (window.switchPage) window.switchPage('project-assessment-report-form');
             };
         });
+
+        // Reject Referral Logic
+        document.querySelectorAll('.reject-referral-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                const subId = btn.dataset.subId;
+                const title = btn.dataset.title;
+                const context = btn.dataset.context;
+                _showRejectModal(subId, title, context, btn);
+            };
+        });
+
+        function _showRejectModal(subId, title, context, triggerBtn) {
+            const modalId = `reject-modal-${subId}`;
+            let modal = document.getElementById(modalId);
+            if (modal) modal.remove();
+
+            modal = document.createElement('div');
+            modal.id = modalId;
+            modal.className = 'position-fixed w-100 h-100 top-0 left-0 d-flex align-items-center justify-content-center';
+            modal.style.background = 'rgba(0,0,0,0.5)';
+            modal.style.zIndex = '9999';
+            modal.innerHTML = `
+            <div class="bg-white rounded-4 shadow-lg overflow-hidden" style="width: 400px; max-width: 90vw;">
+              <div class="p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                  <div class="bg-danger bg-opacity-10 p-2 rounded-3">
+                    <i data-lucide="x-circle" width="20" style="color:#dc2626;"></i>
+                  </div>
+                  <div>
+                    <h6 class="fw-bold mb-0 text-dark">Reject — Division Referral</h6>
+                    <p class="text-muted small mb-0" style="font-size:0.75rem;">"${title}"</p>
+                  </div>
+                </div>
+                <div class="alert alert-warning border-0 rounded-3 small py-2 px-3 mb-3" style="background:#fffbeb;color:#92400e;">
+                  This will mark the referral as <strong>Rejected</strong> and return the submission.
+                </div>
+                <label class="small fw-semibold text-secondary text-uppercase mb-1" style="font-size:0.65rem;letter-spacing:0.05em;">Reason for Rejection (optional)</label>
+                <textarea id="reject-reason-input" class="form-control border-0 bg-light rounded-3 mb-3" rows="3" placeholder="Enter reason or leave blank..."></textarea>
+                <div class="d-flex gap-2 justify-content-end">
+                  <button id="reject-cancel-btn" class="btn btn-light rounded-pill px-4 fw-semibold small">Cancel</button>
+                  <button id="reject-confirm-btn" class="btn btn-danger rounded-pill px-4 fw-bold small">Confirm Rejection</button>
+                </div>
+              </div>
+            </div>`;
+            document.body.appendChild(modal);
+            if (window.lucide) window.lucide.createIcons({ nodes: [modal] });
+
+            modal.querySelector('#reject-cancel-btn').onclick = () => modal.remove();
+            modal.querySelector('#reject-confirm-btn').onclick = async () => {
+                const notes = modal.querySelector('#reject-reason-input').value.trim();
+                const confirmBtn = modal.querySelector('#reject-confirm-btn');
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Rejecting...';
+
+                try {
+                    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                    const res = await fetch(`/referrals/reject/${subId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                        body: JSON.stringify({ context, notes }),
+                    });
+                    const data = await res.json();
+                    modal.remove();
+                    if (data.success) {
+                        if (window.showSimpleAlert) window.showSimpleAlert(data.message, 'success');
+                        const row = triggerBtn.closest('tr');
+                        if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
+                        // Also decrement count
+                        const countEl = document.getElementById('referral-count');
+                        if (countEl) {
+                            const currentRows = document.querySelectorAll('#referral-tbody tr:not(.fade-out)').length - 1; // -1 for the one being removed
+                            if(currentRows >= 0) countEl.textContent = `Showing ${currentRows} of ${currentRows} entries`;
+                        }
+                    } else {
+                        if (window.showSimpleAlert) window.showSimpleAlert(data.message || 'Failed to reject referral.', 'danger');
+                    }
+                } catch (err) {
+                    modal.remove();
+                    if (window.showSimpleAlert) window.showSimpleAlert('An error occurred. Please try again.', 'danger');
+                }
+            };
+        }
 
         if (window.lucide) window.lucide.createIcons();
     });

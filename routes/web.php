@@ -197,6 +197,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::delete('referrals/{referral}', [\App\Http\Controllers\ReferralController::class, 'destroy'])->name('referrals.destroy');
     Route::post('referrals/staff-action/{submissionId}', [\App\Http\Controllers\ReferralController::class, 'staffAction'])->name('referrals.staffAction');
     Route::post('referrals/save-comments/{submissionId}', [\App\Http\Controllers\ReferralController::class, 'saveComments'])->name('referrals.saveComments');
+    Route::post('referrals/reject/{submissionId}', [\App\Http\Controllers\ReferralController::class, 'reject'])->name('referrals.reject');
 
     // Route of Profiles
 

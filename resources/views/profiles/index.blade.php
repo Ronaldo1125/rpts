@@ -199,7 +199,7 @@ function togglePasswordVisibility(id) {
 
 @section('jsvalidator')
 
-{!! JsValidator::formRequest('App\Http\Requests\ProfileUpdateRequest'); !!}
+{!! JsValidator::formRequest('App\Http\Requests\ProfileUpdateRequest') !!}
 {{-- {!! JsValidator::formRequest('App\Http\Requests\TransportationStoreRequest', '#edit-form'); !!} --}}
 
 @endsection

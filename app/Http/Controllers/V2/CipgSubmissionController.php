@@ -13,8 +13,11 @@ use Carbon\Carbon;
 
 class CipgSubmissionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+        
         $user = Auth::user();
         $query = CppSubmission::query();
 
@@ -28,13 +31,23 @@ class CipgSubmissionController extends Controller
             });
         }
 
-        $submissions = $query->with(['sector', 'sub_sector', 'feedbacks', 'assessment_report', 'comments_and_recommendations'])->latest()->get();
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('project_title', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $submissions = $query->with(['sector', 'sub_sector', 'feedbacks', 'assessment_report', 'comments_and_recommendations'])->latest()->paginate($perPage)->onEachSide(1);
+        $submissions->appends(['per_page' => $perPage, 'search' => $search]);
 
         return view('cipg_submissions.index_v2', compact('submissions'));
     }
 
-    public function manage()
+    public function manage(Request $request)
     {
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+        
         $user = Auth::user();
         $query = CppSubmission::with(['sector', 'sub_sector', 'user.agency', 'feedbacks', 'assessment_report', 'comments_and_recommendations'])->latest();
         
@@ -44,7 +57,18 @@ class CipgSubmissionController extends Controller
               ->orWhere('user_id', $user->id);
         });
 
-        $submissions = $query->get();
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('project_title', 'LIKE', "%{$search}%")
+                  ->orWhereHas('user.agency', function ($aq) use ($search) {
+                      $aq->where('agency_acronym', 'LIKE', "%{$search}%")
+                         ->orWhere('agency_name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
+        $submissions = $query->paginate($perPage)->onEachSide(1);
+        $submissions->appends(['per_page' => $perPage, 'search' => $search]);
 
         return view('cipg_submissions.index_v2', [
             'submissions' => $submissions,
@@ -282,7 +306,8 @@ class CipgSubmissionController extends Controller
             'benefits_costs',
             'sdg_alignments',
             'rdp_alignments',
-            'sector'
+            'sector',
+            'sub_sector'
         ])->findOrFail($id);
 
         $loc = $submission->locations->first();
@@ -325,12 +350,12 @@ class CipgSubmissionController extends Controller
             'f-bor-res' => $submission->endorsement->bor_bot_resolution_no ?? null,
             'f-bor-date' => $submission->endorsement->bor_bot_resolution_date ?? null,
 
-            'f-sector' => $submission->sector_id,
-            'f-sub-sector' => $submission->sub_sector_id,
+            'f-sector' => $submission->sector->sector_name ?? null,
+            'f-sub-sector' => $submission->sub_sector->subsector_name ?? null,
             
             // Alignments (Formatted for view)
-            'f-alignment' => $submission->sdg_alignments->map(fn($s) => "SDG {$s->number}: {$s->sdg_name}")->implode("\n"),
-            'f-rdp-alignment' => $submission->rdp_alignments->pluck('chapter_name')->implode("\n"),
+            'f-alignment' => $submission->sdg_alignments->map(fn($s) => "{$s->number}: {$s->title}")->implode("<br>"),
+            'f-rdp-alignment' => $submission->rdp_alignments->pluck('chapter_name')->implode("<br>"),
 
             // Project Justification (Page 2)
             'f-background' => $submission->background,

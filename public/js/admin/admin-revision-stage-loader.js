@@ -20,7 +20,8 @@ export async function initRevisionStage() {
             serverSubs.forEach(s => merged.set(String(s.id), s));
             localSubs.forEach(s => {
                 if (merged.has(String(s.id))) {
-                    merged.set(String(s.id), s);
+                    const existing = merged.get(String(s.id));
+                    merged.set(String(s.id), { ...existing, ...s, referrals: existing.referrals || s.referrals });
                 }
             });
             allSubmissions = Array.from(merged.values());
@@ -79,6 +80,31 @@ export async function initRevisionStage() {
             
             const abbr = window.getAgencyAbbreviation ? window.getAgencyAbbreviation(agency) : agency;
 
+            // Check for a previously rejected referral
+            const sReferrals = Array.isArray(s.referrals) ? s.referrals : [];
+            const rejectedRef = sReferrals.find(r => r.status === 'Rejected') || 
+                                localReferrals.find(r => r.status === 'Rejected' && (String(r.submissionId) === String(s.id) || String(r.cteId) === String(s.id)));
+            let titleText = '';
+            if (rejectedRef) {
+                let rejecterName = rejectedRef.to_user_name || rejectedRef.toUserName || 'Staff';
+                let rawNotes = rejectedRef.notes || '';
+                const match = rawNotes.match(/\[Rejected(?: by (.*?))?\]/);
+                if (match) {
+                    if (match[1]) rejecterName = match[1].trim();
+                    rawNotes = rawNotes.replace(match[0], '').trim();
+                }
+                const rejectionNotes = rawNotes || 'No reason provided.';
+                titleText = `Rejected by ${rejecterName}: ${rejectionNotes.replace(/"/g, '&quot;')}`;
+            }
+            const rejectionIcon = rejectedRef
+                ? `<span class="rejection-info-icon me-2"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="${titleText}"
+                        style="cursor:pointer;color:#f59e0b;vertical-align:middle;"
+                    ><i data-lucide="info" width="14" height="14"></i></span>`
+                : '';
+
             return `
                 <tr>
                     <td class="ps-4 py-3 fw-bold text-dark small" style="max-width:300px;">${title}</td>
@@ -86,6 +112,7 @@ export async function initRevisionStage() {
                     <td class="small text-muted py-3">${stage}</td>
                     <td class="small text-muted py-3">${date ? new Date(date).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</td>
                     <td class="text-end pe-4">
+                    ${rejectionIcon}
                         <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold refer-revised-btn shadow-sm"
                             data-sid="${sid}"
                             data-title="${title.replace(/"/g, '&quot;')}"
@@ -98,6 +125,15 @@ export async function initRevisionStage() {
         }).join('');
 
         if (window.lucide) window.lucide.createIcons();
+
+        // Initialize Bootstrap tooltips for rejection info icons
+        tbody.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+            if (window.bootstrap?.Tooltip) {
+                bootstrap.Tooltip.getInstance(el)?.dispose();
+                new bootstrap.Tooltip(el, { trigger: 'hover', html: false });
+            }
+        });
+
         _attachHandlers();
     }
 

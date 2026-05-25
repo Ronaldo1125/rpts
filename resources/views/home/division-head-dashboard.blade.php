@@ -56,7 +56,7 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">Master Projects</p>
+                            <p class="text-muted mb-1 small fw-semibold text-uppercase letter-spacing-05">RDIP Projects</p>
                             <h2 class="fw-bold mb-0 text-dark">{{ number_format($totalMasterProjects ?? 0) }}</h2>
                         </div>
                         <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-primary">
@@ -230,11 +230,19 @@
                                     <td class="text-muted small py-3">{{ $referral->submission?->user?->agency?->agency_name ?? '—' }}</td>
                                     <td class="text-muted small py-3">{{ $referral->referred_at->format('M d, Y') }}</td>
                                     <td class="py-3 text-center">
-                                        <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold dash-assign-btn" 
-                                            data-id="{{ $referral->id }}" 
-                                            style="font-size:0.7rem; background:#154A9A; border:none;">
-                                            Assign Staff
-                                        </button>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold dash-assign-btn" 
+                                                data-id="{{ $referral->id }}" 
+                                                style="font-size:0.7rem; background:#154A9A; border:none;">
+                                                Assign Staff
+                                            </button>
+                                            <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold dash-reject-btn"
+                                                data-sub-id="{{ $referral->cpp_submission_id ?? $referral->cipg_submission_id ?? '' }}"
+                                                data-title="{{ str_replace('"', '&quot;', $referral->submission?->project_title ?? 'Untitled') }}"
+                                                style="font-size:0.7rem;">
+                                                Reject
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

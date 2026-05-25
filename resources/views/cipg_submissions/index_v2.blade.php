@@ -185,18 +185,7 @@
                     </table>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <span id="submissions-count" class="text-muted small">Showing {{ $submissions->count() }} of {{ $submissions->count() }} entries</span>
-                    <nav>
-                        <ul class="custom-pagination mb-0">
-                            <li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
-                            <li class="page-item disabled"><a class="page-link" href="#">&lsaquo;</a></li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item disabled"><a class="page-link" href="#">&rsaquo;</a></li>
-                            <li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
-                        </ul>
-                    </nav>
-                </div>
+                @include('partials.table-pagination', ['paginator' => $submissions])
             </div>
         </div>
     </section>

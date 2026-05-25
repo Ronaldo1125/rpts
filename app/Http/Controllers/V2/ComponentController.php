@@ -64,8 +64,13 @@ class ComponentController extends Controller
         $query = Project::whereNotNull('component_project_id')
                     ->with('component_project', 'agency', 'project_cost_target');
 
-        if (!Auth::user()->hasRole('administrator')) {
-            $query->where('user_id', Auth::id());
+        $user = Auth::user();
+        if (!$user->hasRole(['administrator', 'admin', 'staff', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief', 'division_head'])) {
+            if ($user->hasRole(['agency', 'implementing_agency'])) {
+                $query->where('agency_id', $user->agency_id);
+            } else {
+                $query->where('user_id', $user->id);
+            }
         }
 
         if ($search) {
@@ -204,6 +209,15 @@ class ComponentController extends Controller
                                 ->where('id', $id)
                                 ->firstOrFail();
 
+        $user = Auth::user();
+        if (!$user->hasRole(['administrator', 'admin', 'staff', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief', 'division_head'])) {
+            if ($user->hasRole(['agency', 'implementing_agency'])) {
+                if ($sub_project->agency_id != $user->agency_id) abort(403);
+            } else {
+                if ($sub_project->user_id !== $user->id) abort(403);
+            }
+        }
+
         $arrInterProvinces = [];
         $arrValueSelectedChapters = [];
         $provinceId = '';
@@ -292,10 +306,12 @@ class ComponentController extends Controller
                                 ->where('id', $id)
                                 ->firstOrFail();
 
-        if(!Auth::user()->hasRole('administrator')) {
-            if($sub_project->user->isNot(Auth::user())) 
-            {
-                abort(403);
+        $user = Auth::user();
+        if (!$user->hasRole(['administrator', 'admin', 'staff', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief', 'division_head'])) {
+            if ($user->hasRole(['agency', 'implementing_agency'])) {
+                if ($sub_project->agency_id != $user->agency_id) abort(403);
+            } else {
+                if ($sub_project->user_id !== $user->id) abort(403);
             }
         }
 
@@ -439,6 +455,16 @@ class ComponentController extends Controller
     {
 
        $subProject = Project::findOrFail($id);
+       
+       $user = Auth::user();
+       if (!$user->hasRole(['administrator', 'admin', 'staff', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief', 'division_head'])) {
+           if ($user->hasRole(['agency', 'implementing_agency'])) {
+               if ($subProject->agency_id != $user->agency_id) abort(403);
+           } else {
+               if ($subProject->user_id !== $user->id) abort(403);
+           }
+       }
+
        $subProject->delete();
 
         toast('SubProject Data Deleted Successfully!','success');

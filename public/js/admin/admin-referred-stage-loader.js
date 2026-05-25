@@ -63,22 +63,64 @@ window.initReferredStage = async function () {
         // Pending = based on CIPG submission status being 'Validated'
         // We also check 'all' (project_referrals) to see if it was just referred locally
         const pendingSubs = subs.filter(s => {
+            const status = (s.status || '').toLowerCase();
+            const stage = (s.stage || '').toLowerCase();
+
+            // Must be validated first
+            if (status !== 'validated') return false;
+
             const isReferredLocally = all.some(r => String(r.submissionId || r.cteId) === String(s.id) && r.status === 'Referred');
-            return s.status === 'Validated' && s.stage !== 'Project Appraisal' && !isReferredLocally;
+            if (isReferredLocally) return false;
+            
+            const sReferrals = Array.isArray(s.referrals) ? s.referrals : [];
+            const allRefsForSub = [...sReferrals, ...all.filter(r => String(r.submissionId || r.cteId) === String(s.id))];
+            
+            const divRefs = allRefsForSub.filter(r => {
+                const rStage = (r.stage || '').toLowerCase();
+                const rStatus = (r.status || '').toLowerCase();
+                return rStage === 'project appraisal' || rStatus === 'referred to division' || rStatus === 'referred';
+            });
+            const hasActiveDivRef = divRefs.some(r => (r.status || '').toLowerCase() !== 'rejected');
+            
+            if (hasActiveDivRef) return false;
+            
+            const hasRejectedDivRef = divRefs.some(r => (r.status || '').toLowerCase() === 'rejected');
+            if (hasRejectedDivRef) return true;
+
+            if (stage === 'project appraisal') return false;
+
+            return true;
         });
 
         // Map submissions to the table row structure expected
         let rows = pendingSubs.map(s => {
-            const ref = all.find(r => String(r.submissionId || r.cteId) === String(s.id)) || {};
+            const ref = all.find(r => String(r.submissionId || r.cteId) === String(s.id) && r.status !== 'Rejected') || {};
+            const sReferrals = Array.isArray(s.referrals) ? s.referrals : [];
+            const rejectedRef = sReferrals.find(r => r.status === 'Rejected' && r.stage === 'Project Appraisal') ||
+                                all.find(r => String(r.submissionId || r.cteId) === String(s.id) && r.status === 'Rejected');
+
+            let rejectText = '';
+            if (rejectedRef) {
+                let rejecterName = rejectedRef.to_user_name || rejectedRef.toUserName || 'Division Head';
+                let rawNotes = rejectedRef.notes || '';
+                const match = rawNotes.match(/\[Rejected(?: by (.*?))?\]/);
+                if (match) {
+                    if (match[1]) rejecterName = match[1].trim();
+                    rawNotes = rawNotes.replace(match[0], '').trim();
+                }
+                rejectText = `Rejected by ${rejecterName}: ${rawNotes.replace(/"/g, '&quot;')}`;
+            }
+
             return {
                 id: ref.id || s.id, // Fallback to submission ID if no referral exists
                 submissionId: s.id,
-                projectTitle: s.title || s.formData?.['f-title'] || 'Untitled',
-                agency: s.agency || s.formData?.['f-agency'] || '—',
+                projectTitle: s.title || s.formData?.['f-title'] || s.project_title || 'Untitled',
+                agency: s.agency || s.formData?.['f-agency'] || (s.user?.agency?.agency_name) || '—',
                 sector: s.sector || s.formData?.['f-sector'] || '—',
                 referrerName: ref.referrerName || 'System',
                 referrerRole: ref.referrerRole || 'PDIPB Staff',
-                referralDate: ref.referralDate || s.updated_at || s.date || new Date().toISOString()
+                referralDate: ref.referralDate || s.updated_at || s.date || new Date().toISOString(),
+                rejectText: rejectText
             };
         });
 
@@ -119,7 +161,17 @@ window.initReferredStage = async function () {
             return;
         }
 
-        tbody.innerHTML = rows.map(ref => `
+        tbody.innerHTML = rows.map(ref => {
+            const rejectionIcon = ref.rejectText
+                ? `<span class="rejection-info-icon me-2"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="${ref.rejectText}"
+                        style="cursor:pointer;color:#f59e0b;vertical-align:middle;"
+                    ><i data-lucide="info" width="14" height="14"></i></span>`
+                : '';
+                
+            return `
             <tr data-ref-id="${ref.id}">
                 <td class="py-3 ps-4" style="max-width:270px;">
                     <div class="fw-semibold small text-dark">${ref.projectTitle || '—'}</div>
@@ -136,16 +188,27 @@ window.initReferredStage = async function () {
                         ${ref.sector}
                     </span>
                 </td>
-                <td class="py-3 pe-4 text-center">
-                    <button class="btn btn-sm rounded-pill fw-semibold px-3 btn-refer-modal shadow-sm d-flex align-items-center mx-auto"
+                <td class="py-3 pe-4 text-end">
+                    ${rejectionIcon}
+                    <button class="btn btn-sm rounded-pill fw-semibold px-3 btn-refer-modal shadow-sm d-inline-flex align-items-center justify-content-center mx-1"
                         style="background:#154A9A;color:#fff;border:none;font-size:0.75rem;"
                         data-ref-id="${ref.id}" data-title="${ref.projectTitle || ''}">
                         <i data-lucide="send" width="13" class="me-1"></i>Refer to Division
                     </button>
                 </td>
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
 
         if (window.lucide) window.lucide.createIcons();
+        
+        // Initialize Bootstrap tooltips for rejection info icons
+        tbody.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+            if (window.bootstrap?.Tooltip) {
+                bootstrap.Tooltip.getInstance(el)?.dispose();
+                new bootstrap.Tooltip(el, { trigger: 'hover', html: false });
+            }
+        });
+
         _attachHandlers();
     }
 

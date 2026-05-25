@@ -129,10 +129,17 @@ export async function initPdipbCteLoader(targetTbodyId = 'cte-tbody') {
                 <td class="small text-muted py-3">${_timeAgo(date)}</td>
                 <td class="py-3 pe-3 text-end">
                     <div class="d-flex justify-content-end gap-2">
-                        <button class="btn btn-sm rounded-pill px-3 fw-semibold cte-view-cpp"
+                        <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold cte-view-cpp"
                             data-sid="${sid}"
-                            style="background:#e0f2fe;color:#0369a1;border:none;font-size:0.75rem;">
-                            <i data-lucide="eye" width="13" class="me-1"></i>View CPP
+                            style="color:#0369a1; border:none; font-size:0.75rem;">
+                            View
+                        </button>
+                        <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold referral-reject-btn"
+                            data-sub-id="${sid}"
+                            data-context="cte"
+                            data-title="${title.replace(/"/g, '&quot;')}"
+                            style="font-size:0.75rem;">
+                            Reject
                         </button>
                     </div>
                 </td>
@@ -141,6 +148,86 @@ export async function initPdipbCteLoader(targetTbodyId = 'cte-tbody') {
 
         if (window.lucide) window.lucide.createIcons();
         _attachHandlers();
+    }
+
+    function _showRejectModal(subId, title, context, triggerBtn) {
+        const modalId = `reject-modal-${subId}`;
+        let modal = document.getElementById(modalId);
+        if (modal) modal.remove();
+
+        const labelMap = {
+            par: 'PAR Draft',
+            revised: 'Revised Submission',
+            sectoral: 'Sectoral Presentation',
+            rdc: 'RDC Presentation',
+            cte: 'Completeness Test'
+        };
+        const label = labelMap[context] || 'Referral';
+
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.className = 'position-fixed w-100 h-100 top-0 left-0 d-flex align-items-center justify-content-center';
+        modal.style.background = 'rgba(0,0,0,0.5)';
+        modal.style.zIndex = '9999';
+        modal.innerHTML = `
+        <div class="bg-white rounded-4 shadow-lg overflow-hidden" style="width: 400px; max-width: 90vw;">
+          <div class="p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="bg-danger bg-opacity-10 p-2 rounded-3">
+                <i data-lucide="x-circle" width="20" style="color:#dc2626;"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-0 text-dark">Reject — ${label}</h6>
+                <p class="text-muted small mb-0" style="font-size:0.75rem;">"${title}"</p>
+              </div>
+            </div>
+            <div class="alert alert-warning border-0 rounded-3 small py-2 px-3 mb-3" style="background:#fffbeb;color:#92400e;">
+              This will mark the referral as <strong>Rejected</strong> and return the submission for referral again.
+            </div>
+            <label class="small fw-semibold text-secondary text-uppercase mb-1" style="font-size:0.65rem;letter-spacing:0.05em;">Reason for Rejection (optional)</label>
+            <textarea id="reject-reason-input" class="form-control border-0 bg-light rounded-3 mb-3" rows="3" placeholder="Enter reason or leave blank..."></textarea>
+            <div class="d-flex gap-2 justify-content-end">
+              <button id="reject-cancel-btn" class="btn btn-light rounded-pill px-4 fw-semibold small">Cancel</button>
+              <button id="reject-confirm-btn" class="btn btn-danger rounded-pill px-4 fw-bold small">Confirm Rejection</button>
+            </div>
+          </div>
+        </div>`;
+        document.body.appendChild(modal);
+        if (window.lucide) window.lucide.createIcons({ nodes: [modal] });
+
+        modal.querySelector('#reject-cancel-btn').onclick = () => modal.remove();
+        modal.querySelector('#reject-confirm-btn').onclick = async () => {
+            const notes = modal.querySelector('#reject-reason-input').value.trim();
+            const confirmBtn = modal.querySelector('#reject-confirm-btn');
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Rejecting...';
+
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                const res = await fetch(`/referrals/reject/${subId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                    body: JSON.stringify({ context, notes }),
+                });
+                const data = await res.json();
+                modal.remove();
+                if (data.success) {
+                    if (window.showSimpleAlert) window.showSimpleAlert(data.message, 'success');
+                    const row = triggerBtn.closest('tr');
+                    if (row) { row.style.opacity = '0'; row.style.transition = 'opacity 0.3s'; setTimeout(() => row.remove(), 300); }
+                    const badge = document.getElementById('staff-dash-initial-count');
+                    if (badge) {
+                        const current = parseInt(badge.textContent, 10) || 0;
+                        badge.textContent = Math.max(0, current - 1);
+                    }
+                } else {
+                    if (window.showSimpleAlert) window.showSimpleAlert(data.message || 'Failed to reject referral.', 'danger');
+                }
+            } catch (err) {
+                modal.remove();
+                if (window.showSimpleAlert) window.showSimpleAlert('An error occurred. Please try again.', 'danger');
+            }
+        };
     }
 
     // ── Action Handlers ───────────────────────────────────────────────────────
@@ -152,6 +239,17 @@ export async function initPdipbCteLoader(targetTbodyId = 'cte-tbody') {
                 const sid = btn.dataset.sid;
                 // Navigate to the Laravel show route — the blade renders the full CPP
                 window.location.href = `/v2/cipg_submissions/${sid}/show`;
+            });
+        });
+
+        // Reject handler
+        tbody.querySelectorAll('.referral-reject-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                const sid = btn.dataset.subId;
+                const title = btn.dataset.title;
+                const context = btn.dataset.context;
+                _showRejectModal(sid, title, context, btn);
             });
         });
 

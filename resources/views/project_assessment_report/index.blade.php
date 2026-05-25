@@ -14,25 +14,7 @@
 
     <div class="card border-0 shadow-sm">
         <div class="card-body d-flex flex-column" style="min-height: 300px; padding: 1.5rem 1.25rem 0.5rem 1.25rem;">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 px-2">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="text-secondary small">Show</span>
-                    <select class="form-select form-select-sm border-0 bg-light" style="width: 70px;"
-                        id="parEntriesSelect">
-                        <option>10</option>
-                        <option>25</option>
-                        <option>50</option>
-                    </select>
-                    <span class="text-secondary small">entries</span>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="text-secondary small fw-bold">Search:</span>
-                    <div class="input-group input-group-sm" style="max-width: 250px; min-width: 150px; flex-grow: 1;">
-                        <input type="text" class="form-control rounded-pill bg-light border-0 px-3" id="parSearchInput"
-                            placeholder="Search assessments...">
-                    </div>
-                </div>
-            </div>
+            @include('partials.table-header')
 
             <div class="table-responsive" style="border-radius: 8px;">
                 <table class="table table-hover align-middle" data-sortable="true">
@@ -104,16 +86,7 @@
                 </table>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mt-auto py-3">
-                <span id="par-count" class="text-muted small">Showing 1 to 1 of 1 entries</span>
-                <nav>
-                    <ul class="custom-pagination mb-0">
-                        <li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
-                    </ul>
-                </nav>
-            </div>
+            @include('partials.table-pagination', ['paginator' => $reports])
         </div>
     </div>
 </section>
