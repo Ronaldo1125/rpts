@@ -57,14 +57,15 @@ export function initAgencyDashboardLoader() {
             const incompleteCount = submissions.filter(s => _getSubmissionStatus(s) === 'Incomplete').length;
             const submittedCount = submissions.filter(s => !['Draft','For Revision','Incomplete'].includes(_getSubmissionStatus(s))).length;
 
-            // Stats for chart — individual status buckets
-            const cntOngoing    = submissions.filter(s => _getProjectStatus(s) === 'Ongoing').length;
-            const cntApproved   = submissions.filter(s => _getProjectStatus(s) === 'Approved').length;
-            const cntCompleted  = submissions.filter(s => _getProjectStatus(s) === 'Completed').length;
-            const cntProposed   = submissions.filter(s => _getProjectStatus(s) === 'Proposed').length;
-            const cntSuspended  = submissions.filter(s => ['Suspended', 'Pipeline'].includes(_getProjectStatus(s))).length;
-            const cntDropped    = submissions.filter(s => _getProjectStatus(s) === 'Dropped').length;
-            const cntTerminated = submissions.filter(s => _getProjectStatus(s) === 'Terminated').length;
+            // Stats for chart — individual status buckets (pulled from actual projects table via Controller)
+            const stats = window.serverProjectStats || {};
+            const cntOngoing    = stats.ongoing || 0;
+            const cntApproved   = stats.approved || 0;
+            const cntCompleted  = stats.completed || 0;
+            const cntProposed   = stats.proposed || 0;
+            const cntSuspended  = stats.suspended || 0;
+            const cntDropped    = stats.dropped || 0;
+            const cntTerminated = stats.terminated || 0;
 
     // Pipeline stage counts — uses adminStage field first, falls back to status mapping
             function _getAdminStage(s) {
@@ -117,7 +118,7 @@ export function initAgencyDashboardLoader() {
             setLeg('legend-terminated', cntTerminated);
 
             // Initialize Charts
-            _initCharts({ cntOngoing, cntCompleted, cntProposed, cntSuspended, cntDropped, cntTerminated, submissions });
+            _initCharts({ cntOngoing, cntCompleted, cntProposed, cntSuspended, cntDropped, cntTerminated, draftsCount, submittedCount, revisionCount, incompleteCount, submissions });
 
             if (window.lucide) window.lucide.createIcons();
 
@@ -312,45 +313,50 @@ export function initAgencyDashboardLoader() {
             });
         }
 
-        // 2. Pulse Chart (Bar)
-        const ctxPulse = document.getElementById('agency-pulse-chart')?.getContext('2d');
-        if (ctxPulse) {
-            const dayCounts = [0, 0, 0, 0, 0, 0, 0];
-            submissions.forEach(s => {
-                const d = new Date(s.date || Date.now());
-                let day = d.getDay();
-                let idx = day === 0 ? 6 : day - 1;
-                dayCounts[idx]++;
-            });
-            const hasData = dayCounts.some(c => c > 0);
-            const displayData = hasData ? dayCounts : [2, 5, 3, 8, 4, 1, 2];
+        // 2. Submission Status Pipeline (Bar Chart)
+        const ctxPipeline = document.getElementById('agency-pipeline-chart')?.getContext('2d');
+        if (ctxPipeline) {
+            const approvedCount = submissions.filter(s => ['Approved'].includes(s?.submissionStatus || s?.status)).length;
+            const actualSubmitted = Math.max(0, submittedCount - approvedCount);
 
-            window._agencyCharts.pulse = new Chart(ctxPulse, {
+            window._agencyCharts.pipeline = new Chart(ctxPipeline, {
                 type: 'bar',
                 data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    labels: ['Drafts', 'Submitted', 'For Revision', 'Approved', 'Incomplete'],
                     datasets: [{
-                        data: displayData,
-                        backgroundColor: '#154A9A',
+                        label: 'Submissions',
+                        data: [draftsCount, actualSubmitted, revisionCount, approvedCount, incompleteCount],
+                        backgroundColor: [
+                            'rgba(148,163,184,0.85)', // Drafts
+                            'rgba(59,130,246,0.85)',  // Submitted
+                            'rgba(245,158,11,0.85)',  // For Revision
+                            'rgba(16,185,129,0.85)',  // Approved
+                            'rgba(239,68,68,0.85)'    // Incomplete
+                        ],
                         borderRadius: 8,
-                        barThickness: 'flex'
+                        borderSkipped: false,
+                        maxBarThickness: 40
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: { display: false, beginAtZero: true },
-                        x: { grid: { display: false }, border: { display: false } }
+                    plugins: {
+                        legend: { display: false }
                     },
-                    plugins: { legend: { display: false } }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, font: { size: 11 } },
+                            grid: { color: 'rgba(0,0,0,0.04)' }
+                        },
+                        x: {
+                            ticks: { font: { size: 10 } },
+                            grid: { display: false }
+                        }
+                    }
                 }
             });
-            const weeklyAvgEl = document.getElementById('weekly-avg');
-            if (weeklyAvgEl) {
-                const total = displayData.reduce((a,b)=>a+b,0);
-                weeklyAvgEl.textContent = (total / 7).toFixed(1) + ' submissions/day average';
-            }
         }
 
         // 3. MTIP Horizon (Line Chart)

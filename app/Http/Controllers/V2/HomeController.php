@@ -239,7 +239,55 @@ class HomeController extends Controller
 
     public function agency()
     {
-        return view('home.agency-dashboard');
+        $user = auth()->user();
+        
+        // Count actual projects from the projects table for the Project Status Distribution
+        $projectQuery = \App\Models\Project::query();
+        if ($user->hasRole(['agency', 'implementing_agency'])) {
+            $projectQuery->where('agency_id', $user->agency_id);
+        } else {
+            $projectQuery->where('user_id', $user->id);
+        }
+
+        $projectStats = [
+            'ongoing'    => (clone $projectQuery)->where('status', 'Ongoing')->count(),
+            'completed'  => (clone $projectQuery)->where('status', 'Completed')->count(),
+            'proposed'   => (clone $projectQuery)->where('status', 'Proposed')->count(),
+            'suspended'  => (clone $projectQuery)->where('status', 'Suspended')->count(),
+            'dropped'    => (clone $projectQuery)->where('status', 'Dropped')->count(),
+            'terminated' => (clone $projectQuery)->where('status', 'Terminated')->count(),
+            'approved'   => (clone $projectQuery)->where('status', 'Approved')->count(),
+        ];
+
+        // Count submissions for the Submission Status Pipeline
+        $submissions = \App\Models\CppSubmission::where('user_id', $user->id)->get();
+        $submissionStats = [
+            'drafts'       => $submissions->where('status', 'Draft')->count(),
+            'submitted'    => $submissions->where('status', 'Submitted')->count(),
+            'resubmitted'  => $submissions->where('status', 'Resubmitted')->count(),
+            'incomplete'   => $submissions->where('status', 'Incomplete')->count(),
+            'validated'    => $submissions->where('status', 'Validated')->count(),
+            'revision'     => $submissions->where('status', 'For Revision')->count(),
+            'revised'      => $submissions->where('status', 'Revised')->count(),
+            'seccom'       => $submissions->where('status', 'SecCom')->count(),
+            'rdc'          => $submissions->where('status', 'RDC')->count(),
+            'approved'     => $submissions->where('status', 'Approved')->count(),
+        ];
+
+        // Cost per year from project_cost_target for the agency's projects
+        $projectIds = (clone $projectQuery)->pluck('id');
+        $costTotals = \App\Models\ProjectCostTarget::whereIn('project_id', $projectIds)->get();
+        $costPerYear = [
+            '2023'       => $costTotals->sum('cost_year_2023'),
+            '2024'       => $costTotals->sum('cost_year_2024'),
+            '2025'       => $costTotals->sum('cost_year_2025'),
+            '2026'       => $costTotals->sum('cost_year_2026'),
+            '2027'       => $costTotals->sum('cost_year_2027'),
+            '2028'       => $costTotals->sum('cost_year_2028'),
+            'Succeeding' => $costTotals->sum('cost_succeeding_years'),
+        ];
+
+        return view('home.agency-dashboard', compact('projectStats', 'submissionStats', 'costPerYear'));
     }
 
     public function staff()

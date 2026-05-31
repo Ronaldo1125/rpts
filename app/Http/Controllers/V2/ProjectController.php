@@ -78,7 +78,7 @@ class ProjectController extends Controller
             ->whereNull('component_project_id');
 
         $user = Auth::user();
-        if (!$user->hasRole(['administrator', 'admin', 'staff', 'pmed_staff', 'chief', 'division_chief', 'pmed_chief', 'division_head'])) {
+        if (!$user->hasRole(['administrator', 'admin', 'staff', 'chief', 'division_chief', 'division_head'])) {
             if ($user->hasRole(['agency', 'implementing_agency'])) {
                 $query->where('agency_id', $user->agency_id);
             } else {

@@ -94,6 +94,7 @@ class CipgSubmissionController extends Controller
 
         $sdg_goals = \App\Models\SdgGoal::orderBy('number')->get();
         $chapters = \App\Models\Chapter::orderBy('id')->get();
+        $indicators = \App\Models\Indicator::orderBy('indicator_name')->get();
 
         return view('cipg_submissions.cpp-form', [
             'agency' => $agency,
@@ -102,6 +103,7 @@ class CipgSubmissionController extends Controller
             'provinces' => $provinces,
             'sdg_goals' => $sdg_goals,
             'chapters' => $chapters,
+            'indicators' => $indicators,
             'edit_id' => $id,
             'status' => $submission->status
         ]);
@@ -127,9 +129,10 @@ class CipgSubmissionController extends Controller
 
         $sdg_goals = \App\Models\SdgGoal::orderBy('number')->get();
         $chapters = \App\Models\Chapter::orderBy('id')->get();
+        $indicators = \App\Models\Indicator::orderBy('indicator_name')->get();
         $status = 'Draft'; // Default status for new submissions
 
-        return view('cipg_submissions.cpp-form', compact('agency', 'agencies', 'sectors', 'provinces', 'sdg_goals', 'chapters', 'status'));
+        return view('cipg_submissions.cpp-form', compact('agency', 'agencies', 'sectors', 'provinces', 'sdg_goals', 'chapters', 'indicators', 'status'));
     }
 
     public function fetchData(Request $request)
@@ -173,7 +176,7 @@ class CipgSubmissionController extends Controller
     {
         $s = CppSubmission::with([
             'sector', 'sub_sector', 'user.agency', 'locations.province', 
-            'implementation_schedules', 'consultation_dates', 
+            'implementation_schedules.cpp_indicators', 'consultation_dates', 
             'logframe', 'endorsement', 'benefits_costs',
             'sdg_alignments', 'rdp_alignments'
         ])->findOrFail($id);
@@ -245,7 +248,7 @@ class CipgSubmissionController extends Controller
                 return [
                     'year' => $row->year,
                     'physical_target' => $row->physical_target,
-                    'indicator' => $row->indicator,
+                    'indicator' => $row->cpp_indicators->pluck('indicator_id')->toArray(),
                     'amount' => $row->amount
                 ];
             }),
@@ -297,7 +300,7 @@ class CipgSubmissionController extends Controller
     public function show($id)
     {
         $submission = CppSubmission::with([
-            'implementation_schedules',
+            'implementation_schedules.cpp_indicators.indicator',
             'consultation_dates',
             'user.agency',
             'locations.province',
@@ -417,7 +420,7 @@ class CipgSubmissionController extends Controller
             '_impl_schedule' => $submission->implementation_schedules->map(fn($row) => [
                 'year' => $row->year,
                 'target' => $row->physical_target,
-                'indicator' => $row->indicator,
+                'indicator' => $row->cpp_indicators->pluck('indicator.indicator_name')->implode(', '),
                 'amount' => $row->amount,
             ])->toArray(),
             'status' => $submission->status,
@@ -637,13 +640,20 @@ class CipgSubmissionController extends Controller
             $submission->implementation_schedules()->delete();
             if (!empty($data['impl_schedule'])) {
                 foreach ($data['impl_schedule'] as $row) {
-                    $submission->implementation_schedules()->create([
+                    $implSchedule = $submission->implementation_schedules()->create([
                         'year' => $row['year'] ?? '',
                         'physical_target' => $row['physical_target'] ?? '',
-                        'indicator' => $row['indicator'] ?? '',
                         'amount' => $row['amount'] ?? 0,
                         'sort_order' => $row['sort_order'] ?? 0
                     ]);
+
+                    if (!empty($row['indicator']) && is_array($row['indicator'])) {
+                        foreach ($row['indicator'] as $indId) {
+                            $implSchedule->cpp_indicators()->create([
+                                'indicator_id' => $indId
+                            ]);
+                        }
+                    }
                 }
             }
 

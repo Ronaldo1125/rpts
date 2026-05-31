@@ -50,13 +50,13 @@
                      </div>
                      <input type="text" class="border-0 flex-grow-1 p-0 m-0 bg-transparent visually-hidden" id="indicators-tag-input" readonly>
                  </div>
-                 <ul class="dropdown-menu w-100 shadow-sm mt-1" id="indicators-dropdown" style="max-height: 250px; overflow-y: auto;">
+                 <ul class="dropdown-menu w-100 shadow-sm mt-1" id="indicators-dropdown" style="max-height: 250px; overflow-y: auto; overflow-x: auto;">
                      @foreach($indicators as $id => $name)
                      <li>
                          <a class="dropdown-item d-flex align-items-center justify-content-between gap-2 py-2" href="#" data-id="{{ $id }}" data-name="{{ $name }}">
                              <div class="d-flex align-items-center gap-2">
                                  <input class="form-check-input mt-0 pe-none" type="checkbox" {{ in_array($id, $selectedIndicators) ? 'checked' : '' }}>
-                                 <span class="smaller">{{ $name }}</span>
+                                 <span class="smaller" style="white-space: nowrap;">{{ $name }}</span>
                              </div>
                          </a>
                      </li>

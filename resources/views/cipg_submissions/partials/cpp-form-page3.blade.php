@@ -65,7 +65,7 @@
             <tbody id="impl-schedule-body" title="Present the timetable and project implementation targets (physical and financial) including baseline data.">
                 <tr>
                 <td>
-                    <input type="text" class="form-control form-control-sm" placeholder="Year" data-required>
+                    <input type="number" min="1900" max="2100" step="1" class="form-control form-control-sm" placeholder="YYYY" data-required>
                     <div class="invalid-feedback">Year is required.</div>
                 </td>
                 <td>
@@ -74,7 +74,24 @@
                     <div class="invalid-feedback">Physical target is required.</div>
                 </td>
                 <td>
-                    <input type="text" class="form-control form-control-sm" placeholder="Indicator" data-required>
+                    <div class="impl-indicator-picker position-relative">
+                        <div class="form-control form-control-sm d-flex flex-wrap gap-1 align-items-center bg-white cursor-pointer impl-indicator-box" tabindex="0"
+                             style="min-height:31px; padding:3px 6px; border-color:#dee2e6; cursor:pointer;">
+                            <span class="text-muted impl-indicator-placeholder" style="font-size:0.75rem; user-select:none;">Select indicators...</span>
+                            <div class="impl-indicator-tags d-flex flex-wrap gap-1"></div>
+                        </div>
+                        <ul class="dropdown-menu shadow-sm mt-1 impl-indicator-dropdown" style="min-width:0; max-height:200px; overflow-y:auto; overflow-x:auto; font-size:0.78rem;">
+                            @foreach($indicators as $indicator)
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-1 px-2" href="#" data-id="{{ $indicator->id }}" data-name="{{ $indicator->indicator_name }}">
+                                    <input class="form-check-input mt-0 pe-none" type="checkbox" style="min-width:14px; width:14px; height:14px;">
+                                    <span style="font-size:0.75rem; line-height:1.3; white-space:nowrap;">{{ $indicator->indicator_name }}</span>
+                                </a>
+                            </li>
+                            @endforeach
+                        </ul>
+                        <div class="impl-indicator-hidden-inputs"></div>
+                    </div>
                     <div class="invalid-feedback">Indicator is required.</div>
                 </td>
                 <td>
@@ -94,6 +111,28 @@
             + Add Row
         </button>
         <div class="invalid-feedback" id="impl-schedule-err"></div>
+
+        <!-- Hidden template for cloning into dynamically added rows -->
+        <template id="indicator-select-template">
+            <div class="impl-indicator-picker position-relative">
+                <div class="form-control form-control-sm d-flex flex-wrap gap-1 align-items-center bg-white cursor-pointer impl-indicator-box" tabindex="0"
+                     style="min-height:31px; padding:3px 6px; border-color:#dee2e6; cursor:pointer;">
+                    <span class="text-muted impl-indicator-placeholder" style="font-size:0.75rem; user-select:none;">Select indicators...</span>
+                    <div class="impl-indicator-tags d-flex flex-wrap gap-1"></div>
+                </div>
+                <ul class="dropdown-menu shadow-sm mt-1 impl-indicator-dropdown" style="min-width:0; max-height:200px; overflow-y:auto; overflow-x:auto; font-size:0.78rem;">
+                    @foreach($indicators as $indicator)
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2 py-1 px-2" href="#" data-id="{{ $indicator->id }}" data-name="{{ $indicator->indicator_name }}">
+                            <input class="form-check-input mt-0 pe-none" type="checkbox" style="min-width:14px; width:14px; height:14px;">
+                            <span style="font-size:0.75rem; line-height:1.3; white-space:nowrap;">{{ $indicator->indicator_name }}</span>
+                        </a>
+                    </li>
+                    @endforeach
+                </ul>
+                <div class="impl-indicator-hidden-inputs"></div>
+            </div>
+        </template>
     </div>
 
     <!-- 3. Implementation Arrangement -->

@@ -109,10 +109,28 @@ window.validateField = function(el) {
     }
 
     // Handle Standard Inputs
-    if (el.hasAttribute('data-required') || el.required) {
-        const isBlank = !el.value || !el.value.trim();
-        el.classList.toggle('is-invalid', isBlank);
-        isValid = !isBlank;
+    if (el.hasAttribute('data-required') || el.required || el.hasAttribute('min') || el.hasAttribute('max')) {
+        const isBlank = (el.hasAttribute('data-required') || el.required) && (!el.value || !el.value.trim());
+        const isOutOfRange = !isBlank && (el.type === 'number' || el.type === 'date') && el.value && !el.checkValidity();
+        const isInvalid = isBlank || isOutOfRange;
+        
+        el.classList.toggle('is-invalid', isInvalid);
+        isValid = !isInvalid;
+        
+        // Ensure feedback message updates if out of range
+        const feedback = el.nextElementSibling;
+        if (feedback && feedback.classList.contains('invalid-feedback')) {
+            if (isOutOfRange) {
+                if (!el.dataset.origFeedback) el.dataset.origFeedback = feedback.innerText;
+                feedback.innerText = "Value is out of range.";
+                feedback.style.display = 'block';
+            } else if (isBlank) {
+                if (el.dataset.origFeedback) feedback.innerText = el.dataset.origFeedback;
+                feedback.style.display = 'block';
+            } else {
+                feedback.style.display = 'none';
+            }
+        }
     }
 
     return isValid;
@@ -151,9 +169,6 @@ window.validateStep = function(step) {
     // Validate all inputs in the current step
     const inputs = panel.querySelectorAll('input, textarea, select');
     inputs.forEach(el => {
-        // Skip inputs that are inside the implementation schedule table (handled separately below)
-        if (el.closest('#impl-schedule-body')) return;
-        
         if (!window.validateField(el)) {
             stepValid = false;
         }
@@ -253,19 +268,31 @@ window.validateStep = function(step) {
         // 3. HGDG
         checkConditionalUpload('f-hgdg', 'hgdg-upload-panel', "Please upload the HGDG Checklist document.");
 
-        // Implementation schedule: require at least one non-empty row
+        // Implementation schedule: Validate all rows and ensure at least one exists
         const implBody = document.getElementById('impl-schedule-body');
         const implErr = document.getElementById('impl-schedule-err');
         if (implBody && implErr) {
-            const hasFilled = [...implBody.querySelectorAll('tr')].some(row => {
-                return [...row.querySelectorAll('input, textarea')].some(i => i.value && i.value.trim());
-            });
-            if (!hasFilled) {
+            const rows = [...implBody.querySelectorAll('tr')];
+            if (rows.length === 0) {
                 implErr.innerText = "Please fill in at least one year of implementation schedule.";
                 implErr.style.setProperty('display', 'block', 'important');
                 stepValid = false;
             } else {
                 implErr.style.setProperty('display', 'none', 'important');
+                // Validate custom indicator picker in each row
+                rows.forEach(row => {
+                    const pickerBox = row.querySelector('.impl-indicator-box');
+                    const hiddenInputs = row.querySelector('.impl-indicator-hidden-inputs');
+                    if (pickerBox && hiddenInputs) {
+                        const hasIndicator = hiddenInputs.children.length > 0;
+                        pickerBox.style.borderColor = hasIndicator ? '#dee2e6' : '#ef4444';
+                        const feedback = row.querySelector('.impl-indicator-picker').nextElementSibling;
+                        if (feedback && feedback.classList.contains('invalid-feedback')) {
+                            feedback.style.display = hasIndicator ? 'none' : 'block';
+                        }
+                        if (!hasIndicator) stepValid = false;
+                    }
+                });
             }
         }
         // Consultation status radio group
@@ -301,14 +328,23 @@ window.validateStep = function(step) {
         // 2. Geolocation Coordinates (Manual check to ensure feedback is shown)
         const geoInputs = panel.querySelectorAll('input[name^="f-geo-"]');
         geoInputs.forEach(inp => {
-            if (inp.hasAttribute('data-required')) {
-                const isBlank = !inp.value || !inp.value.trim();
-                inp.classList.toggle('is-invalid', isBlank);
+            if (inp.hasAttribute('data-required') || inp.hasAttribute('min') || inp.hasAttribute('max')) {
+                const isBlank = (inp.hasAttribute('data-required') || inp.required) && (!inp.value || !inp.value.trim());
+                const isOutOfRange = !isBlank && inp.value && !inp.checkValidity();
+                const isInvalid = isBlank || isOutOfRange;
+                
+                inp.classList.toggle('is-invalid', isInvalid);
                 const feedback = inp.nextElementSibling;
                 if (feedback && feedback.classList.contains('invalid-feedback')) {
-                    feedback.style.display = isBlank ? 'block' : 'none';
+                    if (isOutOfRange) {
+                        if (!inp.dataset.origFeedback) inp.dataset.origFeedback = feedback.innerText;
+                        feedback.innerText = "Value is out of range.";
+                    } else if (isBlank && inp.dataset.origFeedback) {
+                        feedback.innerText = inp.dataset.origFeedback;
+                    }
+                    feedback.style.display = isInvalid ? 'block' : 'none';
                 }
-                if (isBlank) stepValid = false;
+                if (isInvalid) stepValid = false;
             }
         });
 

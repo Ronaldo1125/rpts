@@ -328,11 +328,13 @@ function _initController() {
         if (step === 4) {
             const container4 = document.getElementById('step-4');
             if (container4) {
-                container4.querySelectorAll('[data-required]').forEach(el => {
+                container4.querySelectorAll('[data-required], input[min], input[max]').forEach(el => {
                     if (el.disabled || el.offsetParent === null) return;
-                    const isBlank = !el.value || !el.value.trim();
-                    el.classList.toggle('is-invalid', isBlank);
-                    if (isBlank) valid = false;
+                    const isBlank = (el.hasAttribute('data-required') || el.required) && (!el.value || !el.value.trim());
+                    const isOutOfRange = !isBlank && el.value && !el.checkValidity();
+                    const isInvalid = isBlank || isOutOfRange;
+                    el.classList.toggle('is-invalid', isInvalid);
+                    if (isInvalid) valid = false;
                 });
             }
         }
@@ -341,11 +343,26 @@ function _initController() {
             const container = document.getElementById('step-5');
             if (container) {
                 // Validate all data-required fields in step 5 (includes geolocation fields)
-                container.querySelectorAll('[data-required]').forEach(el => {
+                container.querySelectorAll('[data-required], input[min], input[max]').forEach(el => {
                     if (el.disabled || el.offsetParent === null) return;
-                    const isBlank = !el.value || !el.value.trim();
-                    el.classList.toggle('is-invalid', isBlank);
-                    if (isBlank) valid = false;
+                    const isBlank = (el.hasAttribute('data-required') || el.required) && (!el.value || !el.value.trim());
+                    const isOutOfRange = !isBlank && el.value && !el.checkValidity();
+                    const isInvalid = isBlank || isOutOfRange;
+                    
+                    el.classList.toggle('is-invalid', isInvalid);
+                    
+                    const feedback = el.nextElementSibling;
+                    if (feedback && feedback.classList.contains('invalid-feedback')) {
+                        if (isOutOfRange) {
+                            if (!el.dataset.origFeedback) el.dataset.origFeedback = feedback.innerText;
+                            feedback.innerText = "Value is out of range.";
+                        } else if (isBlank && el.dataset.origFeedback) {
+                            feedback.innerText = el.dataset.origFeedback;
+                        }
+                        feedback.style.display = isInvalid ? 'block' : 'none';
+                    }
+                    
+                    if (isInvalid) valid = false;
                 });
             }
             ['f-prep-name', 'f-prep-position', 'f-noted-name', 'f-noted-position'].forEach(id => {

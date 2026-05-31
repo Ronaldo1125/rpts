@@ -120,12 +120,28 @@ window.loadDraftLocally = function() {
                     }
 
                     if (targetRow) {
-                        const inputs = targetRow.querySelectorAll('input, textarea');
-                        if (inputs.length >= 4) {
+                        const inputs = targetRow.querySelectorAll('td:nth-child(1) input, td:nth-child(2) textarea, td:nth-child(4) input');
+                        if (inputs.length >= 3) {
                             inputs[0].value = data.year || '';
                             inputs[1].value = data.physical_target || '';
-                            inputs[2].value = data.indicator || '';
-                            inputs[3].value = data.amount || '';
+                            inputs[2].value = data.amount || '';
+                        }
+                        // Restore indicator tags
+                        const picker = targetRow.querySelector('.impl-indicator-picker');
+                        if (picker && data.indicator && Array.isArray(data.indicator)) {
+                            if (!picker._pickerInit && window._initImplIndicatorPicker) {
+                                window._initImplIndicatorPicker(picker);
+                            }
+                            if (picker._addTag) {
+                                data.indicator.forEach(indId => {
+                                    const item = picker.querySelector(`.impl-indicator-dropdown a[data-id="${indId}"]`);
+                                    if (item) {
+                                        const cb = item.querySelector('input[type="checkbox"]');
+                                        if (cb) cb.checked = true;
+                                        picker._addTag(indId, item.dataset.name);
+                                    }
+                                });
+                            }
                         }
                     }
                 });
@@ -404,13 +420,20 @@ function gatherAllData() {
     // 4. Implementation Schedule (Array of Objects)
     data.impl_schedule = [];
     document.querySelectorAll('#impl-schedule-body tr').forEach((tr, index) => {
-        const inputs = tr.querySelectorAll('input, textarea');
-        if (inputs.length >= 4) {
+        const yearInput = tr.querySelector('td:nth-child(1) input');
+        const ptTextarea = tr.querySelector('td:nth-child(2) textarea');
+        const picker = tr.querySelector('td:nth-child(3) .impl-indicator-picker');
+        const amtInput = tr.querySelector('td:nth-child(4) input');
+        
+        if (yearInput && ptTextarea && amtInput) {
+            const selectedIndicators = picker 
+                ? Array.from(picker.querySelectorAll('.impl-indicator-hidden-inputs input')).map(inp => inp.value)
+                : [];
             data.impl_schedule.push({
-                year: inputs[0].value,
-                physical_target: inputs[1].value,
-                indicator: inputs[2].value,
-                amount: inputs[3].value,
+                year: yearInput.value,
+                physical_target: ptTextarea.value,
+                indicator: selectedIndicators,
+                amount: amtInput.value,
                 sort_order: index
             });
         }
@@ -754,16 +777,39 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const body = document.getElementById('impl-schedule-body');
                     if (body) {
                         body.innerHTML = '';
+                        const template = document.getElementById('indicator-select-template');
+                        const pickerHTML = template ? template.innerHTML : '';
+                        
                         data.impl_schedule.forEach(row => {
                             const tr = document.createElement('tr');
                             tr.innerHTML = `
-                                <td><input type="text" class="form-control form-control-sm" value="${row.year || ''}"></td>
+                                <td><input type="number" min="1900" max="2100" step="1" class="form-control form-control-sm" value="${row.year || ''}"></td>
                                 <td><textarea class="form-control form-control-sm" rows="2">${row.physical_target || ''}</textarea></td>
-                                <td><input type="text" class="form-control form-control-sm" value="${row.indicator || ''}"></td>
+                                <td>${pickerHTML}<div class="invalid-feedback">Indicator is required.</div></td>
                                 <td><input type="number" class="form-control form-control-sm" value="${row.amount || ''}"></td>
-                                <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-row"><i data-lucide="trash-2" width="14"></i></button></td>
+                                <td class="text-center"><button type="button" class="btn btn-sm text-danger p-0 border-0 impl-del-row" title="Remove row" style="font-size:1rem;line-height:1;">&times;</button></td>
                             `;
                             body.appendChild(tr);
+
+                            // Initialize the tag picker and populate saved indicators
+                            const picker = tr.querySelector('.impl-indicator-picker');
+                            if (picker) {
+                                // Init the picker via the exposed window function
+                                if (picker && !picker._pickerInit && window._initImplIndicatorPicker) {
+                                    window._initImplIndicatorPicker(picker);
+                                }
+                                // Programmatically add tags for each saved indicator
+                                if (row.indicator && Array.isArray(row.indicator) && picker._addTag) {
+                                    row.indicator.forEach(indId => {
+                                        const item = picker.querySelector(`.impl-indicator-dropdown a[data-id="${indId}"]`);
+                                        if (item) {
+                                            const cb = item.querySelector('input[type="checkbox"]');
+                                            if (cb) cb.checked = true;
+                                            picker._addTag(indId, item.dataset.name);
+                                        }
+                                    });
+                                }
+                            }
                         });
                         if (window.lucide) window.lucide.createIcons({ node: body });
                     }
@@ -1272,12 +1318,169 @@ document.addEventListener('DOMContentLoaded', async function() {
         const addBtn = document.getElementById('impl-add-row');
         if (!table || !body || !addBtn) return;
 
+        /* ── Indicator tag-picker initializer for a single picker container ── */
+        function _initIndicatorPicker(picker) {
+            if (!picker || picker._pickerInit) return;
+            picker._pickerInit = true;
+            // Expose on window for data-loading code that runs outside this IIFE
+            if (!window._initImplIndicatorPicker) window._initImplIndicatorPicker = _initIndicatorPicker;
+
+            const box = picker.querySelector('.impl-indicator-box');
+            const dropdown = picker.querySelector('.impl-indicator-dropdown');
+            const tagsContainer = picker.querySelector('.impl-indicator-tags');
+            const placeholder = picker.querySelector('.impl-indicator-placeholder');
+            const hiddenContainer = picker.querySelector('.impl-indicator-hidden-inputs');
+            if (!box || !dropdown || !tagsContainer) return;
+
+            function _updatePlaceholder() {
+                const hasTags = tagsContainer.querySelectorAll('.badge').length > 0;
+                if (placeholder) placeholder.style.display = hasTags ? 'none' : '';
+            }
+
+            function _addTag(id, name) {
+                // Avoid duplicates
+                if (tagsContainer.querySelector(`[data-id="${id}"]`)) return;
+                const tag = document.createElement('span');
+                tag.className = 'badge bg-primary d-flex align-items-center gap-1 fw-medium py-1 px-2 rounded-pill';
+                tag.dataset.id = id;
+                tag.title = name;
+                tag.style.cssText = 'font-size:0.68rem; max-width:180px; cursor:default;';
+                tag.innerHTML = `<span class="text-truncate" style="max-width:140px;">${name}</span><i data-lucide="x" width="10" height="10" class="cursor-pointer impl-remove-indicator" style="flex-shrink:0;"></i>`;
+                tagsContainer.appendChild(tag);
+
+                // Add hidden input
+                if (hiddenContainer) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'impl_indicators[]';
+                    hidden.value = id;
+                    hidden.dataset.indicatorId = id;
+                    hiddenContainer.appendChild(hidden);
+                }
+
+                if (window.lucide) window.lucide.createIcons({ node: tag });
+                _updatePlaceholder();
+            }
+
+            function _removeTag(id) {
+                const tag = tagsContainer.querySelector(`[data-id="${id}"]`);
+                if (tag) tag.remove();
+                if (hiddenContainer) {
+                    const hidden = hiddenContainer.querySelector(`input[data-indicator-id="${id}"]`);
+                    if (hidden) hidden.remove();
+                }
+                // Uncheck in dropdown
+                const item = dropdown.querySelector(`a[data-id="${id}"]`);
+                if (item) {
+                    const cb = item.querySelector('input[type="checkbox"]');
+                    if (cb) cb.checked = false;
+                }
+                _updatePlaceholder();
+            }
+
+            // Toggle dropdown
+            box.addEventListener('click', (e) => {
+                if (e.target.closest('.impl-remove-indicator')) return;
+                const isOpen = dropdown.classList.contains('show');
+                // Close all other pickers first
+                document.querySelectorAll('.impl-indicator-dropdown.show').forEach(d => {
+                    d.classList.remove('show');
+                    d.style.cssText = '';
+                });
+                
+                if (!isOpen) {
+                    dropdown.classList.add('show');
+                    
+                    // Use fixed positioning based on the bounding rect to break out of .table-responsive overflow
+                    const rect = box.getBoundingClientRect();
+                    dropdown.style.position = 'fixed';
+                    dropdown.style.top = (rect.bottom + 2) + 'px';
+                    dropdown.style.left = rect.left + 'px';
+                    dropdown.style.width = rect.width + 'px';
+                    dropdown.style.maxWidth = rect.width + 'px';
+                    dropdown.style.overflowX = 'auto';
+                    dropdown.style.overflowY = 'auto';
+                    dropdown.style.maxHeight = '200px';
+                    dropdown.style.zIndex = '1055';
+                }
+            });
+
+            // Dropdown item click
+            dropdown.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const item = e.target.closest('a[data-id]');
+                if (!item) return;
+                const id = item.dataset.id;
+                const name = item.dataset.name;
+                const cb = item.querySelector('input[type="checkbox"]');
+                if (!cb) return;
+
+                if (cb.checked) {
+                    cb.checked = false;
+                    _removeTag(id);
+                } else {
+                    cb.checked = true;
+                    _addTag(id, name);
+                }
+                
+                // Keep dropdown open but update position in case tag wrapping changed box height
+                const rect = box.getBoundingClientRect();
+                dropdown.style.top = (rect.bottom + 2) + 'px';
+
+                if (window.saveDraftLocally) window.saveDraftLocally();
+            });
+
+            // Remove tag click (delegated)
+            tagsContainer.addEventListener('click', (e) => {
+                const removeBtn = e.target.closest('.impl-remove-indicator');
+                if (!removeBtn) return;
+                e.stopPropagation();
+                const tag = removeBtn.closest('.badge');
+                if (tag) _removeTag(tag.dataset.id);
+                
+                // Update position if dropdown is open and box height changed
+                if (dropdown.classList.contains('show')) {
+                    const rect = box.getBoundingClientRect();
+                    dropdown.style.top = (rect.bottom + 2) + 'px';
+                }
+                
+                if (window.saveDraftLocally) window.saveDraftLocally();
+            });
+
+            // Close dropdown on outside click
+            document.addEventListener('click', (e) => {
+                if (!picker.contains(e.target) && e.target !== dropdown && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                    dropdown.style.cssText = '';
+                }
+            });
+
+            // Close dropdowns on scroll to prevent detached floating dropdowns
+            window.addEventListener('scroll', (e) => {
+                // Ignore scroll events originating from inside the dropdown itself
+                if (dropdown.contains(e.target)) return;
+                if (dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                    dropdown.style.cssText = '';
+                }
+            }, true); // use capture to catch scroll events from any container
+
+            _updatePlaceholder();
+
+            // Expose helper for programmatic selection
+            picker._addTag = _addTag;
+            picker._removeTag = _removeTag;
+        }
+
         function _createRow() {
+            const template = document.getElementById('indicator-select-template');
+            const selectHTML = template ? template.innerHTML : '';
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><input type="text" class="form-control form-control-sm" placeholder="Year" data-required><div class="invalid-feedback">Year is required.</div></td>
+                <td><input type="number" min="1900" max="2100" step="1" class="form-control form-control-sm" placeholder="YYYY" data-required><div class="invalid-feedback">Year is required.</div></td>
                 <td><textarea class="form-control form-control-sm" rows="2" placeholder="Physical Target" data-required></textarea><div class="invalid-feedback">Physical target is required.</div></td>
-                <td><input type="text" class="form-control form-control-sm" placeholder="Indicator" data-required><div class="invalid-feedback">Indicator is required.</div></td>
+                <td>${selectHTML}<div class="invalid-feedback">Indicator is required.</div></td>
                 <td><input type="number" class="form-control form-control-sm" placeholder="0.00" min="0" step="0.01" data-required onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();"><div class="invalid-feedback">Amount is required.</div></td>
                 <td class="text-center align-middle">
                     <button type="button" class="btn btn-sm text-danger p-0 border-0 impl-del-row" title="Remove row" style="font-size:1rem;line-height:1;">&times;</button>
@@ -1295,9 +1498,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         _refreshFirstRow();
 
+        // Initialize tag-picker on the initial row
+        body.querySelectorAll('.impl-indicator-picker').forEach(_initIndicatorPicker);
+
         addBtn.addEventListener('click', () => {
             const newRow = _createRow();
             body.appendChild(newRow);
+            newRow.querySelectorAll('.impl-indicator-picker').forEach(_initIndicatorPicker);
         });
 
         body.addEventListener('click', (ev) => {

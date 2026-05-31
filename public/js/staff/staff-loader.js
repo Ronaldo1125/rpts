@@ -260,10 +260,10 @@ export async function initStaffDashboard() {
             new ChartJS(subCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Submitted','For Revision','Incomplete','Revised','Resubmitted','Validated','SecCom','RDC','Approved'],
+                    labels: ['Submitted','Resubmitted','Incomplete','Validated','For Revision','Revised','SecCom','RDC','Approved'],
                     datasets: [{
                         label: 'Submissions',
-                        data: [submittedCount, revisionCount, incompleteCount, revisedCount, resubmittedCount, validatedCount, seccomCount, rdcCount, approvedCount],
+                        data: [submittedCount, resubmittedCount, incompleteCount, validatedCount, revisionCount, revisedCount, seccomCount, rdcCount, approvedCount],
                         backgroundColor: [
                             'rgba(99,102,241,0.85)',
                             'rgba(245,158,11,0.85)',
