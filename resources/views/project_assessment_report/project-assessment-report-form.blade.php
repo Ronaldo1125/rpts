@@ -897,6 +897,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnConfirmFinalizePar = document.getElementById('btnConfirmFinalizePar');
     if (btnConfirmFinalizePar) {
         btnConfirmFinalizePar.addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Finalizing...';
+            
             statusInput.value = 'Final';
             syncFindingsToForm();
             form.submit();

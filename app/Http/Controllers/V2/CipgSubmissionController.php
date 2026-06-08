@@ -205,9 +205,9 @@ class CipgSubmissionController extends Controller
             'f-rdp-alignment' => $s->rdp_alignments->pluck('chapter_name')->toArray() ? implode('||', $s->rdp_alignments->pluck('chapter_name')->toArray()) : '',
             'project-status' => $s->project_status,
             'consultation-status' => $s->consultation_status,
-            'prep-site' => in_array('Site is readily available', $s->prep_status ?? []),
-            'prep-row' => in_array('No issue on right-of-way acquisition', $s->prep_status ?? []),
-            'prep-ded' => in_array('Detailed Engineering Design was prepared', $s->prep_status ?? []),
+            'prep-site' => isset(($s->prep_status ?? [])['site']) ? (bool)($s->prep_status ?? [])['site'] : in_array('Site is readily available', $s->prep_status ?? [], true),
+            'prep-row' => isset(($s->prep_status ?? [])['row']) ? (bool)($s->prep_status ?? [])['row'] : in_array('No issue on right-of-way acquisition', $s->prep_status ?? [], true),
+            'prep-ded' => isset(($s->prep_status ?? [])['ded']) ? (bool)($s->prep_status ?? [])['ded'] : in_array('Detailed Engineering Design was prepared', $s->prep_status ?? [], true),
             
             // Page 2
             'f-background' => $s->background,

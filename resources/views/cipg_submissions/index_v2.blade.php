@@ -298,11 +298,13 @@
                 <div class="modal-footer border-0" style="padding:1rem 1.75rem 1.5rem;">
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-4"
                         data-bs-dismiss="modal">Close</button>
+                    @can('cipg_submission-edit')
                     <button type="button"
                         class="btn btn-warning btn-sm rounded-pill px-4 fw-bold text-dark border-0 edit-sub-from-feedback"
                         style="background:#f59e0b;">
                         <i data-lucide="edit-3" width="14" class="me-1"></i> Edit Submission
                     </button>
+                    @endcan
                 </div>
             </div>
         </div>
@@ -344,10 +346,12 @@
                     </div>
                     <div class="modal-footer border-0 p-4 px-lg-5 pt-0 d-flex gap-2">
                         <button type="button" class="btn btn-light rounded-pill px-4 py-2 fw-semibold small border" data-bs-dismiss="modal">Dismiss</button>
+                        @can('cipg_submission-edit')
                         <button type="button" class="btn btn-warning rounded-pill px-4 py-2 fw-bold border-0 edit-sub-from-agency-feedback shadow-sm"
                                 style="background:#e11d48; color: #fff; font-size:0.85rem;">
                             <i data-lucide="edit-3" width="14" class="me-1"></i> Edit Submission
                         </button>
+                        @endcan
                     </div>
                 </div>
             </div>

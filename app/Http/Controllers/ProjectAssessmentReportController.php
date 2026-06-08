@@ -128,6 +128,7 @@ class ProjectAssessmentReportController extends Controller
             'reviewed_by_pos' => 'nullable|string',
             'approved_by' => 'nullable|string',
             'approved_by_pos' => 'nullable|string',
+            'findings' => 'nullable|array',
             'recommendations' => 'nullable|array',
             'is_sectoral' => 'nullable|boolean',
             'endorsement_checks' => 'nullable|array',
