@@ -176,7 +176,7 @@ class CipgSubmissionController extends Controller
     {
         $s = CppSubmission::with([
             'sector', 'sub_sector', 'user.agency', 'locations.province', 
-            'implementation_schedules.cpp_indicators', 'consultation_dates', 
+            'implementation_schedules.cpp_indicators.indicator', 'consultation_dates', 
             'logframe', 'endorsement', 'benefits_costs',
             'sdg_alignments', 'rdp_alignments'
         ])->findOrFail($id);
@@ -248,7 +248,10 @@ class CipgSubmissionController extends Controller
                 return [
                     'year' => $row->year,
                     'physical_target' => $row->physical_target,
-                    'indicator' => $row->cpp_indicators->pluck('indicator_id')->toArray(),
+                    'indicator' => $row->cpp_indicators->map(fn($ci) => [
+                        'id' => $ci->indicator_id,
+                        'name' => $ci->indicator?->indicator_name ?? '',
+                    ])->values()->toArray(),
                     'amount' => $row->amount
                 ];
             }),

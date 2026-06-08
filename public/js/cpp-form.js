@@ -60,6 +60,95 @@ window.saveDraftLocally = function() {
     localStorage.setItem(getDraftKey(), JSON.stringify(data));
 };
 
+// Normalize indicator values from API (objects) or legacy drafts (raw IDs)
+window.normalizeImplScheduleIndicators = function(indicators) {
+    if (!indicators) return [];
+    const list = Array.isArray(indicators) ? indicators : [indicators];
+    return list.map(ind => {
+        if (ind && typeof ind === 'object' && ind.id != null) {
+            return { id: String(ind.id), name: ind.name || '' };
+        }
+        return { id: String(ind), name: '' };
+    }).filter(ind => ind.id);
+};
+
+window.buildImplScheduleRows = function(scheduleData) {
+    const body = document.getElementById('impl-schedule-body');
+    const template = document.getElementById('indicator-select-template');
+    if (!body || !template) return;
+
+    const pickerHTML = template.innerHTML;
+    const rows = Array.isArray(scheduleData) ? scheduleData : Object.values(scheduleData || {});
+
+    body.innerHTML = '';
+    rows.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        const year = row.year ?? '';
+        const pt = String(row.physical_target ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        const amt = row.amount ?? '';
+        const delBtn = index === 0 ? '' : '<button type="button" class="btn btn-sm text-danger p-0 border-0 impl-del-row" title="Remove row" style="font-size:1rem;line-height:1;">&times;</button>';
+        tr.innerHTML = `
+            <td><input type="number" min="1900" max="2100" step="1" class="form-control form-control-sm" value="${year}" data-required><div class="invalid-feedback">Year is required.</div></td>
+            <td><textarea class="form-control form-control-sm" rows="2" data-required>${pt}</textarea><div class="invalid-feedback">Physical target is required.</div></td>
+            <td>${pickerHTML}<div class="invalid-feedback">Indicator is required.</div></td>
+            <td><input type="number" class="form-control form-control-sm" value="${amt}" min="0" step="0.01" data-required onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();"><div class="invalid-feedback">Amount is required.</div></td>
+            <td class="text-center align-middle">${delBtn}</td>`;
+        body.appendChild(tr);
+    });
+};
+
+// Restore saved indicator selections after pickers are initialized
+window.restoreImplScheduleIndicators = function(scheduleData) {
+    if (!scheduleData) return;
+    const rows = Array.isArray(scheduleData) ? scheduleData : Object.values(scheduleData);
+    if (!rows.length) return;
+
+    const body = document.getElementById('impl-schedule-body');
+    if (!body) return;
+
+    const trs = body.querySelectorAll('tr');
+    rows.forEach((rowData, index) => {
+        const tr = trs[index];
+        if (!tr) return;
+        const picker = tr.querySelector('.impl-indicator-picker');
+        if (!picker) return;
+
+        const indicators = window.normalizeImplScheduleIndicators(rowData.indicator);
+        if (!indicators.length) return;
+
+        if (!picker._pickerInit && window._initImplIndicatorPicker) {
+            window._initImplIndicatorPicker(picker);
+        }
+        if (!picker._addTag) return;
+
+        indicators.forEach(({ id, name }) => {
+            const item = picker.querySelector(`.impl-indicator-dropdown a[data-id="${id}"]`);
+            const resolvedName = name || item?.dataset?.name || id;
+            if (item) {
+                const cb = item.querySelector('input[type="checkbox"]');
+                if (cb) cb.checked = true;
+            }
+            picker._addTag(id, resolvedName);
+        });
+    });
+    if (window.lucide) window.lucide.createIcons({ node: body });
+};
+
+window.applyImplScheduleData = function(scheduleData) {
+    if (!scheduleData) return;
+    const rows = Array.isArray(scheduleData) ? scheduleData : Object.values(scheduleData);
+    if (!rows.length) return;
+
+    window.buildImplScheduleRows(rows);
+    document.querySelectorAll('#impl-schedule-body .impl-indicator-picker').forEach(picker => {
+        if (window._initImplIndicatorPicker) window._initImplIndicatorPicker(picker);
+    });
+    window.restoreImplScheduleIndicators(rows);
+};
+
 // Load form state from local storage
 window.loadDraftLocally = function() {
     const saved = localStorage.getItem(getDraftKey());
@@ -94,57 +183,12 @@ window.loadDraftLocally = function() {
             }
         });
 
-        // Restore Implementation Schedule
+        // Restore Implementation Schedule after pickers are initialized
         if (draftData.impl_schedule && draftData.impl_schedule.length) {
-            const body = document.getElementById('impl-schedule-body');
-            if (body) {
-                // Keep the first row if it exists, otherwise clear everything
-                const rows = body.querySelectorAll('tr');
-                const firstRow = rows[0];
-                body.innerHTML = '';
-                if (firstRow) body.appendChild(firstRow);
-
-                draftData.impl_schedule.forEach((data, index) => {
-                    let targetRow;
-                    if (index === 0 && firstRow) {
-                        targetRow = firstRow;
-                    } else {
-                        // We need the _createRow function which might be local to a closure
-                        // But we can manually recreate it here or trigger the add button
-                        const addBtn = document.getElementById('impl-add-row');
-                        if (addBtn) {
-                            addBtn.click();
-                            const newRows = body.querySelectorAll('tr');
-                            targetRow = newRows[newRows.length - 1];
-                        }
-                    }
-
-                    if (targetRow) {
-                        const inputs = targetRow.querySelectorAll('td:nth-child(1) input, td:nth-child(2) textarea, td:nth-child(4) input');
-                        if (inputs.length >= 3) {
-                            inputs[0].value = data.year || '';
-                            inputs[1].value = data.physical_target || '';
-                            inputs[2].value = data.amount || '';
-                        }
-                        // Restore indicator tags
-                        const picker = targetRow.querySelector('.impl-indicator-picker');
-                        if (picker && data.indicator && Array.isArray(data.indicator)) {
-                            if (!picker._pickerInit && window._initImplIndicatorPicker) {
-                                window._initImplIndicatorPicker(picker);
-                            }
-                            if (picker._addTag) {
-                                data.indicator.forEach(indId => {
-                                    const item = picker.querySelector(`.impl-indicator-dropdown a[data-id="${indId}"]`);
-                                    if (item) {
-                                        const cb = item.querySelector('input[type="checkbox"]');
-                                        if (cb) cb.checked = true;
-                                        picker._addTag(indId, item.dataset.name);
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
+            window._pendingImplSchedule = draftData.impl_schedule;
+            if (window._initImplIndicatorPicker && window.applyImplScheduleData) {
+                window.applyImplScheduleData(draftData.impl_schedule);
+                delete window._pendingImplSchedule;
             }
         }
         // Restore Attachments
@@ -772,46 +816,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (checked) checked.dispatchEvent(new Event('change', { bubbles: true }));
                 });
 
-                // 2. Implementation Schedule
+                // 2. Implementation Schedule (applied after picker init)
                 if (data.impl_schedule) {
-                    const body = document.getElementById('impl-schedule-body');
-                    if (body) {
-                        body.innerHTML = '';
-                        const template = document.getElementById('indicator-select-template');
-                        const pickerHTML = template ? template.innerHTML : '';
-                        
-                        data.impl_schedule.forEach(row => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td><input type="number" min="1900" max="2100" step="1" class="form-control form-control-sm" value="${row.year || ''}"></td>
-                                <td><textarea class="form-control form-control-sm" rows="2">${row.physical_target || ''}</textarea></td>
-                                <td>${pickerHTML}<div class="invalid-feedback">Indicator is required.</div></td>
-                                <td><input type="number" class="form-control form-control-sm" value="${row.amount || ''}"></td>
-                                <td class="text-center"><button type="button" class="btn btn-sm text-danger p-0 border-0 impl-del-row" title="Remove row" style="font-size:1rem;line-height:1;">&times;</button></td>
-                            `;
-                            body.appendChild(tr);
-
-                            // Initialize the tag picker and populate saved indicators
-                            const picker = tr.querySelector('.impl-indicator-picker');
-                            if (picker) {
-                                // Init the picker via the exposed window function
-                                if (picker && !picker._pickerInit && window._initImplIndicatorPicker) {
-                                    window._initImplIndicatorPicker(picker);
-                                }
-                                // Programmatically add tags for each saved indicator
-                                if (row.indicator && Array.isArray(row.indicator) && picker._addTag) {
-                                    row.indicator.forEach(indId => {
-                                        const item = picker.querySelector(`.impl-indicator-dropdown a[data-id="${indId}"]`);
-                                        if (item) {
-                                            const cb = item.querySelector('input[type="checkbox"]');
-                                            if (cb) cb.checked = true;
-                                            picker._addTag(indId, item.dataset.name);
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                        if (window.lucide) window.lucide.createIcons({ node: body });
+                    const schedule = Array.isArray(data.impl_schedule)
+                        ? data.impl_schedule
+                        : Object.values(data.impl_schedule);
+                    if (schedule.length) {
+                        window._pendingImplSchedule = schedule;
                     }
                 }
 
@@ -1321,9 +1332,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         /* ── Indicator tag-picker initializer for a single picker container ── */
         function _initIndicatorPicker(picker) {
             if (!picker || picker._pickerInit) return;
-            picker._pickerInit = true;
-            // Expose on window for data-loading code that runs outside this IIFE
-            if (!window._initImplIndicatorPicker) window._initImplIndicatorPicker = _initIndicatorPicker;
 
             const box = picker.querySelector('.impl-indicator-box');
             const dropdown = picker.querySelector('.impl-indicator-dropdown');
@@ -1331,6 +1339,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             const placeholder = picker.querySelector('.impl-indicator-placeholder');
             const hiddenContainer = picker.querySelector('.impl-indicator-hidden-inputs');
             if (!box || !dropdown || !tagsContainer) return;
+
+            picker._pickerInit = true;
 
             function _updatePlaceholder() {
                 const hasTags = tagsContainer.querySelectorAll('.badge').length > 0;
@@ -1472,6 +1482,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             picker._addTag = _addTag;
             picker._removeTag = _removeTag;
         }
+        // Expose immediately so applyImplScheduleData can init pickers before any manual call
+        window._initImplIndicatorPicker = _initIndicatorPicker;
 
         function _createRow() {
             const template = document.getElementById('indicator-select-template');
@@ -1498,8 +1510,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         _refreshFirstRow();
 
-        // Initialize tag-picker on the initial row
-        body.querySelectorAll('.impl-indicator-picker').forEach(_initIndicatorPicker);
+        if (window._pendingImplSchedule) {
+            window.applyImplScheduleData(window._pendingImplSchedule);
+            delete window._pendingImplSchedule;
+        } else {
+            // Initialize tag-picker on the initial row
+            body.querySelectorAll('.impl-indicator-picker').forEach(_initIndicatorPicker);
+        }
 
         addBtn.addEventListener('click', () => {
             const newRow = _createRow();
