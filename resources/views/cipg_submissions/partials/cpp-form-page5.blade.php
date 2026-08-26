@@ -33,9 +33,23 @@
         <span class="section-num">X</span> Geolocation Coordinates
     </div>
 
+    <div class="d-flex flex-column gap-2 mb-3">
+        <div class="form-check">
+            <input class="form-check-input" type="radio" id="lineal-infra" name="geo-coordinate" value="geo-lineal">
+            <label class="form-check-label small" for="chk-lineal-infra" title="For lineal infrastructure projects">For <strong>lineal</strong> infrastructure projects</label>
+        </div>
+
+        <div class="form-check">
+            <input class="form-check-input" type="radio" id="building-infra" name="geo-coordinate" value="geo-building">
+            <label class="form-check-label small" for="building-infra" title="For building infrastructure projects">For <strong>building</strong> infrastructure projects</label>
+        </div>
+        <div class="invalid-feedback" id="coordinate-error" style="display:none!important;">Please select a geo infrastructure type.
+        </div>
+    </div>
+
     <div class="row g-3 mb-4">
         <!-- Guiding note: linear vs building -->
-        <div class="col-12">
+         {{-- <div class="col-12">
             <div class="row">
                 <div class="col-md-6">
                     <p class="small mb-1" style="font-size:0.78rem;">
@@ -50,44 +64,60 @@
                     </p>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         <div class="col-12">
-            <p class="small fw-semibold text-secondary mb-1">Beginning</p>
-        </div>
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary">
-                Latitude <span class="text-danger">*</span>
-            </label>
-            <input type="number" class="form-control" id="f-geo-start-lat" name="f-geo-start-lat" placeholder="e.g. 13.47026" min="-90"
-                max="90" step="0.00001" data-required>
-            <div class="invalid-feedback">Latitude is required.</div>
-        </div>
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary">
-                Longitude <span class="text-danger">*</span>
-            </label>
-            <input type="number" class="form-control" id="f-geo-start-lng" name="f-geo-start-lng" placeholder="e.g. 123.23121" min="-180"
-                max="180" step="0.00001" data-required>
-            <div class="invalid-feedback">Longitude is required.</div>
+            <p class="small fw-semibold text-secondary mb-1"></p>
         </div>
 
+        <div id="geo-beginning" style="display:none;">
+            <div class="row">
+                <div class="col-12 geo-location-heading" display="block">
+                    <p class="small fw-semibold text-secondary mb-1">Beginning</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-secondary">
+                        Latitude <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" class="form-control" id="f-geo-start-lat" name="f-geo-start-lat" placeholder="e.g. 13.47026" min="-90"
+                        max="90" step="0.00001" data-required>
+                    <div class="invalid-feedback">Latitude is required.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-secondary">
+                        Longitude <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" class="form-control" id="f-geo-start-lng" name="f-geo-start-lng" placeholder="e.g. 123.23121" min="-180"
+                        max="180" step="0.00001" data-required>
+                    <div class="invalid-feedback">Longitude is required.</div>
+                </div>
+            </div>
+        </div>
+        
+
         <div class="col-12 mt-2">
-            <p class="small fw-semibold text-secondary mb-1">End</p>
+            <p class="small fw-semibold text-secondary mb-1"></p>
         </div>
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary">Latitude <span
-                    class="text-danger">*</span></label>
-            <input type="number" class="form-control" id="f-geo-end-lat" name="f-geo-end-lat" placeholder="e.g. 13.47189" min="-90" max="90"
-                step="0.00001" data-required>
-            <div class="invalid-feedback">Latitude is required.</div>
-        </div>
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary">Longitude <span
-                    class="text-danger">*</span></label>
-            <input type="number" class="form-control" id="f-geo-end-lng" name="f-geo-end-lng" placeholder="e.g. 123.2321" min="-180"
-                max="180" step="0.00001" data-required>
-            <div class="invalid-feedback">Longitude is required.</div>
+        <div id="geo-end" style="display:none;">
+            <div class="row">
+                 <div class="col-12 mt-2 geo-location-heading" display="block">
+                    <p class="small fw-semibold text-secondary mb-1">End</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-secondary">Latitude <span
+                            class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="f-geo-end-lat" name="f-geo-end-lat" placeholder="e.g. 13.47189" min="-90" max="90"
+                        step="0.00001" data-required>
+                    <div class="invalid-feedback">Latitude is required.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-secondary">Longitude <span
+                            class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="f-geo-end-lng" name="f-geo-end-lng" placeholder="e.g. 123.2321" min="-180"
+                        max="180" step="0.00001" data-required>
+                    <div class="invalid-feedback">Longitude is required.</div>
+                </div>
+            </div>
         </div>
 
         <div class="col-12 mt-4">

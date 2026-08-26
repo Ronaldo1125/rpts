@@ -73,7 +73,8 @@ window.validateField = function(el) {
             'project-type': 'type-error',
             'project-coverage': 'coverage-error',
             'project-status': 'status-error',
-            'consultation-status': 'consult-status-err'
+            'consultation-status': 'consult-status-err',
+            'geo-coordinate': 'coordinate-error'
         };
         
         const errId = errMap[name];
@@ -325,9 +326,27 @@ window.validateStep = function(step) {
             }
         }
 
-        // 2. Geolocation Coordinates (Manual check to ensure feedback is shown)
+        // 2. Geolocation Coordinates (Manual check to ensure feedback is shown) Added by: Banny
         const geoInputs = panel.querySelectorAll('input[name^="f-geo-"]');
+
+        // 1. Check the active radio choice directly at the exact second the button is clicked
+        const activeGeoMode = panel.querySelector('input[name="geo-coordinate"]:checked')?.value;
+
         geoInputs.forEach(inp => {
+
+            const inputName = inp.getAttribute('name');
+    
+            // 2. FORCE BYPASS: If mode is lineal, completely skip validating the end-coordinates
+            if (activeGeoMode === 'geo-building' && (inputName === 'f-geo-end-lat' || inputName === 'f-geo-end-lng')) {
+                // Force-clear any old error UI states instantly
+                inp.classList.remove('is-invalid');
+                const feedback = inp.nextElementSibling;
+                if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.style.display = 'none';
+                }
+                return; // Jump to the next field immediately
+            }
+
             if (inp.hasAttribute('data-required') || inp.hasAttribute('min') || inp.hasAttribute('max')) {
                 const isBlank = (inp.hasAttribute('data-required') || inp.required) && (!inp.value || !inp.value.trim());
                 const isOutOfRange = !isBlank && inp.value && !inp.checkValidity();

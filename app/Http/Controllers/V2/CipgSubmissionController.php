@@ -17,6 +17,17 @@ class CipgSubmissionController extends Controller
     {
         $perPage = $request->input('per_page', 10);
         $search = $request->input('search');
+
+        // $admin = \App\Models\User::role('administrator')->first();
+
+        // $details = [
+        //             'subject' => 'New CPP Submission Received',
+        //             'body' => ' Testing if the notification works.',
+        //             'actionText' => 'CPP Submission',
+        //             'actionURL' => url('/dashboard/admin'),
+        //         ];
+
+        //         $admin->notify(new \App\Notifications\CppSubmitted($details));
         
         $user = Auth::user();
         $query = CppSubmission::query();
@@ -192,6 +203,7 @@ class CipgSubmissionController extends Controller
             'project-type' => $s->project_type, // Array
             'f-components' => $s->components,
             'project-coverage' => $s->project_coverage,
+            'geo-coordinate' => $s->geo_coordinate,
             'f-province' => $loc->province_id ?? '',
             'f-district' => $loc->district_id ?? '',
             'f-municipality' => $loc->municipality_id ?? '',
@@ -204,7 +216,7 @@ class CipgSubmissionController extends Controller
             'f-alignment' => $s->sdg_alignments->map(fn($g) => $g->number . ': ' . $g->title)->toArray() ? implode('||', $s->sdg_alignments->map(fn($g) => $g->number . ': ' . $g->title)->toArray()) : '',
             'f-rdp-alignment' => $s->rdp_alignments->pluck('chapter_name')->toArray() ? implode('||', $s->rdp_alignments->pluck('chapter_name')->toArray()) : '',
             'project-status' => $s->project_status,
-            'consultation-status' => $s->consultation_status,
+            //'consultation-status' => $s->consultation_status,
             'prep-site' => isset(($s->prep_status ?? [])['site']) ? (bool)($s->prep_status ?? [])['site'] : in_array('Site is readily available', $s->prep_status ?? [], true),
             'prep-row' => isset(($s->prep_status ?? [])['row']) ? (bool)($s->prep_status ?? [])['row'] : in_array('No issue on right-of-way acquisition', $s->prep_status ?? [], true),
             'prep-ded' => isset(($s->prep_status ?? [])['ded']) ? (bool)($s->prep_status ?? [])['ded'] : in_array('Detailed Engineering Design was prepared', $s->prep_status ?? [], true),
@@ -216,6 +228,10 @@ class CipgSubmissionController extends Controller
             'f-outputs' => $s->outputs,
             'f-activities' => $s->activities,
             'f-linkages' => $s->linkages,
+            'f-nga-funding' => $s->nga_funding,
+            'f-lgu-funding' => $s->lgu_funding,
+            'f-oda-funding' => $s->oda_funding,
+            'f-others-funding' => $s->others_funding,
             'f-total-cost' => $s->total_cost,
             'f-funding-source' => $s->funding_source,
             'f-counterpart-funding' => $s->counterpart_funding,
@@ -277,6 +293,7 @@ class CipgSubmissionController extends Controller
                 'lf-inputs-assumptions' => $s->logframe->lf_inputs_assumptions,
             ] : null,
             'endorsement' => $s->endorsement ? [
+                'resolution-document' => $s->endorsement->resolution_document, //array
                 'f-sp-res'    => $s->endorsement->sp_resolution_no,
                 'f-sp-date'   => $s->endorsement->sp_resolution_date ? $s->endorsement->sp_resolution_date->format('Y-m-d') : '',
                 'f-sb-res'    => $s->endorsement->sb_resolution_no,
@@ -327,6 +344,7 @@ class CipgSubmissionController extends Controller
             'f-agency' => $submission->user->agency->agency_name ?? null,
             'agency_id' => $submission->agency_id,
             'project-coverage' => $submission->project_coverage,
+            'geo-coordinate' => $submission->geo_coordinate,
             
             // Location
             'f-province' => $loc->province_id ?? null,
@@ -531,6 +549,7 @@ class CipgSubmissionController extends Controller
             $submission->project_type = $data['project-type'] ?? [];
             $submission->components = $data['f-components'] ?? null;
             $submission->project_coverage = $data['project-coverage'] ?? null;
+            $submission->geo_coordinate = $data['geo-coordinate'] ?? null;
             $submission->geo_start_lat = $data['f-geo-start-lat'] ?? null;
             $submission->geo_start_lng = $data['f-geo-start-lng'] ?? null;
             $submission->geo_end_lat = $data['f-geo-end-lat'] ?? null;
@@ -545,6 +564,10 @@ class CipgSubmissionController extends Controller
             $submission->activities = $data['f-activities'] ?? null;
             $submission->linkages = $data['f-linkages'] ?? null;
 
+            $submission->nga_funding = $data['f-nga-funding'] ?? null;
+            $submission->lgu_funding = $data['f-lgu-funding'] ?? null;
+            $submission->oda_funding = $data['f-oda-funding'] ?? null;
+            $submission->others_funding = $data['f-others-funding'] ?? null;
             $submission->total_cost = $data['f-total-cost'] ?? 0;
             $submission->funding_source = $data['f-funding-source'] ?? null;
             $submission->counterpart_funding = $data['f-counterpart-funding'] ?? null;
@@ -608,6 +631,7 @@ class CipgSubmissionController extends Controller
 
             // 3. Endorsement
             $submission->endorsement()->updateOrCreate([], [
+                'resolution_document' => $data['resolution-document'] ?? [],
                 'sp_resolution_no' => $data['f-sp-res'] ?? null,
                 'sp_resolution_date' => $data['f-sp-date'] ?? null,
                 'sb_resolution_no' => $data['f-sb-res'] ?? null,
@@ -696,6 +720,21 @@ class CipgSubmissionController extends Controller
                     // existing_url entries are intentionally ignored here — the media record
                     // already exists in the 'attachments' collection for this submission.
                 }
+            }
+
+            If (!$isDraft) {
+                // Send notification to admin to refer this to PDIPBD staff for review (Banny 08-2026)
+                $admin = \App\Models\User::role('administrator')->first(); // for now, just get the first admin user. You may want to refine this logic later.
+
+                $details = [
+                    'subject' => 'New CPP Submission Received',
+                    'body' => $user->agency->agency_acronym . ' "' . $data['f-title'] . '"'. ' for validation.',
+                    'actionText' => 'CPP Submission',
+                    'actionURL' => url('/admin/home#cipgTableBody'),
+                ];
+
+                $admin->notify(new \App\Notifications\CppNotification($details));
+                //Notification::send($admin, new \App\Notifications\CppNotification($details));
             }
 
 

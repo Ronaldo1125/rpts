@@ -190,6 +190,17 @@ class ReferralController extends Controller
             $submission->stage = 'Completeness Test and Validation';
             $submission->save();
 
+            // Send notification to the assigned PDIPBD staff (Added on: 8/25/2026)
+            if ($toUser) {
+                $details = [
+                    'subject' => 'New Referral: "' . $submission->project_title . '"',
+                    'body' => 'You have been assigned a new referral for the project "' . $submission->project_title . '". Please review it at your earliest convenience.',
+                    'actionText' => 'View Referral',
+                    'actionURL' => url('/admin/home#cipgTableBody'),
+                ];
+                $toUser->notify(new \App\Notifications\CppNotification($details));
+            }
+
             return response()->json(['success' => true, 'id' => $referral->id]);
         }
 

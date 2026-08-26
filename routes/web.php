@@ -216,6 +216,15 @@ Route::group(['middleware' => ['auth']], function () {
     // Project Assessment Report Routes
     Route::resource('project-assessment-reports', \App\Http\Controllers\ProjectAssessmentReportController::class);
 
+    // Notification Read Route
+    Route::post('/notifications/{id}/read', function ($id) {
+        $notification = auth()->user()->notifications()->find($id);
+        if ($notification) {
+            $notification->markAsRead();
+        }
+        return response()->json(['success' => true]);
+    });
+
 
 
 });

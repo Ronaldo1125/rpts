@@ -40,8 +40,8 @@
         <label class="form-label small fw-semibold text-secondary">
             1. Agencies Involved <span class="text-danger">*</span>
         </label>
-        <input type="text" class="form-control" id="f-agencies-involved" name="f-agencies-involved"
-            placeholder="Indicate the names and roles of the proponent, endorsing, executing, implementing and coordinating agencies." data-required>
+        <textarea class="form-control" id="f-agencies-involved" name="f-agencies-involved"
+            placeholder="Indicate the names and roles of the proponent, endorsing, executing, implementing and coordinating agencies." rows="3" data-required></textarea>
         <div class="invalid-feedback">Agencies involved is required.</div>
     </div>
 

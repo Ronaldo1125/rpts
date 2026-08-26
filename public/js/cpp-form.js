@@ -316,36 +316,95 @@ window.loadDraftLocally = function() {
     }
 };
 
+// 1. Define a controller globally outside the function to track active requests Added by Banny
+let subSectorAbortController = null;
+
 // Data Fetching Logic
 function initDataFetchers() {
     const sectorSelect = document.getElementById('f-sector');
     const subSectorSelect = document.getElementById('f-sub-sector');
+    
     if (sectorSelect && subSectorSelect) {
         sectorSelect.addEventListener('change', function() {
             const sectorId = this.value;
+            
+            // 2. Kill any identical network requests currently in-flight
+            if (subSectorAbortController) {
+                subSectorAbortController.abort();
+            }
+            
             subSectorSelect.innerHTML = '<option value="">-- Select Sub-Sector --</option>';
             if (!sectorId) { subSectorSelect.disabled = true; return; }
+            
             subSectorSelect.disabled = true;
-            fetch(`/projects/getSubSectors?sector_id=${sectorId}`)
+            
+            // 3. Initialize the new abort signal
+            subSectorAbortController = new AbortController();
+            const { signal } = subSectorAbortController;
+
+            fetch(`/projects/getSubSectors?sector_id=${sectorId}`, { signal })
                 .then(res => res.json())
                 .then(data => {
+                    // Clear right before building to ensure a pristine dropdown
+                    subSectorSelect.innerHTML = '<option value="">-- Select Sub-Sector --</option>';
+                    
                     data.forEach(item => {
                         const opt = document.createElement('option');
                         opt.value = item.id;
                         opt.textContent = item.subsector_name || item.name;
                         subSectorSelect.appendChild(opt);
                     });
+                    
                     subSectorSelect.disabled = false;
-                    const saved = localStorage.getItem(getDraftKey());
-                    if (saved) {
-                        try {
-                            const draft = JSON.parse(saved);
-                            if (draft['f-sub-sector']) subSectorSelect.value = draft['f-sub-sector'];
-                        } catch (e) {}
+                    
+                    // 4. Set the sub-sector value cleanly without a setTimeout race
+                    if (subSectorSelect.dataset.pendingValue) {
+                        subSectorSelect.value = subSectorSelect.dataset.pendingValue;
+                        delete subSectorSelect.dataset.pendingValue; // Clean up attribute
+                    } else {
+                        const saved = localStorage.getItem(getDraftKey());
+                        if (saved) {
+                            try {
+                                const draft = JSON.parse(saved);
+                                if (draft['f-sub-sector']) subSectorSelect.value = draft['f-sub-sector'];
+                            } catch (e) {}
+                        }
                     }
+                })
+                .catch(err => {
+                    // Ignore standard abort errors
+                    if (err.name !== 'AbortError') console.error(err);
                 });
         });
     }
+    // const sectorSelect = document.getElementById('f-sector');
+    // const subSectorSelect = document.getElementById('f-sub-sector');
+    // if (sectorSelect && subSectorSelect) {
+    //     sectorSelect.addEventListener('change', function() {
+    //         const sectorId = this.value;
+    //         subSectorSelect.innerHTML = '<option value="">-- Select Sub-Sector --</option>';
+    //         if (!sectorId) { subSectorSelect.disabled = true; return; }
+    //         subSectorSelect.disabled = true;
+    //         fetch(`/projects/getSubSectors?sector_id=${sectorId}`)
+    //             .then(res => res.json())
+    //             .then(data => {
+    //                 data.forEach(item => {
+    //                     const opt = document.createElement('option');
+    //                     opt.value = item.id;
+    //                     opt.textContent = item.subsector_name || item.name;
+    //                     subSectorSelect.appendChild(opt);
+    //                 });
+    //                 subSectorSelect.disabled = false;
+    //                 const saved = localStorage.getItem(getDraftKey());
+    //                 if (saved) {
+    //                     try {
+    //                         const draft = JSON.parse(saved);
+    //                         if (draft['f-sub-sector']) subSectorSelect.value = draft['f-sub-sector'];
+    //                     } catch (e) {}
+    //                 }
+    //             });
+    //     });
+    // }
 
     const provinceSelect = document.getElementById('f-province');
     const districtSelect = document.getElementById('f-district');
@@ -460,6 +519,14 @@ function gatherAllData() {
     document.querySelectorAll('input[name="project-type"]:checked').forEach(cb => {
         data['project-type'].push(cb.value);
     });
+
+    // resolution-document Added by Banny 7-132026
+    data['resolution-document'] = [];
+    document.querySelectorAll('input[name="resolution-document"]:checked').forEach(cb => {
+        data['resolution-document'].push(cb.value);
+    });
+
+    // Geo Location Type (single value)
 
     // 4. Implementation Schedule (Array of Objects)
     data.impl_schedule = [];
@@ -725,6 +792,7 @@ window.cppDraft = async function(event) {
 
         // 1. Gather all data as if submitting
         const payload = gatherAllData();
+        console.log(payload);
         payload.is_draft = true;
 
         // 2. Send to Server
@@ -755,9 +823,9 @@ window.cppDraft = async function(event) {
             localStorage.removeItem(getDraftKey());
 
             // 5. Redirect back to submissions list
-            setTimeout(() => {
-                window.location.href = '/v2/cipg_submissions';
-            }, 1000);
+            // setTimeout(() => {
+            //     window.location.href = '/v2/cipg_submissions';
+            // }, 1000);
         } else {
             showToast(result.message || "Failed to save draft to server.", "error");
         }
@@ -833,16 +901,48 @@ document.addEventListener('DOMContentLoaded', async function() {
                         if (el) el.value = data.logframe[k] || '';
                     });
                 }
+
+                //Updated by Banny 7-13-2026
                 if (data.endorsement) {
                     Object.keys(data.endorsement).forEach(k => {
-                        const el = document.getElementById(k);
-                        if (el) {
-                            el.value = data.endorsement[k] || '';
-                            // Trigger input/change so UI reactive logic (like upload panels) triggers
-                            el.dispatchEvent(new Event('input', { bubbles: true }));
+                        const val = data.endorsement[k];
+
+                        if (Array.isArray(val)) {
+                            // Handle array values (e.g., multiple checkboxes with the same name)
+                            val.forEach(itemValue => {
+                                // Find checkbox by name and value attribute
+                                const el = document.querySelector(`input[name="${k}"][value="${itemValue}"]`);
+                                if (el) {
+                                    el.checked = true;
+                                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                                }
+                            });
+                        } else {
+                            // Handle standard text, select, or single radio values
+                            const el = document.getElementById(k) || document.querySelector(`input[name="${k}"][value="${val}"]`);
+                            if (el) {
+                                if (el.type === 'radio' || el.type === 'checkbox') {
+                                    el.checked = true;
+                                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                                } else {
+                                    el.value = val || '';
+                                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            }
                         }
                     });
                 }
+
+                // if (data.endorsement) {
+                //     Object.keys(data.endorsement).forEach(k => {
+                //         const el = document.getElementById(k);
+                //         if (el) {
+                //             el.value = data.endorsement[k] || '';
+                //             // Trigger input/change so UI reactive logic (like upload panels) triggers
+                //             el.dispatchEvent(new Event('input', { bubbles: true }));
+                //         }
+                //     });
+                // }
 
                 // 4. Consultation Dates
                 if (data.consult_dates) {
@@ -1092,16 +1192,33 @@ document.addEventListener('DOMContentLoaded', async function() {
                     });
                 }
 
+                
+
                 // 4. Handle Location/Sector dependencies
+                // if (data['f-sector']) {
+                //     const sectorEl = document.getElementById('f-sector');
+                //     sectorEl.value = data['f-sector'];
+                //     // We need to wait for sub-sectors to load
+                //     sectorEl.dispatchEvent(new Event('change'));
+                //     setTimeout(() => {
+                //         const subSectorEl = document.getElementById('f-sub-sector');
+                //         if (subSectorEl) subSectorEl.value = data['f-sub-sector'] || '';
+                //     }, 500);
+                // }
+
                 if (data['f-sector']) {
-                    const sectorEl = document.getElementById('f-sector');
+                const sectorEl = document.getElementById('f-sector');
+                const subSectorEl = document.getElementById('f-sub-sector');
+                
+                    // Store the value safely on the element instead of using a setTimeout
+                    if (subSectorEl && data['f-sub-sector']) {
+                        subSectorEl.dataset.pendingValue = data['f-sub-sector'];
+                    }
+    
                     sectorEl.value = data['f-sector'];
-                    // We need to wait for sub-sectors to load
-                    sectorEl.dispatchEvent(new Event('change'));
-                    setTimeout(() => {
-                        const subSectorEl = document.getElementById('f-sub-sector');
-                        if (subSectorEl) subSectorEl.value = data['f-sub-sector'] || '';
-                    }, 500);
+                    
+                    // Use bubbles: false to prevent third-party scripts from hijacking the event
+                    sectorEl.dispatchEvent(new Event('change', { bubbles: false })); 
                 }
 
                 if (data['f-province']) {
@@ -1156,7 +1273,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const draftBtn = document.getElementById('cppDraftBtn');
                     if (draftBtn) draftBtn.style.display = 'none';
                 }
-
             }
         } catch (e) {
             console.error("Failed to load submission from server:", e);
@@ -1196,6 +1312,97 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
     }
+
+    // SP, SB, Letter Request Checkbox Added: Banny Date: 7/10/2026
+    const toggleDisplay = (resName, display, fRes, fDate, panel) => {
+        const item = document.getElementById(display);
+        if (!item) return;
+        
+        const isChecked = resName.checked;
+        item.style.display = isChecked ? 'flex' : 'none';
+        
+        if (!isChecked) {
+            const resInput = document.getElementById(fRes);
+            const resDateInput = document.getElementById(fDate);
+            const resPanel = document.getElementById(panel);
+            if (resInput) {
+                resInput.value = '';
+                resPanel.style.display = 'none';
+            }
+            if (resDateInput) resDateInput.value = '';
+        }
+    }
+
+    const sp = document.getElementById('chk-sp-resolution');
+
+    if (sp) {
+        // Listen for changes
+        sp.addEventListener('change', () => {
+            toggleDisplay(sp, 'sp-display', 'f-sp-res', 'f-sp-date', 'sp-upload-panel');
+        });
+
+        // Initial check on page load
+        toggleDisplay(sp, 'sp-display', 'f-sp-res', 'f-sp-date', 'sp-upload-panel');
+    }
+
+    const sb = document.getElementById('chk-sb-resolution');
+    if(sb) {
+        sb.addEventListener('change', () => {
+            toggleDisplay(sb, 'sb-display', 'f-sb-res', 'f-sb-date', 'sb-upload-panel');
+        });
+
+        // Initial check on page load
+        toggleDisplay(sb, 'sb-display', 'f-sb-res', 'f-sb-date', 'sb-upload-panel');
+    }
+
+    const reqLetter = document.getElementById('chk-request-letter');
+    if(reqLetter) {
+        reqLetter.addEventListener('change', () => {
+            toggleDisplay(reqLetter, 'letter-display', 'f-letter-req', 'f-letter-date', 'letter-upload-panel');
+        });
+
+        // Initial check
+        toggleDisplay(reqLetter, 'letter-display', 'f-letter-req', 'f-letter-date', 'letter-upload-panel');
+    }
+
+    const bor = document.getElementById('chk-bor-bot-resolution');
+    if(bor){
+        bor.addEventListener('change', () => {
+            toggleDisplay(bor, 'bor-bot-display', 'f-bor-res', 'f-bor-date', 'bor-upload-panel');
+        });
+
+        //Initial check
+       toggleDisplay(bor, 'bor-bot-display', 'f-bor-res', 'f-bor-date', 'bor-upload-panel');
+    }
+
+    // Page 2: Financial Requirements — Dynamic Computations Added by Banny 7/10/2026
+    const ngaFunding = document.getElementById('f-nga-funding');
+    const lguFunding = document.getElementById('f-lgu-funding');
+    const odaFunding = document.getElementById('f-oda-funding');
+    const othersFunding = document.getElementById('f-others-funding');
+    const totalFunding = document.getElementById('f-total-cost');
+
+    const computeTotalFunding = () => {
+        const nga = parseFloat(ngaFunding.value) || 0;
+        const lgu = parseFloat(lguFunding.value) || 0;
+        const oda = parseFloat(odaFunding.value) || 0;
+        const others = parseFloat(othersFunding.value) || 0;
+        totalFunding.value = (nga + lgu + oda + others).toFixed(2);
+    };
+
+    // Attach event listeners to track real-time keystrokes and value updates
+    // ngaFunding.addEventListener('input', computeTotalFunding);
+    // lguShare.addEventListener('input', computeTotalFunding);
+    // odaFunding.addEventListener('input', computeTotalFunding);
+    // othersFunding.addEventListener('input', computeTotalFunding);
+
+    // Same procedure but using a loop to reduce redundancy
+    [ngaFunding, lguFunding, odaFunding, othersFunding].forEach(input => {
+        if (input) {
+            input.addEventListener('input', computeTotalFunding);
+        }
+    });
+    
 
     // Public Consultation Upload & Input Toggling
     const initConsultationToggling = () => {
@@ -1248,6 +1455,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         setTimeout(handleToggle, 100); 
     };
     initConsultationToggling();
+
+
+    
 
     // --- PAGE 3: HGDG Upload ---
     const hgdg = document.getElementById('f-hgdg');
@@ -1777,6 +1987,60 @@ document.addEventListener('DOMContentLoaded', async function() {
             };
             reader.readAsDataURL(file);
         }
+    }
+
+    // --- PAGE 5: Geolocation Added by: Banny
+    const radios = document.querySelectorAll('input[type="radio"][name="geo-coordinate"]');
+
+    if (radios.length > 0) {
+        const begin = document.getElementById('geo-beginning');
+        const end = document.getElementById('geo-end');
+        const endLat = document.querySelector('input[name="f-geo-end-lat"]');
+        const endLng = document.querySelector('input[name="f-geo-end-lng"]');
+        const headings = document.querySelectorAll('.geo-location-heading');
+
+        // Single helper function to manage UI and validation state
+        const updateGeoState = (value) => {
+            const isLineal = value === 'geo-lineal';
+
+            // Toggle container visibility
+            if (begin) begin.style.display = 'block';
+            if (end) end.style.display = isLineal ? 'block' : 'none';
+
+            // Toggle heading visibility
+            headings.forEach(h => {
+                 h.style.display = !isLineal ? 'none' : 'block';
+            });
+
+            // Process validation for both inputs
+            [endLat, endLng].forEach(input => {
+                if (!input) return;
+                const feedback = input.nextElementSibling;
+
+                if (isLineal) {
+                    input.setAttribute('data-required', 'true');
+                    // Trigger instant error validation if fields are empty
+                    if (input.value.trim() === '') {
+                        input.classList.add('is-invalid');
+                        if (feedback) feedback.style.display = 'block';
+                    }
+                } else {
+                    // Clear attributes and error styling when hidden
+                    input.removeAttribute('data-required');
+                    input.classList.remove('is-invalid');
+                    if (feedback) feedback.style.display = 'none';
+                }
+            });
+        };
+
+        // 1. Run on initial page load
+        const checkedRadio = Array.from(radios).find(r => r.checked);
+        if (checkedRadio) updateGeoState(checkedRadio.value);
+
+        // 2. Run on user change event
+        radios.forEach(radio => {
+            radio.addEventListener('change', (e) => updateGeoState(e.target.value));
+        });
     }
 
     // --- PAGE 5: Geolocation fields - block letter 'e' ---

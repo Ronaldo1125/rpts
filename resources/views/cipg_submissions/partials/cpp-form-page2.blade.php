@@ -118,14 +118,42 @@
         <label class="form-label small fw-semibold text-secondary">
             1. Funding Requirement (PHP) <span class="text-danger">*</span>
         </label>
-        <div class="input-group">
-            <span class="input-group-text small text-muted" style="background:#f8fafc;border-right:none;">&#8369;</span>
-            <input type="number" class="form-control" id="f-total-cost" name="f-total-cost" placeholder="0.00" min="0" step="0.01" title="Summary of total funding required."
-                data-required style="border-left:none;"
-                onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();">
+        <div class="row mb-4">
+            <div class="col-3">
+                <label class="form-label small fw-semibold text-secondary">
+                    NGA
+                </label>
+                <input type="number" class="form-control" id="f-nga-funding" name="f-nga-funding" placeholder="0.00" min="0" step="0.01" title="NGA funding."
+                    style="border-left:none;" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" oninput="if(this.value.includes('.')) { let p = this.value.split('.'); if(p[1].length > 2) this.value = p[0] + '.' + p[1].slice(0,2); }">
+            </div>
+            <div class="col-3">
+                <label class="form-label small fw-semibold text-secondary">
+                    LGU
+                </label>
+                <input type="number" class="form-control" id="f-lgu-funding" name="f-lgu-funding" placeholder="0.00" min="0" step="0.01" title="LGU counterpart funding."
+                    style="border-left:none;" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" oninput="if(this.value.includes('.')) { let p = this.value.split('.'); if(p[1].length > 2) this.value = p[0] + '.' + p[1].slice(0,2); }">
+            </div>
+            <div class="col-3">
+                <label class="form-label small fw-semibold text-secondary">
+                    ODA
+                </label>
+                <input type="number" class="form-control" id="f-oda-funding" name="f-oda-funding" placeholder="0.00" min="0" step="0.01" title="ODA funding."
+                    style="border-left:none;" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" oninput="if(this.value.includes('.')) { let p = this.value.split('.'); if(p[1].length > 2) this.value = p[0] + '.' + p[1].slice(0,2); }">
+            </div>
+             <div class="col-3">
+                <label class="form-label small fw-semibold text-secondary">
+                    OTHERS
+                </label>
+                <input type="number" class="form-control" id="f-others-funding" name="f-others-funding" placeholder="0.00" min="0" step="0.01" title="Other funding."
+                    style="border-left:none;" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();"  oninput="if(this.value.includes('.')) { let p = this.value.split('.'); if(p[1].length > 2) this.value = p[0] + '.' + p[1].slice(0,2); }">
+            </div>
         </div>
-        <div class="invalid-feedback" style="display:block;visibility:hidden;" id="f-total-cost-err">
-            Funding requirement is required.
+
+
+        <div class="input-group mb-3">
+            <label class="input-group-text small text-muted" style="background:#f8fafc;border-right:none;">TOTAL</label>
+            <input type="number" class="form-control" id="f-total-cost" name="f-total-cost" placeholder="0.00" min="0" step="0.01" title="Summary of total funding required."
+                style="border-left:none;" readonly>
         </div>
     </div>
 

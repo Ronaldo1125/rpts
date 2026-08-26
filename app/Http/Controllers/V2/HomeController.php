@@ -74,6 +74,7 @@ class HomeController extends Controller
 
         $totalMasterProjects = Project::count();
         $totalMasterInvestmentRaw = Project::sum('funding_requirement');
+        //$totalMasterInvestmentRaw = 1000;
         
         $totalMasterInvestment = '₱0.00';
         if ($totalMasterInvestmentRaw >= 1000) {

@@ -86,7 +86,7 @@ return new class extends Migration
 
             $table->index(['user_id', 'status']);
             $table->index(['agency_id', 'status']);
-            $table->index('project_title');
+            //$table->index('project_title');
         });
 
         // ─────────────────────────────────────────────────────────────

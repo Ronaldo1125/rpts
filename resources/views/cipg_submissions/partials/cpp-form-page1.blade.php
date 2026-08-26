@@ -75,8 +75,8 @@
 
     <div class="mb-4">
         <label class="form-label small fw-semibold text-secondary" for="f-components">3. Project Components</label>
-        <input type="text" class="form-control" id="f-components" name="f-components"
-            placeholder="For multi-sectoral or IAD projects each major component must have a separate sub-project profile.">
+        <textarea class="form-control" id="f-components" name="f-components" rows="3"
+            placeholder="For multi-sectoral or IAD projects each major component must have a separate sub-project profile."></textarea>
     </div>
 
     <!-- Location -->
@@ -230,64 +230,103 @@
         <span class="section-num">III</span> Endorsements
     </div>
 
-    <div class="row g-3" id="endorsements-row">
+    <div class="d-flex flex-column gap-2 mb-3">
+        <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="chk-sp-resolution" name="resolution-document" value="sp-resolution">
+                <label class="form-check-label small" for="chk-sp-resolution" title="Sangguniang Panlalawigan Resolution Available">SP Resolution Available</label>
+        </div>
 
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chk-sb-resolution" name="resolution-document" value="sb-resolution">
+            <label class="form-check-label small" for="chk-sb-resolution" title="Sangguniang Bayan Resolution Available">SB Resolution Available</label>
+        </div>
+
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chk-request-letter" name="resolution-document" value="request-letter">
+            <label class="form-check-label small" for="chk-request-letter" title="No action from SP or SB within 30 days from the date of the request letter">No action from SP or SB within 30 days from the date of the request letter</label>
+        </div>
+
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chk-bor-bot-resolution" name="resolution-document" value="bor-bot-resolution">
+            <label class="form-check-label small" for="chk-bor-bot-resolution" title="Board of Regent (BOR> Resolution Available">BOR/BOT Resolution Available</label>
+        </div>
+    </div>
+
+    
+    <div class="row g-3 mb-4">
         <!-- SP Resolution -->
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary" for="f-sp-res">Sangguniang Panlalawigan Resolution No.</label>
-            <input type="text" class="form-control" id="f-sp-res" name="f-sp-res" placeholder="SP Resolution No."
-                data-upload-panel="sp-upload-panel" data-upload-label="SP Resolution Document">
+         <div class="gap-2" id="sp-display" style="display:none;">
+             <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary" for="f-sp-res">Sangguniang Panlalawigan Resolution No.</label>
+                <input type="text" class="form-control" id="f-sp-res" name="f-sp-res" placeholder="SP Resolution No."
+                    data-upload-panel="sp-upload-panel" data-upload-label="SP Resolution Document">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary" for="f-sp-date">Date of Issuance</label>
+                <input type="date" class="form-control" id="f-sp-date" name="f-sp-date">
+            </div>
+         </div>
+           
+         <div class="col-12" id="sp-upload-panel" style="display:none; padding-top:0.1rem;">
+                <!-- filled by _initEndorsementUploads -->
         </div>
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary" for="f-sp-date">Date of Issuance</label>
-            <input type="date" class="form-control" id="f-sp-date" name="f-sp-date">
-        </div>
-        <div class="col-12" id="sp-upload-panel" style="display:none; padding-top:0.1rem;">
-            <!-- filled by _initEndorsementUploads -->
-        </div>
+    </div>
 
+    <div class="row g-3 mb-4">
         <!-- SB Resolution -->
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary" for="f-sb-res">Sangguniang Bayan Resolution No.</label>
-            <input type="text" class="form-control" id="f-sb-res" name="f-sb-res" placeholder="SB Resolution No."
-                data-upload-panel="sb-upload-panel" data-upload-label="SB Resolution Document">
+         <div class="gap-2" id="sb-display" style="display:none;">
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary" for="f-sb-res">Sangguniang Bayan Resolution No.</label>
+                <input type="text" class="form-control" id="f-sb-res" name="f-sb-res" placeholder="SB Resolution No."
+                    data-upload-panel="sb-upload-panel" data-upload-label="SB Resolution Document">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary" for="f-sb-date">Date of Issuance</label>
+                <input type="date" class="form-control" id="f-sb-date" name="f-sb-date">
+            </div>
+            
+         </div>
+         <div class="col-12" id="sb-upload-panel" style="display:none; padding-top:0.1rem;">
+                <!-- filled by _initEndorsementUploads -->
         </div>
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary" for="f-sb-date">Date of Issuance</label>
-            <input type="date" class="form-control" id="f-sb-date" name="f-sb-date">
-        </div>
-        <div class="col-12" id="sb-upload-panel" style="display:none; padding-top:0.1rem;">
-            <!-- filled by _initEndorsementUploads -->
-        </div>
+    </div>
 
+    <div class="row g-3 mb-4">
         <!-- Letter Request -->
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary" for="f-letter-req">Letter Request to SP and SB</label>
-            <input type="text" class="form-control" id="f-letter-req" name="f-letter-req" placeholder="Reference No. / Description"
-                data-upload-panel="letter-upload-panel" data-upload-label="Letter Request Document">
-        </div>
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary" for="f-letter-date">Date of Transmittal to SP &amp; SB</label>
-            <input type="date" class="form-control" id="f-letter-date" name="f-letter-date">
+        <div class="gap-2" id="letter-display" style="display:none;">
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary" for="f-letter-req">Letter Request to SP and SB</label>
+                <input type="text" class="form-control" id="f-letter-req" name="f-letter-req" placeholder="Reference No. / Description"
+                    data-upload-panel="letter-upload-panel" data-upload-label="Letter Request Document">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary" for="f-letter-date">Date of Transmittal to SP &amp; SB</label>
+                <input type="date" class="form-control" id="f-letter-date" name="f-letter-date">
+            </div>
+            
         </div>
         <div class="col-12" id="letter-upload-panel" style="display:none; padding-top:0.1rem;">
-            <!-- filled by _initEndorsementUploads -->
+                <!-- filled by _initEndorsementUploads -->
         </div>
+    </div>
 
+    <div class="row g-3 mb-4">
         <!-- BOR/BOT Resolution -->
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary" for="f-bor-res">BOR/BOT Resolution No.</label>
-            <input type="text" class="form-control" id="f-bor-res" name="f-bor-res" placeholder="BOR/BOT Resolution No."
-                data-upload-panel="bor-upload-panel" data-upload-label="BOR/BOT Resolution Document">
-        </div>
-        <div class="col-md-6">
-            <label class="form-label small fw-semibold text-secondary" for="f-bor-date">Date of Issuance</label>
-            <input type="date" class="form-control" id="f-bor-date" name="f-bor-date">
+        <div class="gap-2" id="bor-bot-display" style="display:none;">
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary" for="f-bor-res">BOR/BOT Resolution No.</label>
+                <input type="text" class="form-control" id="f-bor-res" name="f-bor-res" placeholder="BOR/BOT Resolution No."
+                    data-upload-panel="bor-upload-panel" data-upload-label="BOR/BOT Resolution Document">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-secondary" for="f-bor-date">Date of Issuance</label>
+                <input type="date" class="form-control" id="f-bor-date" name="f-bor-date">
+            </div>
+
         </div>
         <div class="col-12" id="bor-upload-panel" style="display:none; padding-top:0.1rem;">
             <!-- filled by _initEndorsementUploads -->
         </div>
-
     </div>
-
+        
 </div>

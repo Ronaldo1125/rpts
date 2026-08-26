@@ -10,6 +10,7 @@ class CppEndorsement extends Model
 
     protected $fillable = [
         'cpp_submission_id',
+        'resolution_document',
         'sp_resolution_no',
         'sp_resolution_date',
         'sb_resolution_no',
@@ -21,6 +22,7 @@ class CppEndorsement extends Model
     ];
 
     protected $casts = [
+        'resolution_document' => 'array',
         'sp_resolution_date' => 'date',
         'sb_resolution_date' => 'date',
         'letter_transmittal_date' => 'date',

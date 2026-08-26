@@ -480,7 +480,7 @@
                         </div>
                         <div class="col-6">
                             <span style="font-size:0.72rem; display:block; font-weight:bold;">3. Project Components:</span>
-                            <div style="border:1px solid #000; font-size:0.78rem; min-height:50px; padding:4px;">{!! nl2br(e($g('f-components'))) !!}</div>
+                            <div style="border:1px solid #000; font-size:0.78rem; min-height:50px; padding:4px; overflow-wrap: break-word;">{!! nl2br(e($g('f-components'))) !!}</div>
                         </div>
                     </div>
                     <div class="mt-2">

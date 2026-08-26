@@ -12,20 +12,56 @@
                 <button class="btn btn-link text-secondary position-relative p-2 rounded-circle shadow-none border-0 hover-bg-light" 
                         type="button" id="notificationBell" data-bs-toggle="dropdown" aria-expanded="false">
                     <i data-lucide="bell" width="22"></i>
-                    <span class="position-absolute translate-middle badge rounded-circle bg-danger border border-white"
-                          style="top: 12px; right: 2px; width: 10px; height: 10px; padding: 0; display: none;">
-                        <span class="visually-hidden">New notifications</span>
+
+                    <span id="bellBadgeCount" class="position-absolute translate-middle badge rounded-circle bg-danger border border-white d-flex align-items-center justify-content-center {{ auth()->user()->unreadNotifications->count() === 0 ? 'd-none' : '' }}" 
+                        style="top: 10px; right: -4px; min-width: 18px; height: 18px; font-size: 10px; padding: 0;">
+                        {{ auth()->user()->unreadNotifications->count() }}
                     </span>
+                     {{-- @if(auth()->user()->unreadNotifications->count() > 0)
+                     <span class="position-absolute translate-middle badge rounded-circle bg-danger border border-white d-flex align-items-center justify-content-center" style="top: 10px; right: -4px; min-width: 18px; height: 18px; font-size: 10px; padding: 0;">
+                        {{ auth()->user()->unreadNotifications->count() }}
+                    </span>
+                    @endif --}}
+                   
                 </button>
                 <div class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-0 overflow-hidden" 
                      style="width: 320px; border-radius: 16px;" aria-labelledby="notificationBell">
                     <div class="px-4 py-3 bg-primary text-white d-flex align-items-center justify-content-between">
                         <h6 class="mb-0 fw-bold">Notifications</h6>
-                        <span class="badge bg-white text-primary rounded-pill small fw-bold">3 New</span>
+                        <span id="headerBadgeCount" class="badge bg-white text-primary rounded-pill small fw-bold">{{ auth()->user()->unreadNotifications->count() }} New</span>
                     </div>
-                    <div class="notification-list overflow-auto" style="max-height: 350px;">
+                    <div class="notification-list overflow-auto" id="notificationContainer" style="max-height: 350px;">
                         <!-- Placeholder notifications -->
-                        <a href="#" class="dropdown-item px-4 py-3 border-bottom d-flex gap-3 align-items-start whitespace-normal">
+                         @forelse(auth()->user()->unreadNotifications as $notification)
+                         <!-- Added 'notification-item' class and 'data-id' attribute -->
+                            {{-- <a href="#" class="dropdown-item px-4 py-3 border-bottom d-flex gap-3 align-items-start whitespace-normal notification-item" data-id="{{ $notification->id }}">
+                                <div class="rounded-circle bg-soft-blue p-2 flex-shrink-0">
+                                    <i data-lucide="file-text" width="16" class="text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="small fw-bold text-dark mb-1">{{ $notification->data['title'] ?? 'Notification' }}</div>
+                                    <div class="text-muted smaller" style="font-size: 0.75rem;">{{ $notification->data['message'] ?? '' }}</div>
+                                    <div class="text-primary mt-2" style="font-size: 0.65rem; font-weight: 600;">{{ $notification->created_at->diffForHumans() }}</div>
+                                </div>
+                                <!-- Mark as Read Indicator Dot -->
+                                <div class="bg-primary rounded-circle ms-auto align-self-center" style="width: 8px; height: 8px;" title="Mark as read"></div>
+                            </a> --}}
+                            <a href="{{ $notification->data['url'] ?? '#' }}" class="dropdown-item px-4 py-3 border-bottom d-flex gap-3 align-items-start whitespace-normal notification-item" data-id="{{ $notification->id }}">
+                                <div class="rounded-circle bg-soft-blue p-2 flex-shrink-0">
+                                    <i data-lucide="file-text" width="16" class="text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="small fw-bold text-dark mb-1">{{ $notification->data['title'] ?? 'Notification' }}</div>
+                                    <div class="text-muted smaller" style="font-size: 0.75rem;">{{ $notification->data['message'] ?? '' }}</div>
+                                    <div class="text-primary mt-2" style="font-size: 0.65rem; font-weight: 600;">{{ $notification->created_at->diffForHumans() }}</div>
+                                </div>
+                            </a>
+                        @empty
+                            <div class="px-4 py-3 text-center text-muted" style="font-size: 0.875rem;">
+                                No new notifications.
+                            </div>
+                        @endforelse 
+                        {{-- <a href="#" class="dropdown-item px-4 py-3 border-bottom d-flex gap-3 align-items-start whitespace-normal">
                             <div class="rounded-circle bg-soft-blue p-2 flex-shrink-0">
                                 <i data-lucide="file-text" width="16" class="text-primary"></i>
                             </div>
@@ -54,11 +90,11 @@
                                 <div class="text-muted smaller" style="font-size: 0.75rem;">Completeness test for "Regional Health..." is verified.</div>
                                 <div class="text-primary mt-2" style="font-size: 0.65rem; font-weight: 600;">Yesterday</div>
                             </div>
-                        </a>
+                        </a> --}}
                     </div>
-                    <div class="px-4 py-2 bg-light text-center">
+                    {{-- <div class="px-4 py-2 bg-light text-center">
                         <a href="#" class="small fw-bold text-primary text-decoration-none">View All Notifications</a>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
 
