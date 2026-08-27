@@ -724,7 +724,7 @@ class CipgSubmissionController extends Controller
 
             If (!$isDraft) {
                 // Send notification to admin to refer this to PDIPBD staff for review (Banny 08-2026)
-                $admin = \App\Models\User::role('administrator')->first(); // for now, just get the first admin user. You may want to refine this logic later.
+                $admin = \App\Models\User::role('administrator')->where('email', 'eollaguno@depdev.gov.ph')->first(); // for now, just get the first admin user. You may want to refine this logic later.
 
                 $details = [
                     'subject' => 'New CPP Submission Received',
