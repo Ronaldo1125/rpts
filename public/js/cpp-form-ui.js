@@ -486,6 +486,14 @@ window._createUploadZone = function(panelEl, label) {
 
     const handle = (file) => {
         if (!file) return;
+
+         // --- Added validation for 2 MB file size limit (2026-09-01 Banny) ---
+        const maxSizeInBytes = 2 * 1024 * 1024; 
+        if (file.size > maxSizeInBytes) {
+            alert('File is too large. Maximum allowed size is 2 MB.');
+            return; 
+        }
+
         const reader = new FileReader();
         reader.onload = (e) => {
             panelEl.dataset.attachDataUri = e.target.result;

@@ -221,6 +221,23 @@ class ReferralController extends Controller
             $submission->stage = 'Project Appraisal';
             $submission->save();
 
+            // Get the division head of the assigned division and send notification (Added on: 8/25/2026)
+            $divisionHead = User::where('division_id', $to_division_id)
+                ->where(function ($query) {
+                    $query->where('role', 'division_chief');
+                })
+                ->first();
+
+                if ($divisionHead) {
+                    $details = [
+                        'subject' => 'Project Appraisal: "' . $submission->project_title . '"',
+                        'body' => 'A new referral has been assigned to your division for the project "' . $submission->project_title . '". Please review it at your earliest convenience.',
+                        'actionText' => 'View Project Appraisal',
+                        'actionURL' => url('/admin/home#cipgTableBody'),
+                    ];
+                    $divisionHead->notify(new \App\Notifications\CppNotification($details));
+                }
+                
             return response()->json(['success' => true, 'id' => $referral->id]);
         }
 
@@ -238,6 +255,17 @@ class ReferralController extends Controller
                     'status' => 'For Appraisal',
                     'notes' => $validated['notes'] ? ($referral->notes ? $referral->notes . "\n" . $validated['notes'] : $validated['notes']) : $referral->notes,
                 ]);
+
+                $divisionStaff = User::find($to_user_id);
+                if ($divisionStaff) {
+                    $details = [
+                        'subject' => 'Project Appraisal: "' . $submission->project_title . '"',
+                        'body' => 'You have been assigned for appraisal by your Division Chief for the project "' . $submission->project_title . '". Please review it at your earliest convenience.',
+                        'actionText' => 'View Project Appraisal',
+                        'actionURL' => url('/admin/home#cipgTableBody'),
+                    ];
+                    $divisionStaff->notify(new \App\Notifications\CppNotification($details));
+                }
 
                 return response()->json(['success' => true, 'id' => $referral->id]);
             }
@@ -259,6 +287,17 @@ class ReferralController extends Controller
 
             $submission->save();
 
+            $divisionStaff = User::find($to_user_id);
+            if ($divisionStaff) {
+                $details = [
+                    'subject' => 'Project Appraisal: "' . $submission->project_title . '"',
+                    'body' => 'You have been assigned for revision review by your Division Chief for the project "' . $submission->project_title . '". Please review it at your earliest convenience.',
+                    'actionText' => 'View Project Appraisal',
+                    'actionURL' => url('/admin/home#cipgTableBody'),
+                ];
+                $divisionStaff->notify(new \App\Notifications\CppNotification($details));
+            }
+
             return response()->json(['success' => true, 'id' => $referral->id]);
         }
 
@@ -276,6 +315,17 @@ class ReferralController extends Controller
                 'referred_at' => now(),
             ]);
             $submission->save();
+
+            $divisionStaff = User::find($to_user_id);
+            if ($divisionStaff) {
+                $details = [
+                    'subject' => 'Sectoral Presentation Review: "' . $submission->project_title . '"',
+                    'body' => 'You have been assigned for sectoral presentation reviewfor the project "' . $submission->project_title . '". Please review it at your earliest convenience.',
+                    'actionText' => 'Sectoral Presentation Review',
+                    'actionURL' => url('/admin/home#cipgTableBody'),
+                ];
+                $divisionStaff->notify(new \App\Notifications\CppNotification($details));
+            }
 
             return response()->json(['success' => true, 'id' => $referral->id]);
         }
@@ -295,6 +345,17 @@ class ReferralController extends Controller
             ]);
             $submission->save();
 
+            $divisionStaff = User::find($to_user_id);
+            if ($divisionStaff) {
+                $details = [
+                    'subject' => 'Revision Review: "' . $submission->project_title . '"',
+                    'body' => 'You have been assigned for revision review for the project "' . $submission->project_title . '". Please review it at your earliest convenience.',
+                    'actionText' => 'Revision Review',
+                    'actionURL' => url('/admin/home#cipgTableBody'),
+                ];
+                $divisionStaff->notify(new \App\Notifications\CppNotification($details));
+            }
+
             return response()->json(['success' => true, 'id' => $referral->id]);
         }
 
@@ -313,6 +374,17 @@ class ReferralController extends Controller
             ]);
             $submission->save();
 
+            $divisionStaff = User::find($to_user_id);
+            if ($divisionStaff) {
+                $details = [
+                    'subject' => 'RDC Presentation Review: "' . $submission->project_title . '"',
+                    'body' => 'You have been assigned for RDC presentation review for the project "' . $submission->project_title . '". Please review it at your earliest convenience.',
+                    'actionText' => 'RDC Presentation Review',
+                    'actionURL' => url('/admin/home#cipgTableBody'),
+                ];
+                $divisionStaff->notify(new \App\Notifications\CppNotification($details));
+            }
+
             return response()->json(['success' => true, 'id' => $referral->id]);
         }
 
@@ -330,6 +402,17 @@ class ReferralController extends Controller
                 'referred_at' => now(),
             ]);
             $submission->save();
+
+            $divisionStaff = User::find($to_user_id);
+            if ($divisionStaff) {
+                $details = [
+                    'subject' => 'Revision Review: "' . $submission->project_title . '"',
+                    'body' => 'You have been assigned for revision review for the project "' . $submission->project_title . '". Please review it at your earliest convenience.',
+                    'actionText' => 'Revision Review',
+                    'actionURL' => url('/admin/home#cipgTableBody'),
+                ];
+                $divisionStaff->notify(new \App\Notifications\CppNotification($details));
+            }
 
             return response()->json(['success' => true, 'id' => $referral->id]);
         }
@@ -365,10 +448,21 @@ class ReferralController extends Controller
                     'referred_at' => now(),
                 ]);
 
+                $divisionStaff = User::find($to_user_id);
+                if ($divisionStaff) {
+                    $details = [
+                        'subject' => 'Project Appraisal: "' . $submission->project_title . '"',
+                        'body' => 'You have been assigned for review for the project "' . $submission->project_title . '". Please review it at your earliest convenience.',
+                        'actionText' => 'View Referral',
+                        'actionURL' => url('/admin/home#cipgTableBody'),
+                    ];
+
+                    $divisionStaff->notify(new \App\Notifications\CppNotification($details));
+                }
+
                 return response()->json(['success' => true, 'id' => $referral->id]);
             }
         }
-
         return response()->json(['success' => false, 'message' => 'Action not authorized or does not meet the current workflow conditions.'], 403);
     }
 
