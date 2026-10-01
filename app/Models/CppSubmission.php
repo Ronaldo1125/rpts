@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -58,6 +59,33 @@ class CppSubmission extends Model implements HasMedia
         'submitted_at',
         'project_id'
     ];
+
+     protected static function booted()
+    {
+        static::creating(function ($submission) {
+
+            $dateString = now()->format('Ymd');
+            $userAgencyAcronym = $submission->user->agency->agency_acronym ?? '000';
+            $prefix = str_replace([' ','-'], '', $userAgencyAcronym) . '-' . $dateString . '-';
+
+            $nextSequenceNumber = DB::transaction(function () use ($prefix) {
+                $lastCppSubmission = CppSubmission::where('project_code', 'like', $prefix . '%')
+                    ->lockForUpdate()
+                    ->latest('id')
+                    ->first();
+                    
+                if ($lastCppSubmission) {
+                    $lastSequenceNumber = (int) substr($lastCppSubmission->project_code, strrpos($lastCppSubmission->project_code, '-') + 1);
+                    return $lastSequenceNumber + 1;
+                }
+
+                return 1;
+            });
+            
+            $paddedSequenceNumber = str_pad($nextSequenceNumber, 3, '0', STR_PAD_LEFT);
+            $submission->project_code = $prefix . $paddedSequenceNumber;
+        });
+    }
 
     protected $casts = [
         'prep_status' => 'array',
